@@ -135,16 +135,16 @@ async function sendEmail(env, { from, to, subject, html }) {
 
 async function sendSMS(env, { phone }) {
   console.log('=== TRANSMIT SMS ===');
-  console.log('Recipient:', phone);
+  console.log('Recipient phone:', phone);
 
   const apiKey = env.TRANSMITSMS_API_KEY;
   const apiSecret = env.TRANSMITSMS_API_SECRET;
   const credentials = btoa(`${apiKey}:${apiSecret}`);
 
   const formData = new URLSearchParams();
-  formData.append('to', phone);
-  formData.append('from', '61426309380');
   formData.append('message', 'Fergus here.');
+  formData.append('list_id', '10962457');
+  formData.append('countrycode', 'au');
 
   console.log('Auth present:', !!apiKey && !!apiSecret);
 
@@ -153,7 +153,7 @@ async function sendSMS(env, { phone }) {
     headers: {
       'Authorization': `Basic ${credentials}`,
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Accept': 'application/json',
+      'Accept': 'text/plain',
     },
     body: formData.toString(),
   });
@@ -165,7 +165,7 @@ async function sendSMS(env, { phone }) {
     throw new Error(`SMS error: ${response.status} ${responseText}`);
   }
 
-  return JSON.parse(responseText);
+  return responseText;
 }
 
 function escapeHtml(text) {

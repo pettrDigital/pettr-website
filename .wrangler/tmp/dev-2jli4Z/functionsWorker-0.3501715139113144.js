@@ -375,21 +375,21 @@ __name(sendEmail, "sendEmail");
 __name2(sendEmail, "sendEmail");
 async function sendSMS(env, { phone }) {
   console.log("=== TRANSMIT SMS ===");
-  console.log("Recipient:", phone);
+  console.log("Recipient phone:", phone);
   const apiKey = env.TRANSMITSMS_API_KEY;
   const apiSecret = env.TRANSMITSMS_API_SECRET;
   const credentials = btoa(`${apiKey}:${apiSecret}`);
   const formData = new URLSearchParams();
-  formData.append("to", phone);
-  formData.append("from", "61426309380");
   formData.append("message", "Fergus here.");
+  formData.append("list_id", "10962457");
+  formData.append("countrycode", "au");
   console.log("Auth present:", !!apiKey && !!apiSecret);
   const response = await fetch("https://api.transmitsms.com/send-sms.json", {
     method: "POST",
     headers: {
       "Authorization": `Basic ${credentials}`,
       "Content-Type": "application/x-www-form-urlencoded",
-      "Accept": "application/json"
+      "Accept": "text/plain"
     },
     body: formData.toString()
   });
@@ -398,7 +398,7 @@ async function sendSMS(env, { phone }) {
   if (!response.ok) {
     throw new Error(`SMS error: ${response.status} ${responseText}`);
   }
-  return JSON.parse(responseText);
+  return responseText;
 }
 __name(sendSMS, "sendSMS");
 __name2(sendSMS, "sendSMS");
