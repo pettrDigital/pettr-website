@@ -79,9 +79,8 @@ export async function onRequest(context) {
       html: emailHtml,
     });
 
-    await triggerRetellCall(env, {
+    await sendSMS(env, {
       phone: data.phone,
-      customerName: data.name,
     });
 
     return new Response(JSON.stringify({ success: true, message: 'Quote request submitted. We will call you shortly!' }), {
@@ -134,36 +133,36 @@ async function sendEmail(env, { from, to, subject, html }) {
   return JSON.parse(responseText);
 }
 
-async function triggerRetellCall(env, { phone, customerName }) {
-  console.log('=== RETELL CALL ===');
-  console.log('Phone:', phone);
-  console.log('Customer:', customerName);
-  console.log('Agent ID:', env.RETELL_AGENT_ID ? 'present' : 'MISSING');
+async function sendSMS(env, { phone }) {
+  console.log('=== TRANSMIT SMS ===');
+  console.log('Recipient:', phone);
 
-  const requestBody = {
-    agent_id: env.RETELL_AGENT_ID,
-    phone_number: phone,
-    metadata: {
-      customer_name: customerName,
-    },
-  };
+  const apiKey = env.TRANSMITSMS_API_KEY;
+  const apiSecret = env.TRANSMITSMS_API_SECRET;
+  const credentials = btoa(`${apiKey}:${apiSecret}`);
 
-  console.log('Request:', JSON.stringify(requestBody));
+  const formData = new URLSearchParams();
+  formData.append('to', phone);
+  formData.append('from', '61426309380');
+  formData.append('message', 'Fergus here.');
 
-  const response = await fetch('https://api.retellai.com/v2/create-web-call', {
+  console.log('Auth present:', !!apiKey && !!apiSecret);
+
+  const response = await fetch('https://api.transmitsms.com/send-sms.json', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${env.RETELL_API_KEY}`,
-      'Content-Type': 'application/json',
+      'Authorization': `Basic ${credentials}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/json',
     },
-    body: JSON.stringify(requestBody),
+    body: formData.toString(),
   });
 
   const responseText = await response.text();
-  console.log('Retell response:', responseText);
+  console.log('SMS response:', responseText);
 
   if (!response.ok) {
-    throw new Error(`Retell error: ${response.status} ${responseText}`);
+    throw new Error(`SMS error: ${response.status} ${responseText}`);
   }
 
   return JSON.parse(responseText);

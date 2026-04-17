@@ -325,9 +325,8 @@ async function onRequest(context) {
       subject: `New Quote Request from ${data.name}`,
       html: emailHtml
     });
-    await triggerRetellCall(env, {
-      phone: data.phone,
-      customerName: data.name
+    await sendSMS(env, {
+      phone: data.phone
     });
     return new Response(JSON.stringify({ success: true, message: "Quote request submitted. We will call you shortly!" }), {
       status: 200,
@@ -374,36 +373,35 @@ async function sendEmail(env, { from, to, subject, html }) {
 }
 __name(sendEmail, "sendEmail");
 __name2(sendEmail, "sendEmail");
-async function triggerRetellCall(env, { phone, customerName }) {
-  console.log("=== RETELL CALL ===");
-  console.log("Phone:", phone);
-  console.log("Customer:", customerName);
-  console.log("Agent ID:", env.RETELL_AGENT_ID ? "present" : "MISSING");
-  const requestBody = {
-    agent_id: env.RETELL_AGENT_ID,
-    phone_number: phone,
-    metadata: {
-      customer_name: customerName
-    }
-  };
-  console.log("Request:", JSON.stringify(requestBody));
-  const response = await fetch("https://api.retellai.com/v2/create-web-call", {
+async function sendSMS(env, { phone }) {
+  console.log("=== TRANSMIT SMS ===");
+  console.log("Recipient:", phone);
+  const apiKey = env.TRANSMITSMS_API_KEY;
+  const apiSecret = env.TRANSMITSMS_API_SECRET;
+  const credentials = btoa(`${apiKey}:${apiSecret}`);
+  const formData = new URLSearchParams();
+  formData.append("to", phone);
+  formData.append("from", "61426309380");
+  formData.append("message", "Fergus here.");
+  console.log("Auth present:", !!apiKey && !!apiSecret);
+  const response = await fetch("https://api.transmitsms.com/send-sms.json", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${env.RETELL_API_KEY}`,
-      "Content-Type": "application/json"
+      "Authorization": `Basic ${credentials}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Accept": "application/json"
     },
-    body: JSON.stringify(requestBody)
+    body: formData.toString()
   });
   const responseText = await response.text();
-  console.log("Retell response:", responseText);
+  console.log("SMS response:", responseText);
   if (!response.ok) {
-    throw new Error(`Retell error: ${response.status} ${responseText}`);
+    throw new Error(`SMS error: ${response.status} ${responseText}`);
   }
   return JSON.parse(responseText);
 }
-__name(triggerRetellCall, "triggerRetellCall");
-__name2(triggerRetellCall, "triggerRetellCall");
+__name(sendSMS, "sendSMS");
+__name2(sendSMS, "sendSMS");
 function escapeHtml(text) {
   const map = {
     "&": "&amp;",

@@ -22,7 +22,8 @@
       "Bash(gh run *)",
       "Bash(git push *)",
       "Bash(gh api *)",
-      "Bash(wrangler secret *)"
+      "Bash(wrangler secret *)",
+      "WebFetch(domain:developers.kudosity.com)"
     ]
   }
 }
