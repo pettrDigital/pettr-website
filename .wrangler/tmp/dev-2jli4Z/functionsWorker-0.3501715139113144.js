@@ -60,21 +60,26 @@ async function onRequest(context) {
 __name(onRequest, "onRequest");
 __name2(onRequest, "onRequest");
 async function sendEmail(env, { from, to, subject, html }) {
+  const requestBody = {
+    api_key: env.SMTP2GO_API_KEY,
+    to: [{ email: to }],
+    from,
+    subject,
+    html_body: html
+  };
+  console.log("Sending email with:", { from, to, subject });
+  console.log("API Key:", env.SMTP2GO_API_KEY ? `${env.SMTP2GO_API_KEY.substring(0, 10)}...` : "MISSING");
   const response = await fetch("https://api.smtp2go.com/v3/email/send", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      api_key: env.SMTP2GO_API_KEY,
-      to: [{ email: to }],
-      from,
-      subject,
-      html_body: html
-    })
+    body: JSON.stringify(requestBody)
   });
+  const responseText = await response.text();
+  console.log("SMTP2Go response:", responseText);
   if (!response.ok) {
-    throw new Error(`SMTP2Go error: ${response.statusText}`);
+    throw new Error(`SMTP2Go error: ${response.status} ${responseText}`);
   }
-  return response.json();
+  return JSON.parse(responseText);
 }
 __name(sendEmail, "sendEmail");
 __name2(sendEmail, "sendEmail");
