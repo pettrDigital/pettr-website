@@ -139,6 +139,11 @@ async function sendSMS(env, { phone }) {
 
   const apiKey = env.TRANSMITSMS_API_KEY;
   const apiSecret = env.TRANSMITSMS_API_SECRET;
+
+  console.log('API Key present:', !!apiKey);
+  console.log('API Secret present:', !!apiSecret);
+  console.log('Env keys:', Object.keys(env).join(', '));
+
   const credentials = btoa(`${apiKey}:${apiSecret}`);
 
   const formData = new URLSearchParams();
@@ -146,7 +151,7 @@ async function sendSMS(env, { phone }) {
   formData.append('list_id', '10962457');
   formData.append('countrycode', 'au');
 
-  console.log('Auth present:', !!apiKey && !!apiSecret);
+  console.log('Base64 credentials:', credentials.substring(0, 20) + '...');
 
   const response = await fetch('https://api.transmitsms.com/send-sms.json', {
     method: 'POST',
