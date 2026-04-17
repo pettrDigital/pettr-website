@@ -3544,7 +3544,7 @@ if (quoteForm) {
     if (!SYDNEY_POSTCODES.has(postcode)) {
       formMessage.style.backgroundColor = '#f8d7da';
       formMessage.style.color = '#721c24';
-      formMessage.textContent = 'Sorry, we do not service that postcode. Please check our service areas.';
+      formMessage.innerHTML = 'Sorry, we do not service that postcode. <a href="service-areas.html" style="color: #721c24; text-decoration: underline;">View our service areas</a>';
       formMessage.style.display = 'block';
       return;
     }

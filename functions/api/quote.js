@@ -56,7 +56,7 @@ export async function onRequest(context) {
     }
 
     if (!isInServiceArea(data.postcode)) {
-      return new Response(JSON.stringify({ error: 'Sorry, we do not service that postcode. Please check our service areas.' }), {
+      return new Response(JSON.stringify({ error: 'Sorry, we do not service that postcode. Please visit service-areas.html to view our service areas.' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
