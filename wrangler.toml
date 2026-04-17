@@ -1,3 +1,9 @@
 name = "pettr-website"
 compatibility_date = "2026-04-09"
 pages_build_output_dir = "."
+main = "src/index.js"
+
+[env.production]
+routes = [
+  { pattern = "api/quote", zone_name = "plumberandelectrician.com.au" }
+]
