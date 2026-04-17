@@ -20,7 +20,8 @@
       "Bash(npm install *)",
       "Bash(gh workflow *)",
       "Bash(gh run *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(gh api *)"
     ]
   }
 }
