@@ -68,7 +68,7 @@ async function sendEmail(env, { from, to, subject, html }) {
   const requestBody = {
     api_key: apiKey,
     to: [to],
-    from,
+    sender: from,
     subject,
     html_body: html
   };
