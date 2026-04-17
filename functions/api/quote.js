@@ -9,13 +9,14 @@ export async function onRequest(context) {
     const formData = await request.formData();
     const data = {
       name: formData.get('name'),
+      email: formData.get('email'),
       phone: formData.get('phone'),
       address: formData.get('address'),
       postcode: formData.get('postcode'),
       message: formData.get('message'),
     };
 
-    if (!data.name || !data.phone || !data.address || !data.postcode || !data.message) {
+    if (!data.name || !data.email || !data.phone || !data.address || !data.postcode || !data.message) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -25,6 +26,7 @@ export async function onRequest(context) {
     const emailHtml = `
       <h2>New Quote Request</h2>
       <p><strong>Name:</strong> ${escapeHtml(data.name)}</p>
+      <p><strong>Email:</strong> ${escapeHtml(data.email)}</p>
       <p><strong>Phone:</strong> ${escapeHtml(data.phone)}</p>
       <p><strong>Address:</strong> ${escapeHtml(data.address)}</p>
       <p><strong>Postcode:</strong> ${escapeHtml(data.postcode)}</p>
