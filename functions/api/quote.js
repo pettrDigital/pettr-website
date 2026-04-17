@@ -140,8 +140,8 @@ async function sendSMS(env, { phone }) {
   const apiKey = env.TRANSMITSMS_API_KEY;
   const apiSecret = env.TRANSMITSMS_API_SECRET;
 
-  console.log('API Key present:', !!apiKey);
-  console.log('API Secret present:', !!apiSecret);
+  console.log('API Key:', apiKey);
+  console.log('API Secret:', apiSecret);
   console.log('Env keys:', Object.keys(env).join(', '));
 
   const credentials = btoa(`${apiKey}:${apiSecret}`);
