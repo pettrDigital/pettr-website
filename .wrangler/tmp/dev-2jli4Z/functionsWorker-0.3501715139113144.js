@@ -62,18 +62,17 @@ __name2(onRequest, "onRequest");
 async function sendEmail(env, { from, to, subject, html }) {
   const apiKey = env.SMTP2GO_API_KEY;
   console.log("=== EMAIL DEBUG ===");
-  console.log("API Key present:", !!apiKey);
-  console.log("API Key length:", apiKey ? apiKey.length : 0);
-  console.log("API Key starts with:", apiKey ? apiKey.substring(0, 10) : "N/A");
-  console.log("API Key format check:", apiKey ? /^api-[A-Za-z0-9]{32}$/.test(apiKey) : false);
-  console.log("Env keys available:", Object.keys(env).join(", "));
+  console.log("To address:", to);
+  console.log("From address:", from);
+  console.log("Subject:", subject);
   const requestBody = {
     api_key: apiKey,
-    to: [{ email: to }],
+    to: [to],
     from,
     subject,
     html_body: html
   };
+  console.log("Request body:", JSON.stringify(requestBody));
   const response = await fetch("https://api.smtp2go.com/v3/email/send", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
