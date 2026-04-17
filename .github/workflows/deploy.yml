@@ -28,3 +28,7 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SMTP2GO_API_KEY: ${{ secrets.SMTP2GO_API_KEY }}
+          RETELL_API_KEY: ${{ secrets.RETELL_API_KEY }}
+          RETELL_AGENT_ID: ${{ secrets.RETELL_AGENT_ID }}
+          QUOTE_EMAIL: ${{ vars.QUOTE_EMAIL }}

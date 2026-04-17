@@ -21,7 +21,8 @@
       "Bash(gh workflow *)",
       "Bash(gh run *)",
       "Bash(git push *)",
-      "Bash(gh api *)"
+      "Bash(gh api *)",
+      "Bash(wrangler secret *)"
     ]
   }
 }
