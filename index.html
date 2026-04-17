@@ -2703,7 +2703,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <button class="form-close-btn" onclick="toggleForm(); return false;" aria-label="Close form">&#x2715;</button>
         </div>
         <div class="form-card-body">
-        <form class="booking-form" action="/api/quote" method="POST">
+        <form class="booking-form" id="quoteForm" action="/api/quote" method="POST">
           <!-- UTM hidden fields - populated by JS -->
           <input type="hidden" name="utm_source"   id="f_utm_source">
           <input type="hidden" name="utm_medium"   id="f_utm_medium">
@@ -2714,7 +2714,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <input type="text"   name="address"      placeholder="Address*" required>
           <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999">
           <textarea            name="message"      placeholder="How Can We Help?*" required rows="3"></textarea>
-          <button type="submit" class="submit-btn">GET FREE QUOTE</button>
+          <button type="submit" class="submit-btn" id="submitBtn">GET FREE QUOTE</button>
+          <div id="formMessage" style="margin-top: 1rem; padding: 1rem; display: none; border-radius: 4px; text-align: center;"></div>
         </form>
         <p class="form-licence">Licence number A3403</p>
         </div><!-- /.form-card-body -->
@@ -3525,6 +3526,52 @@ document.addEventListener("DOMContentLoaded", function () {
     launcher.addEventListener("click", loadTawkAndOpen);
   }
 });
+
+// Handle quote form submission
+const quoteForm = document.getElementById('quoteForm');
+if (quoteForm) {
+  quoteForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const submitBtn = document.getElementById('submitBtn');
+    const formMessage = document.getElementById('formMessage');
+    const originalText = submitBtn.textContent;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+    formMessage.style.display = 'none';
+
+    try {
+      const formData = new FormData(quoteForm);
+      const response = await fetch('/api/quote', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        formMessage.style.backgroundColor = '#d4edda';
+        formMessage.style.color = '#155724';
+        formMessage.textContent = result.message || 'Quote request submitted successfully!';
+        quoteForm.reset();
+      } else {
+        formMessage.style.backgroundColor = '#f8d7da';
+        formMessage.style.color = '#721c24';
+        formMessage.textContent = result.error || 'An error occurred. Please try again.';
+      }
+      formMessage.style.display = 'block';
+    } catch (error) {
+      formMessage.style.backgroundColor = '#f8d7da';
+      formMessage.style.color = '#721c24';
+      formMessage.textContent = 'Network error. Please try again.';
+      formMessage.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    }
+  });
+}
 </script>
 
 </body>

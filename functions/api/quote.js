@@ -94,26 +94,38 @@ async function sendEmail(env, { from, to, subject, html }) {
 }
 
 async function triggerRetellCall(env, { phone, customerName }) {
+  console.log('=== RETELL CALL ===');
+  console.log('Phone:', phone);
+  console.log('Customer:', customerName);
+  console.log('Agent ID:', env.RETELL_AGENT_ID ? 'present' : 'MISSING');
+
+  const requestBody = {
+    agent_id: env.RETELL_AGENT_ID,
+    phone_number: phone,
+    metadata: {
+      customer_name: customerName,
+    },
+  };
+
+  console.log('Request:', JSON.stringify(requestBody));
+
   const response = await fetch('https://api.retellai.com/v2/create-web-call', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${env.RETELL_API_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      agent_id: env.RETELL_AGENT_ID,
-      phone_number: phone,
-      metadata: {
-        customer_name: customerName,
-      },
-    }),
+    body: JSON.stringify(requestBody),
   });
 
+  const responseText = await response.text();
+  console.log('Retell response:', responseText);
+
   if (!response.ok) {
-    throw new Error(`Retell error: ${response.statusText}`);
+    throw new Error(`Retell error: ${response.status} ${responseText}`);
   }
 
-  return response.json();
+  return JSON.parse(responseText);
 }
 
 function escapeHtml(text) {
