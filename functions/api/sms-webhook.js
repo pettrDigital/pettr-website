@@ -197,23 +197,38 @@ async function signJWT(message, privateKey) {
   const { webcrypto } = await import('crypto');
 
   const keyData = privateKey
-    .replace('-----BEGIN PRIVATE KEY-----', '')
-    .replace('-----END PRIVATE KEY-----', '')
-    .replace(/\s/g, '');
+    .replace(/-----BEGIN PRIVATE KEY-----/g, '')
+    .replace(/-----END PRIVATE KEY-----/g, '')
+    .replace(/\\n/g, '')
+    .replace(/\n/g, '')
+    .trim();
 
-  const binaryString = atob(keyData);
+  let binaryString;
+  try {
+    binaryString = atob(keyData);
+  } catch (e) {
+    console.error('Failed to decode key:', e.message);
+    throw new Error('Invalid private key format');
+  }
+
   const bytes = new Uint8Array(binaryString.length);
   for (let i = 0; i < binaryString.length; i++) {
     bytes[i] = binaryString.charCodeAt(i);
   }
 
-  const key = await webcrypto.subtle.importKey(
-    'pkcs8',
-    bytes.buffer,
-    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
+  let key;
+  try {
+    key = await webcrypto.subtle.importKey(
+      'pkcs8',
+      bytes.buffer,
+      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+  } catch (e) {
+    console.error('Failed to import key:', e.message);
+    throw e;
+  }
 
   const encoder = new TextEncoder();
   const signature = await webcrypto.subtle.sign('RSASSA-PKCS1-v1_5', key, encoder.encode(message));
