@@ -340,19 +340,24 @@ async function onRequest(context) {
         name: data.name
       });
     } else if (data.requestType === "booking") {
-      await storeQuoteInFirestore(env, {
-        phone: data.phone,
-        name: data.name,
-        address: data.address,
-        postcode: data.postcode,
-        problem: data.message
+      const trade = data.message.toLowerCase().includes("electrical") ? "electrical" : "plumbing";
+      const problemBrief = await claudeInterpret(env, {
+        problem: data.message,
+        trade
       });
-      await sendSMS(env, {
+      await storeBookingFlowState(env, {
         phone: data.phone,
         name: data.name,
         address: data.address,
         postcode: data.postcode,
-        problem: data.message
+        problem: data.message,
+        trade,
+        step: "message_1_sent",
+        createdAt: (/* @__PURE__ */ new Date()).toISOString()
+      });
+      await sendOutboundSMS(env, {
+        phone: data.phone,
+        message: `Hi ${data.name}, confirming your ${trade} issue at ${data.address} ${data.postcode}. We understand ${problemBrief}. Reply YES to confirm or give corrections`
       });
     }
     return new Response(JSON.stringify({ success: true, message: "Quote request submitted. We will call you shortly!" }), {
@@ -400,35 +405,6 @@ async function sendEmail(env, { from, to, subject, html }) {
 }
 __name(sendEmail, "sendEmail");
 __name2(sendEmail, "sendEmail");
-async function sendSMS(env, { phone, name, address, postcode, problem }) {
-  console.log("=== TRANSMIT SMS ===");
-  console.log("Recipient phone:", phone);
-  const apiKey = env.TRANSMITSMS_API_KEY;
-  const apiSecret = env.TRANSMITSMS_API_SECRET;
-  const credentials = btoa(`${apiKey}:${apiSecret}`);
-  const message = `Hi ${name}, we received your service enquiry: ${problem} at ${address} ${postcode}. Would you like to go ahead and book that service?`;
-  const formData = new URLSearchParams();
-  formData.append("message", message);
-  formData.append("list_id", "10962457");
-  formData.append("countrycode", "au");
-  const response = await fetch("https://api.transmitsms.com/send-sms.json", {
-    method: "POST",
-    headers: {
-      "Authorization": `Basic ${credentials}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-      "Accept": "text/plain"
-    },
-    body: formData.toString()
-  });
-  const responseText = await response.text();
-  console.log("SMS response:", responseText);
-  if (!response.ok) {
-    throw new Error(`SMS error: ${response.status} ${responseText}`);
-  }
-  return responseText;
-}
-__name(sendSMS, "sendSMS");
-__name2(sendSMS, "sendSMS");
 async function triggerRetellCallback(env, { phone, name }) {
   try {
     console.log("=== RETELL CALLBACK ===");
@@ -464,44 +440,96 @@ async function triggerRetellCallback(env, { phone, name }) {
 }
 __name(triggerRetellCallback, "triggerRetellCallback");
 __name2(triggerRetellCallback, "triggerRetellCallback");
-async function storeQuoteInFirestore(env, { phone, name, address, postcode, problem }) {
+async function claudeInterpret(env, { problem, trade }) {
+  const apiKey = env.CLAUDE_API_KEY;
+  if (!apiKey) throw new Error("CLAUDE_API_KEY not configured");
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "claude-opus-4-7",
+      max_tokens: 100,
+      messages: [{
+        role: "user",
+        content: `Briefly summarize this ${trade} issue in one short sentence (under 15 words): "${problem}"`
+      }]
+    })
+  });
+  if (!response.ok) {
+    console.error("Claude error:", response.status);
+    return problem.substring(0, 50);
+  }
+  const result = await response.json();
+  return result.content[0].text;
+}
+__name(claudeInterpret, "claudeInterpret");
+__name2(claudeInterpret, "claudeInterpret");
+async function storeBookingFlowState(env, data) {
   try {
     if (!env.FIREBASE_API_KEY || !env.FIREBASE_PROJECT_ID) {
       console.error("Firebase configuration incomplete");
-      throw new Error("Firebase not configured");
+      return;
     }
     const apiKey = env.FIREBASE_API_KEY;
     const projectId = env.FIREBASE_PROJECT_ID;
-    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/conversations/${phone}?key=${apiKey}`;
+    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/booking_flows/${data.phone}?key=${apiKey}`;
     const response = await fetch(url, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         fields: {
-          name: { stringValue: name },
-          address: { stringValue: address },
-          postcode: { stringValue: postcode },
-          problem: { stringValue: problem },
-          messages: { arrayValue: { values: [] } },
-          createdAt: { stringValue: (/* @__PURE__ */ new Date()).toISOString() },
+          phone: { stringValue: data.phone },
+          name: { stringValue: data.name },
+          address: { stringValue: data.address },
+          postcode: { stringValue: data.postcode },
+          problem: { stringValue: data.problem },
+          trade: { stringValue: data.trade },
+          step: { stringValue: data.step },
+          createdAt: { stringValue: data.createdAt },
           lastUpdated: { stringValue: (/* @__PURE__ */ new Date()).toISOString() }
         }
       })
     });
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Firestore error:", response.status, errorText);
-      throw new Error(`Failed to store quote: ${response.status}`);
+      console.error("Firestore error:", response.status);
     }
-    console.log("Quote stored in Firestore for:", phone);
   } catch (error) {
-    console.error("Error storing quote in Firestore:", error);
+    console.error("Error storing booking flow state:", error);
   }
 }
-__name(storeQuoteInFirestore, "storeQuoteInFirestore");
-__name2(storeQuoteInFirestore, "storeQuoteInFirestore");
+__name(storeBookingFlowState, "storeBookingFlowState");
+__name2(storeBookingFlowState, "storeBookingFlowState");
+async function sendOutboundSMS(env, { phone, message }) {
+  const apiKey = env.TRANSMITSMS_API_KEY;
+  const apiSecret = env.TRANSMITSMS_API_SECRET;
+  const credentials = btoa(`${apiKey}:${apiSecret}`);
+  const formData = new URLSearchParams();
+  formData.append("message", message);
+  formData.append("list_id", "10962457");
+  formData.append("countrycode", "au");
+  const response = await fetch("https://api.transmitsms.com/send-sms.json", {
+    method: "POST",
+    headers: {
+      "Authorization": `Basic ${credentials}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Accept": "text/plain"
+    },
+    body: formData.toString()
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("SMS error:", response.status, errorText);
+    throw new Error(`SMS error: ${response.status}`);
+  }
+  console.log("Outbound SMS sent to:", phone);
+  return response.text();
+}
+__name(sendOutboundSMS, "sendOutboundSMS");
+__name2(sendOutboundSMS, "sendOutboundSMS");
 function escapeHtml(text) {
   const map = {
     "&": "&amp;",
@@ -549,6 +577,12 @@ async function onRequest2(context) {
         headers: { "Content-Type": "application/json" }
       });
     }
+    console.log("Checking for active booking flow...");
+    const bookingFlow = await getFirestoreDoc(env, "booking_flows", phone);
+    if (bookingFlow && bookingFlow.step) {
+      console.log("Found active booking flow, step:", bookingFlow.step);
+      return handleOutboundBookingFlow(env, phone, message, bookingFlow);
+    }
     console.log("Fetching conversation for phone:", phone);
     const conversationData = await getFirestoreDoc(env, "conversations", phone);
     console.log("Conversation data:", conversationData);
@@ -583,7 +617,7 @@ async function onRequest2(context) {
       messages,
       lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
     });
-    await sendSMS2(env, {
+    await sendSMS(env, {
       phone,
       message: claudeResponse
     });
@@ -601,6 +635,144 @@ async function onRequest2(context) {
 }
 __name(onRequest2, "onRequest2");
 __name2(onRequest2, "onRequest");
+async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
+  const step = bookingFlow.step;
+  const isYes = message.toLowerCase().trim() === "yes";
+  try {
+    if (step === "message_1_sent") {
+      if (isYes) {
+        await sendOutboundSMS2(env, {
+          phone,
+          message: `Got it. Two options: (1) TONIGHT - $549 emergency call-out, or (2) STANDARD - Free call-out and quote. Reply TONIGHT or STANDARD`
+        });
+        await updateBookingFlowStep(env, phone, "message_2_sent");
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
+      } else {
+        await sendOutboundSMS2(env, {
+          phone,
+          message: `Thanks for the correction. Please reply with the correct details and we'll update your booking.`
+        });
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+    } else if (step === "message_2_sent") {
+      const choice = message.toLowerCase().trim();
+      if (choice === "tonight") {
+        await sendOutboundSMS2(env, {
+          phone,
+          message: `After-hours booking confirmed. Tech will call back within 5-10 mins. Call-out fee $549. Confirm? YES/NO`
+        });
+        await updateBookingFlowStep(env, phone, "emergency_confirm_sent");
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
+      } else if (choice === "standard") {
+        const slots = await getAvailableSlots(bookingFlow.trade);
+        if (slots.length === 0) {
+          await sendOutboundSMS2(env, {
+            phone,
+            message: `No slots available right now. The team will call you between 7-9:30am tomorrow to lock in a time.`
+          });
+          await updateBookingFlowStep(env, phone, "standard_confirm_sent");
+          return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
+        }
+        const slot = slots[0];
+        await sendOutboundSMS2(env, {
+          phone,
+          message: `${slot.day} ${slot.start_time}-${slot.end_time} with ${slot.tech} - available? Reply YES or give alternate time`
+        });
+        await updateBookingFlowStep(env, phone, "standard_slots_offered", { selectedSlot: JSON.stringify(slot) });
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+    } else if (step === "emergency_confirm_sent") {
+      if (isYes) {
+        await createEmergencyJob(env, bookingFlow);
+        await updateBookingFlowStep(env, phone, "emergency_booked");
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+    } else if (step === "standard_slots_offered") {
+      if (isYes) {
+        const slot = JSON.parse(bookingFlow.selectedSlot || "{}");
+        await createStandardJob(env, bookingFlow, slot);
+        await sendOutboundSMS2(env, {
+          phone,
+          message: `Booked for ${slot.day} ${slot.start_time}-${slot.end_time}. Tech calls 30min before.`
+        });
+        await updateBookingFlowStep(env, phone, "standard_booked");
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
+      } else {
+        await sendOutboundSMS2(env, {
+          phone,
+          message: `Got it. The team will call between 7-9:30am tomorrow to find a time that suits you.`
+        });
+        await updateBookingFlowStep(env, phone, "standard_confirm_sent");
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+    } else if (step === "standard_confirm_sent") {
+      return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+    return new Response(JSON.stringify({ error: "Unknown booking flow step" }), { status: 400, headers: { "Content-Type": "application/json" } });
+  } catch (error) {
+    console.error("Booking flow error:", error);
+    return new Response(JSON.stringify({ error: error.message || "Booking flow error" }), { status: 500, headers: { "Content-Type": "application/json" } });
+  }
+}
+__name(handleOutboundBookingFlow, "handleOutboundBookingFlow");
+__name2(handleOutboundBookingFlow, "handleOutboundBookingFlow");
+async function updateBookingFlowStep(env, phone, step, extras = {}) {
+  const apiKey = env.FIREBASE_API_KEY;
+  const projectId = env.FIREBASE_PROJECT_ID;
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/booking_flows/${phone}?key=${apiKey}`;
+  const updateData = {
+    step: { stringValue: step },
+    lastUpdated: { stringValue: (/* @__PURE__ */ new Date()).toISOString() },
+    ...Object.entries(extras).reduce((acc, [key, val]) => {
+      acc[key] = typeof val === "string" ? { stringValue: val } : val;
+      return acc;
+    }, {})
+  };
+  try {
+    await fetch(url, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fields: updateData })
+    });
+  } catch (error) {
+    console.error("Error updating booking flow step:", error);
+  }
+}
+__name(updateBookingFlowStep, "updateBookingFlowStep");
+__name2(updateBookingFlowStep, "updateBookingFlowStep");
+async function createEmergencyJob(env, bookingFlow) {
+  console.log("Creating emergency job for:", bookingFlow.phone);
+}
+__name(createEmergencyJob, "createEmergencyJob");
+__name2(createEmergencyJob, "createEmergencyJob");
+async function createStandardJob(env, bookingFlow, slot) {
+  console.log("Creating standard job for:", bookingFlow.phone, "slot:", slot);
+}
+__name(createStandardJob, "createStandardJob");
+__name2(createStandardJob, "createStandardJob");
+async function sendOutboundSMS2(env, { phone, message }) {
+  const apiKey = env.TRANSMITSMS_API_KEY;
+  const apiSecret = env.TRANSMITSMS_API_SECRET;
+  const credentials = btoa(`${apiKey}:${apiSecret}`);
+  const formData = new URLSearchParams();
+  formData.append("message", message);
+  formData.append("list_id", "10962457");
+  formData.append("countrycode", "au");
+  const response = await fetch("https://api.transmitsms.com/send-sms.json", {
+    method: "POST",
+    headers: {
+      "Authorization": `Basic ${credentials}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Accept": "text/plain"
+    },
+    body: formData.toString()
+  });
+  if (!response.ok) {
+    console.error("SMS error:", response.status);
+  }
+}
+__name(sendOutboundSMS2, "sendOutboundSMS2");
+__name2(sendOutboundSMS2, "sendOutboundSMS");
 async function getFirestoreDoc(env, collection, docId) {
   const apiKey = env.FIREBASE_API_KEY;
   if (!apiKey) {
@@ -787,7 +959,7 @@ You already have their contact details and address. Help them confirm the bookin
 }
 __name(callClaude, "callClaude");
 __name2(callClaude, "callClaude");
-async function sendSMS2(env, { phone, message }) {
+async function sendSMS(env, { phone, message }) {
   const apiKey = env.TRANSMITSMS_API_KEY;
   const apiSecret = env.TRANSMITSMS_API_SECRET;
   const credentials = btoa(`${apiKey}:${apiSecret}`);
@@ -811,8 +983,8 @@ async function sendSMS2(env, { phone, message }) {
   }
   return responseText;
 }
-__name(sendSMS2, "sendSMS2");
-__name2(sendSMS2, "sendSMS");
+__name(sendSMS, "sendSMS");
+__name2(sendSMS, "sendSMS");
 var routes = [
   {
     routePath: "/api/quote",

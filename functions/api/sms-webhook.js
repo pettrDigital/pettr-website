@@ -45,6 +45,14 @@ export async function onRequest(context) {
       });
     }
 
+    // Check if this is part of an outbound booking flow
+    console.log('Checking for active booking flow...');
+    const bookingFlow = await getFirestoreDoc(env, 'booking_flows', phone);
+    if (bookingFlow && bookingFlow.step) {
+      console.log('Found active booking flow, step:', bookingFlow.step);
+      return handleOutboundBookingFlow(env, phone, message, bookingFlow);
+    }
+
     // Fetch conversation from Firestore using REST API
     console.log('Fetching conversation for phone:', phone);
     const conversationData = await getFirestoreDoc(env, 'conversations', phone);
@@ -106,6 +114,160 @@ export async function onRequest(context) {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
+  }
+}
+
+async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
+  const step = bookingFlow.step;
+  const isYes = message.toLowerCase().trim() === 'yes';
+
+  try {
+    if (step === 'message_1_sent') {
+      // Waiting for YES/corrections to Message 1
+      if (isYes) {
+        // Confirmed, send Message 2 (urgency options)
+        await sendOutboundSMS(env, {
+          phone,
+          message: `Got it. Two options: (1) TONIGHT - $549 emergency call-out, or (2) STANDARD - Free call-out and quote. Reply TONIGHT or STANDARD`,
+        });
+        await updateBookingFlowStep(env, phone, 'message_2_sent');
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      } else {
+        // They gave corrections - ask them to contact support
+        await sendOutboundSMS(env, {
+          phone,
+          message: `Thanks for the correction. Please reply with the correct details and we'll update your booking.`,
+        });
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+    } else if (step === 'message_2_sent') {
+      // Waiting for TONIGHT or STANDARD
+      const choice = message.toLowerCase().trim();
+      if (choice === 'tonight') {
+        await sendOutboundSMS(env, {
+          phone,
+          message: `After-hours booking confirmed. Tech will call back within 5-10 mins. Call-out fee $549. Confirm? YES/NO`,
+        });
+        await updateBookingFlowStep(env, phone, 'emergency_confirm_sent');
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      } else if (choice === 'standard') {
+        // Get available slots
+        const slots = await getAvailableSlots(bookingFlow.trade);
+        if (slots.length === 0) {
+          await sendOutboundSMS(env, {
+            phone,
+            message: `No slots available right now. The team will call you between 7-9:30am tomorrow to lock in a time.`,
+          });
+          await updateBookingFlowStep(env, phone, 'standard_confirm_sent');
+          return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        }
+
+        const slot = slots[0];
+        await sendOutboundSMS(env, {
+          phone,
+          message: `${slot.day} ${slot.start_time}-${slot.end_time} with ${slot.tech} - available? Reply YES or give alternate time`,
+        });
+        await updateBookingFlowStep(env, phone, 'standard_slots_offered', { selectedSlot: JSON.stringify(slot) });
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+    } else if (step === 'emergency_confirm_sent') {
+      if (isYes) {
+        // Create emergency job
+        await createEmergencyJob(env, bookingFlow);
+        await updateBookingFlowStep(env, phone, 'emergency_booked');
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+    } else if (step === 'standard_slots_offered') {
+      if (isYes) {
+        // Create standard job with offered slot
+        const slot = JSON.parse(bookingFlow.selectedSlot || '{}');
+        await createStandardJob(env, bookingFlow, slot);
+        await sendOutboundSMS(env, {
+          phone,
+          message: `Booked for ${slot.day} ${slot.start_time}-${slot.end_time}. Tech calls 30min before.`,
+        });
+        await updateBookingFlowStep(env, phone, 'standard_booked');
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      } else {
+        // They want different time - show next slot or offer coordination
+        await sendOutboundSMS(env, {
+          phone,
+          message: `Got it. The team will call between 7-9:30am tomorrow to find a time that suits you.`,
+        });
+        await updateBookingFlowStep(env, phone, 'standard_confirm_sent');
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+    } else if (step === 'standard_confirm_sent') {
+      // Already confirmed, no more messages needed
+      return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    return new Response(JSON.stringify({ error: 'Unknown booking flow step' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+  } catch (error) {
+    console.error('Booking flow error:', error);
+    return new Response(JSON.stringify({ error: error.message || 'Booking flow error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+  }
+}
+
+async function updateBookingFlowStep(env, phone, step, extras = {}) {
+  const apiKey = env.FIREBASE_API_KEY;
+  const projectId = env.FIREBASE_PROJECT_ID;
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/booking_flows/${phone}?key=${apiKey}`;
+
+  const updateData = {
+    step: { stringValue: step },
+    lastUpdated: { stringValue: new Date().toISOString() },
+    ...Object.entries(extras).reduce((acc, [key, val]) => {
+      acc[key] = typeof val === 'string' ? { stringValue: val } : val;
+      return acc;
+    }, {}),
+  };
+
+  try {
+    await fetch(url, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: updateData }),
+    });
+  } catch (error) {
+    console.error('Error updating booking flow step:', error);
+  }
+}
+
+async function createEmergencyJob(env, bookingFlow) {
+  // Call AroFlo to create emergency job
+  console.log('Creating emergency job for:', bookingFlow.phone);
+  // Implementation would call AroFlo API
+}
+
+async function createStandardJob(env, bookingFlow, slot) {
+  // Call AroFlo to create standard job with specific slot
+  console.log('Creating standard job for:', bookingFlow.phone, 'slot:', slot);
+  // Implementation would call AroFlo API
+}
+
+async function sendOutboundSMS(env, { phone, message }) {
+  const apiKey = env.TRANSMITSMS_API_KEY;
+  const apiSecret = env.TRANSMITSMS_API_SECRET;
+  const credentials = btoa(`${apiKey}:${apiSecret}`);
+
+  const formData = new URLSearchParams();
+  formData.append('message', message);
+  formData.append('list_id', '10962457');
+  formData.append('countrycode', 'au');
+
+  const response = await fetch('https://api.transmitsms.com/send-sms.json', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${credentials}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'text/plain',
+    },
+    body: formData.toString(),
+  });
+
+  if (!response.ok) {
+    console.error('SMS error:', response.status);
   }
 }
 

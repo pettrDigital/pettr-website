@@ -97,21 +97,28 @@ export async function onRequest(context) {
         name: data.name,
       });
     } else if (data.requestType === 'booking') {
-      // Store in Firestore for SMS booking
-      await storeQuoteInFirestore(env, {
-        phone: data.phone,
-        name: data.name,
-        address: data.address,
-        postcode: data.postcode,
+      // Detect trade and send Message 1 of outbound booking flow
+      const trade = data.message.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
+
+      const problemBrief = await claudeInterpret(env, {
         problem: data.message,
+        trade,
       });
 
-      await sendSMS(env, {
+      await storeBookingFlowState(env, {
         phone: data.phone,
         name: data.name,
         address: data.address,
         postcode: data.postcode,
         problem: data.message,
+        trade,
+        step: 'message_1_sent',
+        createdAt: new Date().toISOString(),
+      });
+
+      await sendOutboundSMS(env, {
+        phone: data.phone,
+        message: `Hi ${data.name}, confirming your ${trade} issue at ${data.address} ${data.postcode}. We understand ${problemBrief}. Reply YES to confirm or give corrections`,
       });
     }
 
@@ -279,6 +286,103 @@ async function storeQuoteInFirestore(env, { phone, name, address, postcode, prob
   } catch (error) {
     console.error('Error storing quote in Firestore:', error);
   }
+}
+
+async function claudeInterpret(env, { problem, trade }) {
+  const apiKey = env.CLAUDE_API_KEY;
+  if (!apiKey) throw new Error('CLAUDE_API_KEY not configured');
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'claude-opus-4-7',
+      max_tokens: 100,
+      messages: [{
+        role: 'user',
+        content: `Briefly summarize this ${trade} issue in one short sentence (under 15 words): "${problem}"`,
+      }],
+    }),
+  });
+
+  if (!response.ok) {
+    console.error('Claude error:', response.status);
+    return problem.substring(0, 50);
+  }
+
+  const result = await response.json();
+  return result.content[0].text;
+}
+
+async function storeBookingFlowState(env, data) {
+  try {
+    if (!env.FIREBASE_API_KEY || !env.FIREBASE_PROJECT_ID) {
+      console.error('Firebase configuration incomplete');
+      return;
+    }
+
+    const apiKey = env.FIREBASE_API_KEY;
+    const projectId = env.FIREBASE_PROJECT_ID;
+    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/booking_flows/${data.phone}?key=${apiKey}`;
+
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fields: {
+          phone: { stringValue: data.phone },
+          name: { stringValue: data.name },
+          address: { stringValue: data.address },
+          postcode: { stringValue: data.postcode },
+          problem: { stringValue: data.problem },
+          trade: { stringValue: data.trade },
+          step: { stringValue: data.step },
+          createdAt: { stringValue: data.createdAt },
+          lastUpdated: { stringValue: new Date().toISOString() },
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Firestore error:', response.status);
+    }
+  } catch (error) {
+    console.error('Error storing booking flow state:', error);
+  }
+}
+
+async function sendOutboundSMS(env, { phone, message }) {
+  const apiKey = env.TRANSMITSMS_API_KEY;
+  const apiSecret = env.TRANSMITSMS_API_SECRET;
+  const credentials = btoa(`${apiKey}:${apiSecret}`);
+
+  const formData = new URLSearchParams();
+  formData.append('message', message);
+  formData.append('list_id', '10962457');
+  formData.append('countrycode', 'au');
+
+  const response = await fetch('https://api.transmitsms.com/send-sms.json', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${credentials}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'text/plain',
+    },
+    body: formData.toString(),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('SMS error:', response.status, errorText);
+    throw new Error(`SMS error: ${response.status}`);
+  }
+
+  console.log('Outbound SMS sent to:', phone);
+  return response.text();
 }
 
 function escapeHtml(text) {
