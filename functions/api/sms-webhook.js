@@ -58,6 +58,12 @@ export async function onRequest(context) {
       timestamp: new Date().toISOString(),
     });
 
+    // Get available slots from AroFlo
+    console.log('Fetching available slots...');
+    const trade = conversationData?.problem?.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
+    const availableSlots = await getAvailableSlots(trade);
+    console.log('Available slots:', availableSlots.length);
+
     // Call Claude API to generate response
     console.log('Calling Claude API...');
     const claudeResponse = await callClaude(env, {
@@ -65,6 +71,8 @@ export async function onRequest(context) {
       problem: conversationData?.problem || 'Not specified',
       address: conversationData?.address || '',
       postcode: conversationData?.postcode || '',
+      trade,
+      availableSlots: availableSlots.slice(0, 3), // Top 3 slots
       messages: messages.map(m => ({ role: m.role, content: m.text })),
     });
     console.log('Claude response:', claudeResponse);
@@ -219,12 +227,46 @@ function firestoreValueToJs(field) {
   return null;
 }
 
-async function callClaude(env, { name, problem, address, postcode, messages }) {
+async function getAvailableSlots(trade) {
+  try {
+    const response = await fetch('https://us-central1-pettrdashboards.cloudfunctions.net/aroFloAgent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: 'get_available_slots',
+        arguments: {
+          trade,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('AroFlo API error:', response.status);
+      return [];
+    }
+
+    const data = await response.json();
+    return data.slots || [];
+  } catch (error) {
+    console.error('Error fetching available slots:', error.message);
+    return [];
+  }
+}
+
+async function callClaude(env, { name, problem, address, postcode, trade, availableSlots, messages }) {
   const apiKey = env.CLAUDE_API_KEY;
 
   if (!apiKey) {
     throw new Error('CLAUDE_API_KEY not configured');
   }
+
+  const slotsText = availableSlots && availableSlots.length > 0
+    ? `\n\nAvailable appointment slots:\n${availableSlots
+        .map(slot => `- ${slot.day}, ${slot.start_time}-${slot.end_time} (${slot.tech})`)
+        .join('\n')}`
+    : '';
 
   const systemPrompt = `You are a helpful booking assistant for Plumber & Electrician to the Rescue.
 
@@ -232,8 +274,9 @@ Customer Details:
 - Name: ${name}
 - Address: ${address} ${postcode}
 - Issue: ${problem}
+- Service: ${trade}
 
-You already have their contact details and address. Help them confirm the booking and provide an appointment timeframe or next steps. Be friendly, professional, and brief.`;
+You already have their contact details and address. Help them confirm the booking and offer the available appointment slots below. Be friendly, professional, and brief. Keep responses to 1-2 sentences for SMS.${slotsText}`;
 
   console.log('Claude request - Name:', name, 'Problem:', problem, 'Messages:', messages.length);
 
