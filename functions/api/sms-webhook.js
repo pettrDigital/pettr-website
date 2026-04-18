@@ -39,7 +39,25 @@ export async function onRequest(context) {
     console.log(`SMS received from ${phone}: ${message}`);
 
     // Initialize Firebase
-    const serviceAccount = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT);
+    if (!env.FIREBASE_SERVICE_ACCOUNT) {
+      console.error('FIREBASE_SERVICE_ACCOUNT not configured');
+      return new Response(JSON.stringify({ error: 'Firebase not configured' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    let serviceAccount;
+    try {
+      serviceAccount = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT);
+    } catch (parseError) {
+      console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT:', parseError.message);
+      console.error('Env var length:', env.FIREBASE_SERVICE_ACCOUNT.length);
+      console.error('First 100 chars:', env.FIREBASE_SERVICE_ACCOUNT.substring(0, 100));
+      console.error('Last 100 chars:', env.FIREBASE_SERVICE_ACCOUNT.substring(Math.max(0, env.FIREBASE_SERVICE_ACCOUNT.length - 100)));
+      throw parseError;
+    }
+
     if (!admin.apps.length) {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),

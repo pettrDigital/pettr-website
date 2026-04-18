@@ -27,7 +27,10 @@
       "WebSearch",
       "WebFetch(domain:developer.transmitsms.com)",
       "Bash(firebase init *)",
-      "Bash(firebase deploy *)"
+      "Bash(firebase deploy *)",
+      "Bash(curl *)",
+      "Bash(wrangler tail *)",
+      "Bash(pkill -f \"wrangler pages deployment tail\")"
     ]
   }
 }
