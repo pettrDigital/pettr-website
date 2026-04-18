@@ -63,6 +63,8 @@ export async function onRequest(context) {
     const claudeResponse = await callClaude(env, {
       name: conversationData?.name || 'Customer',
       problem: conversationData?.problem || 'Not specified',
+      address: conversationData?.address || '',
+      postcode: conversationData?.postcode || '',
       messages: messages.map(m => ({ role: m.role, content: m.text })),
     });
     console.log('Claude response:', claudeResponse);
@@ -217,7 +219,7 @@ function firestoreValueToJs(field) {
   return null;
 }
 
-async function callClaude(env, { name, problem, messages }) {
+async function callClaude(env, { name, problem, address, postcode, messages }) {
   const apiKey = env.CLAUDE_API_KEY;
 
   if (!apiKey) {
@@ -225,10 +227,13 @@ async function callClaude(env, { name, problem, messages }) {
   }
 
   const systemPrompt = `You are a helpful booking assistant for Plumber & Electrician to the Rescue.
-The customer ${name} reported this issue: ${problem}
 
-You are helping them book a plumbing or electrical service. Be friendly, professional, and brief.
-Help confirm details and schedule the appointment.`;
+Customer Details:
+- Name: ${name}
+- Address: ${address} ${postcode}
+- Issue: ${problem}
+
+You already have their contact details and address. Help them confirm the booking and provide an appointment timeframe or next steps. Be friendly, professional, and brief.`;
 
   console.log('Claude request - Name:', name, 'Problem:', problem, 'Messages:', messages.length);
 
