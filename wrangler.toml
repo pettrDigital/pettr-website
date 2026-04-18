@@ -1,5 +1,6 @@
 name = "pettr-website"
 compatibility_date = "2026-04-09"
+compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "."
 
 vars = { QUOTE_EMAIL = "fergusg@mrwasher.com.au" }
