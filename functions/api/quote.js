@@ -177,6 +177,7 @@ async function sendSMS(env, { phone, name, address, postcode, problem }) {
 
   const formData = new URLSearchParams();
   formData.append('message', message);
+  formData.append('from', 'PETTR');
   formData.append('list_id', '10962457');
   formData.append('countrycode', 'au');
 
