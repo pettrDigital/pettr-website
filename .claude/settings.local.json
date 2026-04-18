@@ -33,7 +33,8 @@
       "Bash(pkill -f \"wrangler pages deployment tail\")",
       "Bash(awk '{print $2}')",
       "Bash(wrangler kv:namespace *)",
-      "Bash(wrangler kv *)"
+      "Bash(wrangler kv *)",
+      "Bash(grep -v \"^$\")"
     ]
   }
 }
