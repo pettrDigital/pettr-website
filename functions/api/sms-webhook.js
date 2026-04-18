@@ -53,7 +53,7 @@ export async function onRequest(context) {
 
     // Add customer message to history
     messages.push({
-      role: 'customer',
+      role: 'user',
       text: message,
       timestamp: new Date().toISOString(),
     });

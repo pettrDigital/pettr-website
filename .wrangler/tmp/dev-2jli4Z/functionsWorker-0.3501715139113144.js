@@ -551,7 +551,7 @@ async function onRequest2(context) {
     console.log("Conversation data:", conversationData);
     const messages = conversationData?.messages || [];
     messages.push({
-      role: "customer",
+      role: "user",
       text: message,
       timestamp: (/* @__PURE__ */ new Date()).toISOString()
     });
