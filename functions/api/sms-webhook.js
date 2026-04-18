@@ -126,26 +126,9 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
 
   try {
     if (step === 'message_1_sent') {
-      // Waiting for YES/corrections to Message 1
-      if (isYes) {
-        // Confirmed, send Message 2 (urgency options)
-        await sendOutboundSMS(env, {
-          phone,
-          message: `Got it. Two options: (1) TONIGHT - $549 emergency call-out, or (2) STANDARD - Free call-out and quote. Reply TONIGHT or STANDARD`,
-        });
-        await updateBookingFlowStep(env, phone, 'message_2_sent');
-        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-      } else {
-        // They gave corrections - ask them to contact support
-        await sendOutboundSMS(env, {
-          phone,
-          message: `Thanks for the correction. Please reply with the correct details and we'll update your booking.`,
-        });
-        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-      }
-    } else if (step === 'message_2_sent') {
-      // Waiting for TONIGHT or STANDARD
+      // Waiting for TONIGHT/STANDARD/corrections response to combined Message 1
       const choice = message.toLowerCase().trim();
+
       if (choice === 'tonight') {
         await sendOutboundSMS(env, {
           phone,
@@ -171,6 +154,13 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
           message: `${slot.day} ${slot.start_time}-${slot.end_time} with ${slot.tech} - available? Reply YES or give alternate time`,
         });
         await updateBookingFlowStep(env, phone, 'standard_slots_offered', { selectedSlot: JSON.stringify(slot) });
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      } else {
+        // They gave corrections/issues - ask for clarification
+        await sendOutboundSMS(env, {
+          phone,
+          message: `Thanks for letting us know. Please reply with the correct details and reply TONIGHT or STANDARD when ready.`,
+        });
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
       }
     } else if (step === 'emergency_confirm_sent') {

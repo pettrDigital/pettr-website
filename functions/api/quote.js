@@ -124,12 +124,12 @@ export async function onRequest(context) {
       });
       console.log('Booking flow state stored');
 
-      const smsMessage = `Hi ${data.name}, confirming your ${trade} issue at ${data.address} ${data.postcode}. We understand ${problemBrief}. Reply YES to confirm or give corrections`;
+      const smsMessage = `Hi ${data.name}, confirming your ${trade} issue at ${data.address} ${data.postcode}. We understand ${problemBrief}. Two options: (1) TONIGHT - $549 emergency call-out, or (2) STANDARD - Free call-out and quote. Reply TONIGHT or STANDARD or give corrections`;
       await sendBookingSMS(env, {
         phone: data.phone,
         message: smsMessage,
       });
-      console.log('Message 1 SMS sent to:', data.phone);
+      console.log('Message 1 (combined) SMS sent to:', data.phone);
     }
 
     return new Response(JSON.stringify({ success: true, message: 'Quote request submitted. We will call you shortly!' }), {

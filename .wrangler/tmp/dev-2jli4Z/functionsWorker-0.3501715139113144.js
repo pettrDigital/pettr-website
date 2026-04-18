@@ -362,12 +362,12 @@ async function onRequest(context) {
         createdAt: (/* @__PURE__ */ new Date()).toISOString()
       });
       console.log("Booking flow state stored");
-      const smsMessage = `Hi ${data.name}, confirming your ${trade} issue at ${data.address} ${data.postcode}. We understand ${problemBrief}. Reply YES to confirm or give corrections`;
+      const smsMessage = `Hi ${data.name}, confirming your ${trade} issue at ${data.address} ${data.postcode}. We understand ${problemBrief}. Two options: (1) TONIGHT - $549 emergency call-out, or (2) STANDARD - Free call-out and quote. Reply TONIGHT or STANDARD or give corrections`;
       await sendBookingSMS(env, {
         phone: data.phone,
         message: smsMessage
       });
-      console.log("Message 1 SMS sent to:", data.phone);
+      console.log("Message 1 (combined) SMS sent to:", data.phone);
     }
     return new Response(JSON.stringify({ success: true, message: "Quote request submitted. We will call you shortly!" }), {
       status: 200,
@@ -665,21 +665,6 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
   const isYes = message.toLowerCase().trim() === "yes";
   try {
     if (step === "message_1_sent") {
-      if (isYes) {
-        await sendOutboundSMS(env, {
-          phone,
-          message: `Got it. Two options: (1) TONIGHT - $549 emergency call-out, or (2) STANDARD - Free call-out and quote. Reply TONIGHT or STANDARD`
-        });
-        await updateBookingFlowStep(env, phone, "message_2_sent");
-        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
-      } else {
-        await sendOutboundSMS(env, {
-          phone,
-          message: `Thanks for the correction. Please reply with the correct details and we'll update your booking.`
-        });
-        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
-      }
-    } else if (step === "message_2_sent") {
       const choice = message.toLowerCase().trim();
       if (choice === "tonight") {
         await sendOutboundSMS(env, {
@@ -704,6 +689,12 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
           message: `${slot.day} ${slot.start_time}-${slot.end_time} with ${slot.tech} - available? Reply YES or give alternate time`
         });
         await updateBookingFlowStep(env, phone, "standard_slots_offered", { selectedSlot: JSON.stringify(slot) });
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
+      } else {
+        await sendOutboundSMS(env, {
+          phone,
+          message: `Thanks for letting us know. Please reply with the correct details and reply TONIGHT or STANDARD when ready.`
+        });
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
       }
     } else if (step === "emergency_confirm_sent") {
