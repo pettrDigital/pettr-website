@@ -34,7 +34,9 @@
       "Bash(awk '{print $2}')",
       "Bash(wrangler kv:namespace *)",
       "Bash(wrangler kv *)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(cat)",
+      "Bash(node /tmp/test_firebase_decode.js)"
     ]
   }
 }
