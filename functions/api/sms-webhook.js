@@ -34,7 +34,10 @@ export async function onRequest(context) {
       });
     }
 
-    console.log(`SMS received from ${phone}: ${message}`);
+    console.log('=== INBOUND SMS RECEIVED ===');
+    console.log('Phone:', phone);
+    console.log('Message:', message);
+    console.log('Timestamp:', new Date().toISOString());
 
     // Check Firebase configuration
     if (!env.FIREBASE_API_KEY || !env.FIREBASE_PROJECT_ID) {
@@ -247,6 +250,10 @@ async function createStandardJob(env, bookingFlow, slot) {
 }
 
 async function sendOutboundSMS(env, { phone, message }) {
+  console.log('=== SENDING OUTBOUND SMS ===');
+  console.log('To:', phone);
+  console.log('Message:', message);
+
   const apiKey = env.TRANSMITSMS_API_KEY;
   const apiSecret = env.TRANSMITSMS_API_SECRET;
   const credentials = btoa(`${apiKey}:${apiSecret}`);
@@ -265,6 +272,10 @@ async function sendOutboundSMS(env, { phone, message }) {
     },
     body: formData.toString(),
   });
+
+  const responseText = await response.text();
+  console.log('SMS response status:', response.status);
+  console.log('SMS response:', responseText);
 
   if (!response.ok) {
     console.error('SMS error:', response.status);

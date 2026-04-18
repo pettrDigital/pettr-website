@@ -340,11 +340,17 @@ async function onRequest(context) {
         name: data.name
       });
     } else if (data.requestType === "booking") {
+      console.log("=== BOOKING FLOW INITIATED ===");
+      console.log("Phone:", data.phone);
+      console.log("Name:", data.name);
+      console.log("Problem:", data.message);
       const trade = data.message.toLowerCase().includes("electrical") ? "electrical" : "plumbing";
+      console.log("Detected trade:", trade);
       const problemBrief = await claudeInterpret(env, {
         problem: data.message,
         trade
       });
+      console.log("Claude summary:", problemBrief);
       await storeBookingFlowState(env, {
         phone: data.phone,
         name: data.name,
@@ -355,10 +361,13 @@ async function onRequest(context) {
         step: "message_1_sent",
         createdAt: (/* @__PURE__ */ new Date()).toISOString()
       });
-      await sendOutboundSMS(env, {
+      console.log("Booking flow state stored");
+      const smsMessage = `Hi ${data.name}, confirming your ${trade} issue at ${data.address} ${data.postcode}. We understand ${problemBrief}. Reply YES to confirm or give corrections`;
+      await sendBookingSMS(env, {
         phone: data.phone,
-        message: `Hi ${data.name}, confirming your ${trade} issue at ${data.address} ${data.postcode}. We understand ${problemBrief}. Reply YES to confirm or give corrections`
+        message: smsMessage
       });
+      console.log("Message 1 SMS sent to:", data.phone);
     }
     return new Response(JSON.stringify({ success: true, message: "Quote request submitted. We will call you shortly!" }), {
       status: 200,
@@ -503,9 +512,16 @@ async function storeBookingFlowState(env, data) {
 }
 __name(storeBookingFlowState, "storeBookingFlowState");
 __name2(storeBookingFlowState, "storeBookingFlowState");
-async function sendOutboundSMS(env, { phone, message }) {
+async function sendBookingSMS(env, { phone, message }) {
+  console.log("=== SENDING BOOKING SMS ===");
+  console.log("To:", phone);
+  console.log("Message:", message);
   const apiKey = env.TRANSMITSMS_API_KEY;
   const apiSecret = env.TRANSMITSMS_API_SECRET;
+  if (!apiKey || !apiSecret) {
+    console.error("SMS credentials not configured");
+    throw new Error("SMS credentials not configured");
+  }
   const credentials = btoa(`${apiKey}:${apiSecret}`);
   const formData = new URLSearchParams();
   formData.append("message", message);
@@ -520,16 +536,17 @@ async function sendOutboundSMS(env, { phone, message }) {
     },
     body: formData.toString()
   });
+  const responseText = await response.text();
+  console.log("SMS response status:", response.status);
+  console.log("SMS response:", responseText);
   if (!response.ok) {
-    const errorText = await response.text();
-    console.error("SMS error:", response.status, errorText);
+    console.error("SMS error:", response.status, responseText);
     throw new Error(`SMS error: ${response.status}`);
   }
-  console.log("Outbound SMS sent to:", phone);
-  return response.text();
+  return responseText;
 }
-__name(sendOutboundSMS, "sendOutboundSMS");
-__name2(sendOutboundSMS, "sendOutboundSMS");
+__name(sendBookingSMS, "sendBookingSMS");
+__name2(sendBookingSMS, "sendBookingSMS");
 function escapeHtml(text) {
   const map = {
     "&": "&amp;",
@@ -569,7 +586,10 @@ async function onRequest2(context) {
         headers: { "Content-Type": "application/json" }
       });
     }
-    console.log(`SMS received from ${phone}: ${message}`);
+    console.log("=== INBOUND SMS RECEIVED ===");
+    console.log("Phone:", phone);
+    console.log("Message:", message);
+    console.log("Timestamp:", (/* @__PURE__ */ new Date()).toISOString());
     if (!env.FIREBASE_API_KEY || !env.FIREBASE_PROJECT_ID) {
       console.error("Firebase configuration incomplete");
       return new Response(JSON.stringify({ error: "Firebase not configured" }), {
@@ -641,14 +661,14 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
   try {
     if (step === "message_1_sent") {
       if (isYes) {
-        await sendOutboundSMS2(env, {
+        await sendOutboundSMS(env, {
           phone,
           message: `Got it. Two options: (1) TONIGHT - $549 emergency call-out, or (2) STANDARD - Free call-out and quote. Reply TONIGHT or STANDARD`
         });
         await updateBookingFlowStep(env, phone, "message_2_sent");
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
       } else {
-        await sendOutboundSMS2(env, {
+        await sendOutboundSMS(env, {
           phone,
           message: `Thanks for the correction. Please reply with the correct details and we'll update your booking.`
         });
@@ -657,7 +677,7 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
     } else if (step === "message_2_sent") {
       const choice = message.toLowerCase().trim();
       if (choice === "tonight") {
-        await sendOutboundSMS2(env, {
+        await sendOutboundSMS(env, {
           phone,
           message: `After-hours booking confirmed. Tech will call back within 5-10 mins. Call-out fee $549. Confirm? YES/NO`
         });
@@ -666,7 +686,7 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
       } else if (choice === "standard") {
         const slots = await getAvailableSlots(bookingFlow.trade);
         if (slots.length === 0) {
-          await sendOutboundSMS2(env, {
+          await sendOutboundSMS(env, {
             phone,
             message: `No slots available right now. The team will call you between 7-9:30am tomorrow to lock in a time.`
           });
@@ -674,7 +694,7 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
           return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
         }
         const slot = slots[0];
-        await sendOutboundSMS2(env, {
+        await sendOutboundSMS(env, {
           phone,
           message: `${slot.day} ${slot.start_time}-${slot.end_time} with ${slot.tech} - available? Reply YES or give alternate time`
         });
@@ -691,14 +711,14 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
       if (isYes) {
         const slot = JSON.parse(bookingFlow.selectedSlot || "{}");
         await createStandardJob(env, bookingFlow, slot);
-        await sendOutboundSMS2(env, {
+        await sendOutboundSMS(env, {
           phone,
           message: `Booked for ${slot.day} ${slot.start_time}-${slot.end_time}. Tech calls 30min before.`
         });
         await updateBookingFlowStep(env, phone, "standard_booked");
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
       } else {
-        await sendOutboundSMS2(env, {
+        await sendOutboundSMS(env, {
           phone,
           message: `Got it. The team will call between 7-9:30am tomorrow to find a time that suits you.`
         });
@@ -750,7 +770,10 @@ async function createStandardJob(env, bookingFlow, slot) {
 }
 __name(createStandardJob, "createStandardJob");
 __name2(createStandardJob, "createStandardJob");
-async function sendOutboundSMS2(env, { phone, message }) {
+async function sendOutboundSMS(env, { phone, message }) {
+  console.log("=== SENDING OUTBOUND SMS ===");
+  console.log("To:", phone);
+  console.log("Message:", message);
   const apiKey = env.TRANSMITSMS_API_KEY;
   const apiSecret = env.TRANSMITSMS_API_SECRET;
   const credentials = btoa(`${apiKey}:${apiSecret}`);
@@ -767,12 +790,15 @@ async function sendOutboundSMS2(env, { phone, message }) {
     },
     body: formData.toString()
   });
+  const responseText = await response.text();
+  console.log("SMS response status:", response.status);
+  console.log("SMS response:", responseText);
   if (!response.ok) {
     console.error("SMS error:", response.status);
   }
 }
-__name(sendOutboundSMS2, "sendOutboundSMS2");
-__name2(sendOutboundSMS2, "sendOutboundSMS");
+__name(sendOutboundSMS, "sendOutboundSMS");
+__name2(sendOutboundSMS, "sendOutboundSMS");
 async function getFirestoreDoc(env, collection, docId) {
   const apiKey = env.FIREBASE_API_KEY;
   if (!apiKey) {

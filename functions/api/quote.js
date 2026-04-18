@@ -97,13 +97,20 @@ export async function onRequest(context) {
         name: data.name,
       });
     } else if (data.requestType === 'booking') {
+      console.log('=== BOOKING FLOW INITIATED ===');
+      console.log('Phone:', data.phone);
+      console.log('Name:', data.name);
+      console.log('Problem:', data.message);
+
       // Detect trade and send Message 1 of outbound booking flow
       const trade = data.message.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
+      console.log('Detected trade:', trade);
 
       const problemBrief = await claudeInterpret(env, {
         problem: data.message,
         trade,
       });
+      console.log('Claude summary:', problemBrief);
 
       await storeBookingFlowState(env, {
         phone: data.phone,
@@ -115,11 +122,14 @@ export async function onRequest(context) {
         step: 'message_1_sent',
         createdAt: new Date().toISOString(),
       });
+      console.log('Booking flow state stored');
 
-      await sendOutboundSMS(env, {
+      const smsMessage = `Hi ${data.name}, confirming your ${trade} issue at ${data.address} ${data.postcode}. We understand ${problemBrief}. Reply YES to confirm or give corrections`;
+      await sendBookingSMS(env, {
         phone: data.phone,
-        message: `Hi ${data.name}, confirming your ${trade} issue at ${data.address} ${data.postcode}. We understand ${problemBrief}. Reply YES to confirm or give corrections`,
+        message: smsMessage,
       });
+      console.log('Message 1 SMS sent to:', data.phone);
     }
 
     return new Response(JSON.stringify({ success: true, message: 'Quote request submitted. We will call you shortly!' }), {
@@ -355,9 +365,19 @@ async function storeBookingFlowState(env, data) {
   }
 }
 
-async function sendOutboundSMS(env, { phone, message }) {
+async function sendBookingSMS(env, { phone, message }) {
+  console.log('=== SENDING BOOKING SMS ===');
+  console.log('To:', phone);
+  console.log('Message:', message);
+
   const apiKey = env.TRANSMITSMS_API_KEY;
   const apiSecret = env.TRANSMITSMS_API_SECRET;
+
+  if (!apiKey || !apiSecret) {
+    console.error('SMS credentials not configured');
+    throw new Error('SMS credentials not configured');
+  }
+
   const credentials = btoa(`${apiKey}:${apiSecret}`);
 
   const formData = new URLSearchParams();
@@ -375,14 +395,16 @@ async function sendOutboundSMS(env, { phone, message }) {
     body: formData.toString(),
   });
 
+  const responseText = await response.text();
+  console.log('SMS response status:', response.status);
+  console.log('SMS response:', responseText);
+
   if (!response.ok) {
-    const errorText = await response.text();
-    console.error('SMS error:', response.status, errorText);
+    console.error('SMS error:', response.status, responseText);
     throw new Error(`SMS error: ${response.status}`);
   }
 
-  console.log('Outbound SMS sent to:', phone);
-  return response.text();
+  return responseText;
 }
 
 function escapeHtml(text) {
