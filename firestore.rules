@@ -7,5 +7,10 @@ service cloud.firestore {
     match /conversations/{phone} {
       allow read, write: if true;
     }
+
+    // Booking flow state - SMS guided booking
+    match /booking_flows/{phone} {
+      allow read, write: if true;
+    }
   }
 }

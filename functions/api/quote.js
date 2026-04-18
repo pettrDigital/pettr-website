@@ -368,10 +368,13 @@ async function storeBookingFlowState(env, data) {
 async function sendBookingSMS(env, { phone, message }) {
   console.log('=== SENDING BOOKING SMS ===');
   console.log('To:', phone);
-  console.log('Message:', message);
+  console.log('Message length:', message.length);
 
   const apiKey = env.TRANSMITSMS_API_KEY;
   const apiSecret = env.TRANSMITSMS_API_SECRET;
+
+  console.log('API Key present:', !!apiKey);
+  console.log('API Secret present:', !!apiSecret);
 
   if (!apiKey || !apiSecret) {
     console.error('SMS credentials not configured');
@@ -385,6 +388,7 @@ async function sendBookingSMS(env, { phone, message }) {
   formData.append('list_id', '10962457');
   formData.append('countrycode', 'au');
 
+  console.log('Sending to Transmit SMS API...');
   const response = await fetch('https://api.transmitsms.com/send-sms.json', {
     method: 'POST',
     headers: {
@@ -397,13 +401,15 @@ async function sendBookingSMS(env, { phone, message }) {
 
   const responseText = await response.text();
   console.log('SMS response status:', response.status);
-  console.log('SMS response:', responseText);
+  console.log('SMS response:', responseText.substring(0, 200));
 
   if (!response.ok) {
-    console.error('SMS error:', response.status, responseText);
+    console.error('SMS error - status:', response.status);
+    console.error('SMS error - body:', responseText);
     throw new Error(`SMS error: ${response.status}`);
   }
 
+  console.log('SMS sent successfully');
   return responseText;
 }
 
