@@ -1,3 +1,5 @@
+import * as admin from 'firebase-admin';
+
 const SYDNEY_POSTCODES = new Set([
   // Sydney CBD & Inner
   2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2015, 2016, 2017, 2018, 2019, 2020, 2021,
@@ -96,6 +98,15 @@ export async function onRequest(context) {
         name: data.name,
       });
     } else if (data.requestType === 'booking') {
+      // Store in Firestore for SMS booking
+      await storeQuoteInFirestore(env, {
+        phone: data.phone,
+        name: data.name,
+        address: data.address,
+        postcode: data.postcode,
+        problem: data.message,
+      });
+
       await sendSMS(env, {
         phone: data.phone,
         name: data.name,
@@ -224,6 +235,33 @@ async function triggerRetellCallback(env, { phone, name }) {
     return result;
   } catch (error) {
     console.error('Error triggering Retell callback:', error);
+  }
+}
+
+async function storeQuoteInFirestore(env, { phone, name, address, postcode, problem }) {
+  try {
+    const serviceAccount = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT);
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        projectId: serviceAccount.project_id,
+      });
+    }
+
+    const db = admin.firestore();
+    await db.collection('conversations').doc(phone).set({
+      name,
+      address,
+      postcode,
+      problem,
+      messages: [],
+      createdAt: new Date().toISOString(),
+      lastUpdated: new Date().toISOString(),
+    });
+
+    console.log('Quote stored in Firestore for:', phone);
+  } catch (error) {
+    console.error('Error storing quote in Firestore:', error);
   }
 }
 
