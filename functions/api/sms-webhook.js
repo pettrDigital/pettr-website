@@ -196,18 +196,25 @@ async function getFirebaseAccessToken(serviceAccount) {
 async function signJWT(message, privateKey) {
   const { webcrypto } = await import('crypto');
 
+  console.log('Private key length:', privateKey.length);
+  console.log('First 50 chars:', privateKey.substring(0, 50));
+
   const keyData = privateKey
     .replace(/-----BEGIN PRIVATE KEY-----/g, '')
     .replace(/-----END PRIVATE KEY-----/g, '')
-    .replace(/\\n/g, '')
-    .replace(/\n/g, '')
-    .trim();
+    .replace(/\\n/g, '\n')
+    .split('\n')
+    .filter(line => line.trim())
+    .join('');
+
+  console.log('Key data length:', keyData.length);
 
   let binaryString;
   try {
     binaryString = atob(keyData);
   } catch (e) {
     console.error('Failed to decode key:', e.message);
+    console.error('Key data sample:', keyData.substring(0, 100));
     throw new Error('Invalid private key format');
   }
 
