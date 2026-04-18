@@ -39,6 +39,8 @@ export async function onRequest(context) {
 
   try {
     const formData = await request.formData();
+    const requestType = formData.get('requestType');
+
     const data = {
       name: formData.get('name'),
       email: formData.get('email'),
@@ -46,10 +48,18 @@ export async function onRequest(context) {
       address: formData.get('address'),
       postcode: formData.get('postcode'),
       message: formData.get('message'),
+      requestType,
     };
 
-    if (!data.name || !data.email || !data.phone || !data.address || !data.postcode || !data.message) {
+    if (!data.name || !data.phone || !data.address || !data.postcode || !data.message || !requestType) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (requestType === 'callback' && !data.email) {
+      return new Response(JSON.stringify({ error: 'Email is required for call back requests' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -62,26 +72,35 @@ export async function onRequest(context) {
       });
     }
 
-    const emailHtml = `
-      <h2>New Quote Request</h2>
-      <p><strong>Name:</strong> ${escapeHtml(data.name)}</p>
-      <p><strong>Email:</strong> ${escapeHtml(data.email)}</p>
-      <p><strong>Phone:</strong> ${escapeHtml(data.phone)}</p>
-      <p><strong>Address:</strong> ${escapeHtml(data.address)}</p>
-      <p><strong>Postcode:</strong> ${escapeHtml(data.postcode)}</p>
-      <p><strong>Message:</strong> ${escapeHtml(data.message).replace(/\n/g, '<br>')}</p>
-    `;
+    if (data.requestType === 'callback') {
+      const emailHtml = `
+        <h2>New Quote Request - Call Back</h2>
+        <p><strong>Name:</strong> ${escapeHtml(data.name)}</p>
+        <p><strong>Email:</strong> ${escapeHtml(data.email)}</p>
+        <p><strong>Phone:</strong> ${escapeHtml(data.phone)}</p>
+        <p><strong>Address:</strong> ${escapeHtml(data.address)}</p>
+        <p><strong>Postcode:</strong> ${escapeHtml(data.postcode)}</p>
+        <p><strong>Message:</strong> ${escapeHtml(data.message).replace(/\n/g, '<br>')}</p>
+      `;
 
-    await sendEmail(env, {
-      from: 'webform@plumberandelectrician.com.au',
-      to: env.QUOTE_EMAIL,
-      subject: `New Quote Request from ${data.name}`,
-      html: emailHtml,
-    });
+      await sendEmail(env, {
+        from: 'webform@plumberandelectrician.com.au',
+        to: env.QUOTE_EMAIL,
+        subject: `New Quote Request from ${data.name}`,
+        html: emailHtml,
+      });
 
-    await sendSMS(env, {
-      phone: data.phone,
-    });
+      console.log('Triggering Retell callback for:', data.phone);
+      await triggerRetellCallback(env, {
+        phone: data.phone,
+        name: data.name,
+      });
+    } else if (data.requestType === 'booking') {
+      await sendSMS(env, {
+        phone: data.phone,
+        name: data.name,
+      });
+    }
 
     return new Response(JSON.stringify({ success: true, message: 'Quote request submitted. We will call you shortly!' }), {
       status: 200,
@@ -133,7 +152,7 @@ async function sendEmail(env, { from, to, subject, html }) {
   return JSON.parse(responseText);
 }
 
-async function sendSMS(env, { phone }) {
+async function sendSMS(env, { phone, name }) {
   console.log('=== TRANSMIT SMS ===');
   console.log('Recipient phone:', phone);
 
@@ -141,8 +160,10 @@ async function sendSMS(env, { phone }) {
   const apiSecret = env.TRANSMITSMS_API_SECRET;
   const credentials = btoa(`${apiKey}:${apiSecret}`);
 
+  const message = `Hi ${name}, thanks for your quote request. Reply to this message to confirm your booking!`;
+
   const formData = new URLSearchParams();
-  formData.append('message', 'Thanks for your quote request. We\'ll be in touch soon!');
+  formData.append('message', message);
   formData.append('list_id', '10962457');
   formData.append('countrycode', 'au');
 
@@ -164,6 +185,46 @@ async function sendSMS(env, { phone }) {
   }
 
   return responseText;
+}
+
+async function triggerRetellCallback(env, { phone, name }) {
+  try {
+    console.log('=== RETELL CALLBACK ===');
+    console.log('Phone:', phone);
+    console.log('Name:', name);
+
+    const retellApiKey = env.RETELL_API_KEY;
+    const retellAgentId = env.RETELL_AGENT_ID;
+
+    if (!retellApiKey || !retellAgentId) {
+      console.error('Retell API key or agent ID not configured');
+      return;
+    }
+
+    const response = await fetch('https://api.retell.ai/v2/create-web-call', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${retellApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        agent_id: retellAgentId,
+        phone_number: phone.replace(/\D/g, ''),
+        user_name: name,
+      }),
+    });
+
+    const result = await response.json();
+    console.log('Retell response:', JSON.stringify(result));
+
+    if (!response.ok) {
+      console.error('Retell error:', result);
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error triggering Retell callback:', error);
+  }
 }
 
 function escapeHtml(text) {
