@@ -512,6 +512,47 @@ ul { list-style: none; }
 }
 #quote-form.form-hidden { display: none !important; }
 
+/* Booking Options */
+.booking-options { padding: 0; }
+.booking-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 16px 18px 22px;
+  background: transparent;
+}
+.booking-option-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 20px 12px;
+  background: rgba(255,255,255,0.12);
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 7px;
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all .2s ease;
+  text-decoration: none;
+}
+.booking-option-btn:hover,
+.booking-option-btn:active {
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(255,255,255,0.35);
+  transform: translateY(-2px);
+}
+.option-label {
+  font-weight: 700;
+  font-size: 16px;
+}
+.option-desc {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
 .form-card {
   width: 100%;
   background: var(--blue);
@@ -2695,31 +2736,98 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 </div>
 
-    <!-- Right column: booking form -->
+    <!-- Right column: booking options & form -->
     <div id="quote-form" class="form-hidden">
       <div class="form-card" id="hero-form">
-        <div class="form-card-header">
-          <h2>How Can We <span style="color:var(--yellow)">Help You?</span></h2>
-          <button class="form-close-btn" onclick="toggleForm(); return false;" aria-label="Close form">&#x2715;</button>
+
+        <!-- BOOKING OPTIONS -->
+        <div id="bookingOptions" class="booking-options">
+          <div class="form-card-header">
+            <h2>How would you like to<span style="color:var(--yellow)"> proceed?</span></h2>
+          </div>
+          <div class="booking-options-grid">
+            <button type="button" class="booking-option-btn" onclick="selectBookingOption('emergency')">
+              <div class="option-label">Emergency</div>
+              <div class="option-desc">$549 call-out</div>
+            </button>
+            <a href="tel:0258393807" class="booking-option-btn">
+              <div class="option-label">Call Us</div>
+              <div class="option-desc">02 5839 3807</div>
+            </a>
+            <button type="button" class="booking-option-btn" onclick="selectBookingOption('sms')">
+              <div class="option-label">Text</div>
+              <div class="option-desc">Chat here</div>
+            </button>
+            <button type="button" class="booking-option-btn" onclick="selectBookingOption('callback')">
+              <div class="option-label">Callback</div>
+              <div class="option-desc">Standard hours</div>
+            </button>
+          </div>
         </div>
-        <div class="form-card-body">
-        <form class="booking-form" id="quoteForm" action="/api/quote" method="POST">
-          <!-- UTM hidden fields - populated by JS -->
-          <input type="hidden" name="utm_source"   id="f_utm_source">
-          <input type="hidden" name="utm_medium"   id="f_utm_medium">
-          <input type="hidden" name="utm_campaign" id="f_utm_campaign">
-          <input type="hidden" name="utm_term"     id="f_utm_term">
-          <input type="text"   name="name"         placeholder="Name*" required>
-          <input type="email"  name="email"        placeholder="Email*" required>
-          <input type="tel"    name="phone"        placeholder="Phone*" required>
-          <input type="text"   name="address"      placeholder="Address*" required>
-          <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999">
-          <textarea            name="message"      placeholder="How Can We Help?*" required rows="3"></textarea>
-          <button type="submit" class="submit-btn" id="submitBtn">GET FREE QUOTE</button>
-          <div id="formMessage" style="margin-top: 1rem; padding: 1rem; display: none; border-radius: 4px; text-align: center;"></div>
-        </form>
-        <p class="form-licence">Licence number A3403</p>
-        </div><!-- /.form-card-body -->
+
+        <!-- EMERGENCY FORM -->
+        <div id="emergencyFormContainer" style="display: none;">
+          <div class="form-card-header">
+            <h2>Emergency <span style="color:var(--yellow)">Request</span></h2>
+            <button class="form-close-btn" onclick="backToOptions(); return false;" aria-label="Back">← Back</button>
+          </div>
+          <div class="form-card-body">
+            <form class="booking-form" id="emergencyForm" action="/api/quote" method="POST">
+              <input type="hidden" name="isEmergency" value="true">
+              <input type="hidden" name="utm_source"   id="f_utm_source_em">
+              <input type="hidden" name="utm_medium"   id="f_utm_medium_em">
+              <input type="hidden" name="utm_campaign" id="f_utm_campaign_em">
+              <input type="hidden" name="utm_term"     id="f_utm_term_em">
+              <input type="text"   name="name"         placeholder="Name*" required>
+              <input type="tel"    name="phone"        placeholder="Phone*" required>
+              <input type="text"   name="address"      placeholder="Address*" required>
+              <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999">
+              <textarea            name="message"      placeholder="What's the issue?*" required rows="2"></textarea>
+              <button type="submit" class="submit-btn" id="emergencySubmitBtn">SUBMIT EMERGENCY REQUEST</button>
+              <div id="emergencyFormMessage" style="margin-top: 1rem; padding: 1rem; display: none; border-radius: 4px; text-align: center;"></div>
+            </form>
+            <p class="form-licence">Licence number A3403</p>
+          </div>
+        </div>
+
+        <!-- REGULAR FORM (SMS or CALLBACK) -->
+        <div id="regularFormContainer" style="display: none;">
+          <div class="form-card-header">
+            <h2>How Can We <span style="color:var(--yellow)">Help You?</span></h2>
+            <button class="form-close-btn" onclick="backToOptions(); return false;" aria-label="Back">← Back</button>
+          </div>
+          <div class="form-card-body">
+            <form class="booking-form" id="quoteForm" action="/api/quote" method="POST">
+              <!-- UTM hidden fields - populated by JS -->
+              <input type="hidden" name="utm_source"   id="f_utm_source">
+              <input type="hidden" name="utm_medium"   id="f_utm_medium">
+              <input type="hidden" name="utm_campaign" id="f_utm_campaign">
+              <input type="hidden" name="utm_term"     id="f_utm_term">
+              <input type="hidden" name="bookingMethod" id="bookingMethod" value="">
+              <input type="text"   name="name"         placeholder="Name*" required>
+              <input type="email"  name="email"        placeholder="Email*" required>
+              <input type="tel"    name="phone"        placeholder="Phone*" required>
+              <input type="text"   name="address"      placeholder="Address*" required>
+              <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999">
+              <textarea            name="message"      placeholder="How Can We Help?*" required rows="3"></textarea>
+
+              <div style="margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px;">
+                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">How would you like to book?</label>
+                <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; cursor: pointer;">
+                  <input type="radio" name="bookMethod" value="sms" required> <span style="font-size: 14px;">Text chat with us</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                  <input type="radio" name="bookMethod" value="callback" required> <span style="font-size: 14px;">Call me back during business hours</span>
+                </label>
+              </div>
+
+              <button type="submit" class="submit-btn" id="submitBtn">GET FREE QUOTE</button>
+              <div id="formMessage" style="margin-top: 1rem; padding: 1rem; display: none; border-radius: 4px; text-align: center;"></div>
+            </form>
+            <p class="form-licence">Licence number A3403</p>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -3530,15 +3638,40 @@ document.addEventListener("DOMContentLoaded", function () {
 
 const SYDNEY_POSTCODES = new Set([2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 2048, 2049, 2050, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074, 2075, 2076, 2077, 2079, 2080, 2081, 2082, 2083, 2084, 2085, 2086, 2087, 2088, 2089, 2090, 2092, 2093, 2094, 2095, 2096, 2097, 2098, 2099, 2100, 2101, 2102, 2103, 2104, 2105, 2106, 2107, 2108, 2109, 2110, 2111, 2112, 2113, 2114, 2115, 2116, 2117, 2118, 2119, 2120, 2121, 2122, 2123, 2124, 2125, 2126, 2127, 2128, 2129, 2130, 2131, 2132, 2133, 2134, 2135, 2136, 2137, 2138, 2139, 2140, 2141, 2142, 2143, 2144, 2145, 2146, 2147, 2148, 2150, 2151, 2152, 2153, 2154, 2155, 2156, 2157, 2158, 2159, 2160, 2161, 2162, 2163, 2164, 2165, 2166, 2167, 2168, 2170, 2171, 2172, 2173, 2174, 2175, 2176, 2177, 2178, 2179, 2190, 2191, 2192, 2193, 2194, 2195, 2196, 2197, 2198, 2199, 2200, 2203, 2204, 2205, 2206, 2207, 2208, 2209, 2210, 2211, 2212, 2213, 2214, 2216, 2217, 2218, 2219, 2220, 2221, 2222, 2223, 2224, 2225, 2226, 2227, 2228, 2229, 2230, 2231, 2232, 2233, 2234, 2560, 2563, 2564, 2565, 2566, 2567, 2568, 2569, 2570, 2745, 2747, 2748, 2749, 2750, 2751, 2752, 2753, 2754, 2755, 2756, 2757, 2758, 2759, 2760, 2761, 2762, 2763, 2765, 2766, 2767, 2768, 2769, 2770, 2773, 2774, 2775, 2776, 2777, 2778, 2779, 2780, 2782, 2783, 2784, 2785, 2786, 2787, 2790, 2557, 2558, 2559, 2561, 2562, 2571, 2572, 2573, 2574, 2575, 2576]);
 
-// Handle quote form submission
-const quoteForm = document.getElementById('quoteForm');
-if (quoteForm) {
-  quoteForm.addEventListener('submit', async function(e) {
+// Booking option selection
+function selectBookingOption(option) {
+  const bookingOptions = document.getElementById('bookingOptions');
+  const emergencyForm = document.getElementById('emergencyFormContainer');
+  const regularForm = document.getElementById('regularFormContainer');
+
+  if (option === 'emergency') {
+    bookingOptions.style.display = 'none';
+    emergencyForm.style.display = 'block';
+    regularForm.style.display = 'none';
+  } else if (option === 'sms' || option === 'callback') {
+    bookingOptions.style.display = 'none';
+    emergencyForm.style.display = 'none';
+    regularForm.style.display = 'block';
+    document.getElementById('bookingMethod').value = option;
+    document.querySelector(`input[name="bookMethod"][value="${option}"]`).checked = true;
+  }
+}
+
+function backToOptions() {
+  document.getElementById('bookingOptions').style.display = 'block';
+  document.getElementById('emergencyFormContainer').style.display = 'none';
+  document.getElementById('regularFormContainer').style.display = 'none';
+}
+
+// Handle emergency form submission
+const emergencyForm = document.getElementById('emergencyForm');
+if (emergencyForm) {
+  emergencyForm.addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    const submitBtn = document.getElementById('submitBtn');
-    const formMessage = document.getElementById('formMessage');
-    const postcode = parseInt(document.querySelector('input[name="postcode"]').value);
+    const submitBtn = document.getElementById('emergencySubmitBtn');
+    const formMessage = document.getElementById('emergencyFormMessage');
+    const postcode = parseInt(emergencyForm.querySelector('input[name="postcode"]').value);
     const originalText = submitBtn.textContent;
 
     if (!SYDNEY_POSTCODES.has(postcode)) {
@@ -3554,7 +3687,7 @@ if (quoteForm) {
     formMessage.style.display = 'none';
 
     try {
-      const formData = new FormData(quoteForm);
+      const formData = new FormData(emergencyForm);
       const response = await fetch('/api/quote', {
         method: 'POST',
         body: formData
@@ -3565,7 +3698,79 @@ if (quoteForm) {
       if (response.ok && result.success) {
         formMessage.style.backgroundColor = '#d4edda';
         formMessage.style.color = '#155724';
-        formMessage.textContent = result.message || 'Quote request submitted successfully!';
+        formMessage.innerHTML = '<strong>Emergency request received!</strong><br>We have notified the plumber and they will call you back ASAP (typically within 10 minutes).<br><strong>Please keep your line free.</strong>';
+        emergencyForm.reset();
+      } else {
+        formMessage.style.backgroundColor = '#f8d7da';
+        formMessage.style.color = '#721c24';
+        formMessage.textContent = result.error || 'An error occurred. Please try again.';
+      }
+      formMessage.style.display = 'block';
+    } catch (error) {
+      formMessage.style.backgroundColor = '#f8d7da';
+      formMessage.style.color = '#721c24';
+      formMessage.textContent = 'Network error. Please try again.';
+      formMessage.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    }
+  });
+}
+
+// Handle quote form submission (SMS or Callback)
+const quoteForm = document.getElementById('quoteForm');
+if (quoteForm) {
+  quoteForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const submitBtn = document.getElementById('submitBtn');
+    const formMessage = document.getElementById('formMessage');
+    const postcode = parseInt(document.querySelector('#regularFormContainer input[name="postcode"]').value);
+    const bookingMethod = document.querySelector('input[name="bookMethod"]:checked')?.value;
+    const originalText = submitBtn.textContent;
+
+    if (!SYDNEY_POSTCODES.has(postcode)) {
+      formMessage.style.backgroundColor = '#f8d7da';
+      formMessage.style.color = '#721c24';
+      formMessage.innerHTML = 'Sorry, we do not service that postcode. <a href="service-areas.html" style="color: #721c24; text-decoration: underline;">View our service areas</a>';
+      formMessage.style.display = 'block';
+      return;
+    }
+
+    if (!bookingMethod) {
+      formMessage.style.backgroundColor = '#f8d7da';
+      formMessage.style.color = '#721c24';
+      formMessage.textContent = 'Please select how you would like to book.';
+      formMessage.style.display = 'block';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+    formMessage.style.display = 'none';
+
+    try {
+      const formData = new FormData(quoteForm);
+      formData.set('bookingMethod', bookingMethod);
+
+      const response = await fetch('/api/quote', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        formMessage.style.backgroundColor = '#d4edda';
+        formMessage.style.color = '#155724';
+
+        if (bookingMethod === 'callback') {
+          formMessage.innerHTML = '<strong>Thank you!</strong><br>We will call you back during business hours to book your appointment.';
+        } else {
+          formMessage.innerHTML = '<strong>Thank you!</strong><br>Check your SMS — we'll chat with you there to confirm your booking.';
+        }
+
         quoteForm.reset();
       } else {
         formMessage.style.backgroundColor = '#f8d7da';
