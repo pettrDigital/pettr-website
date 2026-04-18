@@ -36,27 +36,18 @@ export async function onRequest(context) {
 
     console.log(`SMS received from ${phone}: ${message}`);
 
-    // Decode Firebase credentials
-    if (!env.FIREBASE_SERVICE_ACCOUNT_B64) {
-      console.error('FIREBASE_SERVICE_ACCOUNT_B64 not configured');
+    // Check Firebase configuration
+    if (!env.FIREBASE_API_KEY || !env.FIREBASE_PROJECT_ID) {
+      console.error('Firebase configuration incomplete');
       return new Response(JSON.stringify({ error: 'Firebase not configured' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    let serviceAccount;
-    try {
-      const decoded = Buffer.from(env.FIREBASE_SERVICE_ACCOUNT_B64, 'base64').toString('utf-8');
-      serviceAccount = JSON.parse(decoded);
-    } catch (parseError) {
-      console.error('Failed to decode/parse FIREBASE_SERVICE_ACCOUNT_B64:', parseError.message);
-      throw parseError;
-    }
-
     // Fetch conversation from Firestore using REST API
     console.log('Fetching conversation for phone:', phone);
-    const conversationData = await getFirestoreDoc(serviceAccount, 'conversations', phone);
+    const conversationData = await getFirestoreDoc(env, 'conversations', phone);
     console.log('Conversation data:', conversationData);
     const messages = conversationData?.messages || [];
 
@@ -84,7 +75,7 @@ export async function onRequest(context) {
     });
 
     // Store updated conversation in Firestore
-    await updateFirestoreDoc(serviceAccount, 'conversations', phone, {
+    await updateFirestoreDoc(env, 'conversations', phone, {
       messages,
       lastUpdated: new Date().toISOString(),
     });
@@ -108,16 +99,17 @@ export async function onRequest(context) {
   }
 }
 
-async function getFirestoreDoc(serviceAccount, collection, docId) {
-  const projectId = serviceAccount.project_id;
-  const accessToken = await getFirebaseAccessToken(serviceAccount);
+async function getFirestoreDoc(env, collection, docId) {
+  const apiKey = env.FIREBASE_API_KEY;
+  if (!apiKey) {
+    console.error('FIREBASE_API_KEY not configured');
+    return null;
+  }
 
-  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collection}/${docId}`;
-  const response = await fetch(url, {
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-    },
-  });
+  const projectId = env.FIREBASE_PROJECT_ID;
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collection}/${docId}?key=${apiKey}`;
+
+  const response = await fetch(url);
 
   if (response.status === 404) {
     return null;
@@ -132,15 +124,19 @@ async function getFirestoreDoc(serviceAccount, collection, docId) {
   return firestoreToObject(data.fields);
 }
 
-async function updateFirestoreDoc(serviceAccount, collection, docId, data) {
-  const projectId = serviceAccount.project_id;
-  const accessToken = await getFirebaseAccessToken(serviceAccount);
+async function updateFirestoreDoc(env, collection, docId, data) {
+  const apiKey = env.FIREBASE_API_KEY;
+  if (!apiKey) {
+    console.error('FIREBASE_API_KEY not configured');
+    throw new Error('Firebase API key not configured');
+  }
 
-  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collection}/${docId}`;
+  const projectId = env.FIREBASE_PROJECT_ID;
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collection}/${docId}?key=${apiKey}`;
+
   const response = await fetch(url, {
     method: 'PATCH',
     headers: {
-      'Authorization': `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -149,95 +145,12 @@ async function updateFirestoreDoc(serviceAccount, collection, docId, data) {
   });
 
   if (!response.ok) {
-    console.error('Firestore update error:', response.status);
+    const errorText = await response.text();
+    console.error('Firestore update error:', response.status, errorText);
     throw new Error(`Failed to update Firestore: ${response.status}`);
   }
 
   return response.json();
-}
-
-async function getFirebaseAccessToken(serviceAccount) {
-  const now = Math.floor(Date.now() / 1000);
-  const expiry = now + 3600;
-
-  const header = {
-    alg: 'RS256',
-    typ: 'JWT',
-  };
-
-  const payload = {
-    iss: serviceAccount.client_email,
-    scope: 'https://www.googleapis.com/auth/datastore',
-    aud: 'https://oauth2.googleapis.com/token',
-    exp: expiry,
-    iat: now,
-  };
-
-  const headerB64 = btoa(JSON.stringify(header)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-  const payloadB64 = btoa(JSON.stringify(payload)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-
-  const message = `${headerB64}.${payloadB64}`;
-  const signature = await signJWT(message, serviceAccount.private_key);
-
-  const jwt = `${message}.${signature}`;
-
-  const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
-  });
-
-  const tokenData = await tokenResponse.json();
-  return tokenData.access_token;
-}
-
-async function signJWT(message, privateKey) {
-  const { webcrypto } = await import('crypto');
-
-  const keyData = privateKey
-    .replace(/-----BEGIN PRIVATE KEY-----/g, '')
-    .replace(/-----END PRIVATE KEY-----/g, '')
-    .replace(/\n/g, '')
-    .trim();
-
-  let binaryString;
-  try {
-    binaryString = atob(keyData);
-  } catch (e) {
-    console.error('Failed to decode key:', e.message);
-    throw new Error('Invalid private key format');
-  }
-
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-
-  let key;
-  try {
-    key = await webcrypto.subtle.importKey(
-      'pkcs8',
-      bytes.buffer,
-      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-      false,
-      ['sign']
-    );
-  } catch (e) {
-    console.error('Failed to import key:', e.message);
-    throw e;
-  }
-
-  const encoder = new TextEncoder();
-  const signature = await webcrypto.subtle.sign('RSASSA-PKCS1-v1_5', key, encoder.encode(message));
-
-  const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
-
-  return signatureB64;
 }
 
 function objectToFirestore(obj) {

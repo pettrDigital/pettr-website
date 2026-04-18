@@ -1,4 +1,3 @@
-import * as admin from 'firebase-admin';
 
 const SYDNEY_POSTCODES = new Set([
   // Sydney CBD & Inner
@@ -240,30 +239,38 @@ async function triggerRetellCallback(env, { phone, name }) {
 
 async function storeQuoteInFirestore(env, { phone, name, address, postcode, problem }) {
   try {
-    if (!env.FIREBASE_SERVICE_ACCOUNT_B64) {
-      console.error('FIREBASE_SERVICE_ACCOUNT_B64 not configured');
+    if (!env.FIREBASE_API_KEY || !env.FIREBASE_PROJECT_ID) {
+      console.error('Firebase configuration incomplete');
       throw new Error('Firebase not configured');
     }
 
-    const decoded = Buffer.from(env.FIREBASE_SERVICE_ACCOUNT_B64, 'base64').toString('utf-8');
-    const serviceAccount = JSON.parse(decoded);
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        projectId: serviceAccount.project_id,
-      });
-    }
+    const apiKey = env.FIREBASE_API_KEY;
+    const projectId = env.FIREBASE_PROJECT_ID;
+    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/conversations/${phone}?key=${apiKey}`;
 
-    const db = admin.firestore();
-    await db.collection('conversations').doc(phone).set({
-      name,
-      address,
-      postcode,
-      problem,
-      messages: [],
-      createdAt: new Date().toISOString(),
-      lastUpdated: new Date().toISOString(),
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fields: {
+          name: { stringValue: name },
+          address: { stringValue: address },
+          postcode: { stringValue: postcode },
+          problem: { stringValue: problem },
+          messages: { arrayValue: { values: [] } },
+          createdAt: { stringValue: new Date().toISOString() },
+          lastUpdated: { stringValue: new Date().toISOString() },
+        },
+      }),
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Firestore error:', response.status, errorText);
+      throw new Error(`Failed to store quote: ${response.status}`);
+    }
 
     console.log('Quote stored in Firestore for:', phone);
   } catch (error) {

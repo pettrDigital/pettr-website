@@ -340,6 +340,13 @@ async function onRequest(context) {
         name: data.name
       });
     } else if (data.requestType === "booking") {
+      await storeQuoteInFirestore(env, {
+        phone: data.phone,
+        name: data.name,
+        address: data.address,
+        postcode: data.postcode,
+        problem: data.message
+      });
       await sendSMS(env, {
         phone: data.phone,
         name: data.name
@@ -454,6 +461,44 @@ async function triggerRetellCallback(env, { phone, name }) {
 }
 __name(triggerRetellCallback, "triggerRetellCallback");
 __name2(triggerRetellCallback, "triggerRetellCallback");
+async function storeQuoteInFirestore(env, { phone, name, address, postcode, problem }) {
+  try {
+    if (!env.FIREBASE_API_KEY || !env.FIREBASE_PROJECT_ID) {
+      console.error("Firebase configuration incomplete");
+      throw new Error("Firebase not configured");
+    }
+    const apiKey = env.FIREBASE_API_KEY;
+    const projectId = env.FIREBASE_PROJECT_ID;
+    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/conversations/${phone}?key=${apiKey}`;
+    const response = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        fields: {
+          name: { stringValue: name },
+          address: { stringValue: address },
+          postcode: { stringValue: postcode },
+          problem: { stringValue: problem },
+          messages: { arrayValue: { values: [] } },
+          createdAt: { stringValue: (/* @__PURE__ */ new Date()).toISOString() },
+          lastUpdated: { stringValue: (/* @__PURE__ */ new Date()).toISOString() }
+        }
+      })
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Firestore error:", response.status, errorText);
+      throw new Error(`Failed to store quote: ${response.status}`);
+    }
+    console.log("Quote stored in Firestore for:", phone);
+  } catch (error) {
+    console.error("Error storing quote in Firestore:", error);
+  }
+}
+__name(storeQuoteInFirestore, "storeQuoteInFirestore");
+__name2(storeQuoteInFirestore, "storeQuoteInFirestore");
 function escapeHtml(text) {
   const map = {
     "&": "&amp;",
@@ -466,6 +511,261 @@ function escapeHtml(text) {
 }
 __name(escapeHtml, "escapeHtml");
 __name2(escapeHtml, "escapeHtml");
+async function onRequest2(context) {
+  const { request, env } = context;
+  console.log("=== SMS WEBHOOK RECEIVED ===");
+  console.log("Method:", request.method);
+  if (request.method !== "POST") {
+    console.log("Not POST, rejecting");
+    return new Response("Method not allowed", { status: 405 });
+  }
+  try {
+    const json = await request.json();
+    console.log("Webhook payload:", JSON.stringify(json));
+    let message, phone;
+    if (json.event_type === "SMS_INBOUND" && json.mo) {
+      message = json.mo.message;
+      phone = json.mo.sender;
+    } else {
+      message = json.message || json.mo?.message;
+      phone = json.phone || json.sender || json.mo?.sender;
+    }
+    console.log("Parsed - Phone:", phone, "Message:", message);
+    if (!message || !phone) {
+      console.log("Missing message or phone");
+      return new Response(JSON.stringify({ error: "Missing message or phone" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    console.log(`SMS received from ${phone}: ${message}`);
+    if (!env.FIREBASE_API_KEY || !env.FIREBASE_PROJECT_ID) {
+      console.error("Firebase configuration incomplete");
+      return new Response(JSON.stringify({ error: "Firebase not configured" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    console.log("Fetching conversation for phone:", phone);
+    const conversationData = await getFirestoreDoc(env, "conversations", phone);
+    console.log("Conversation data:", conversationData);
+    const messages = conversationData?.messages || [];
+    messages.push({
+      role: "customer",
+      text: message,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    });
+    console.log("Calling Claude API...");
+    const claudeResponse = await callClaude(env, {
+      name: conversationData?.name || "Customer",
+      problem: conversationData?.problem || "Not specified",
+      messages: messages.map((m) => ({ role: m.role, content: m.text }))
+    });
+    console.log("Claude response:", claudeResponse);
+    messages.push({
+      role: "assistant",
+      text: claudeResponse,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    });
+    await updateFirestoreDoc(env, "conversations", phone, {
+      messages,
+      lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
+    });
+    await sendSMS2(env, {
+      phone,
+      message: claudeResponse
+    });
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+  } catch (error) {
+    console.error("Webhook error:", error);
+    return new Response(JSON.stringify({ error: error.message || "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+}
+__name(onRequest2, "onRequest2");
+__name2(onRequest2, "onRequest");
+async function getFirestoreDoc(env, collection, docId) {
+  const apiKey = env.FIREBASE_API_KEY;
+  if (!apiKey) {
+    console.error("FIREBASE_API_KEY not configured");
+    return null;
+  }
+  const projectId = env.FIREBASE_PROJECT_ID;
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collection}/${docId}?key=${apiKey}`;
+  const response = await fetch(url);
+  if (response.status === 404) {
+    return null;
+  }
+  if (!response.ok) {
+    console.error("Firestore fetch error:", response.status);
+    return null;
+  }
+  const data = await response.json();
+  return firestoreToObject(data.fields);
+}
+__name(getFirestoreDoc, "getFirestoreDoc");
+__name2(getFirestoreDoc, "getFirestoreDoc");
+async function updateFirestoreDoc(env, collection, docId, data) {
+  const apiKey = env.FIREBASE_API_KEY;
+  if (!apiKey) {
+    console.error("FIREBASE_API_KEY not configured");
+    throw new Error("Firebase API key not configured");
+  }
+  const projectId = env.FIREBASE_PROJECT_ID;
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collection}/${docId}?key=${apiKey}`;
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      fields: objectToFirestore(data)
+    })
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Firestore update error:", response.status, errorText);
+    throw new Error(`Failed to update Firestore: ${response.status}`);
+  }
+  return response.json();
+}
+__name(updateFirestoreDoc, "updateFirestoreDoc");
+__name2(updateFirestoreDoc, "updateFirestoreDoc");
+function objectToFirestore(obj) {
+  const fields = {};
+  for (const [key, value] of Object.entries(obj)) {
+    fields[key] = valueToFirestore(value);
+  }
+  return fields;
+}
+__name(objectToFirestore, "objectToFirestore");
+__name2(objectToFirestore, "objectToFirestore");
+function valueToFirestore(value) {
+  if (value === null) {
+    return { nullValue: null };
+  }
+  if (typeof value === "string") {
+    return { stringValue: value };
+  }
+  if (typeof value === "number") {
+    if (Number.isInteger(value)) {
+      return { integerValue: value };
+    }
+    return { doubleValue: value };
+  }
+  if (typeof value === "boolean") {
+    return { booleanValue: value };
+  }
+  if (Array.isArray(value)) {
+    return {
+      arrayValue: {
+        values: value.map((v) => valueToFirestore(v))
+      }
+    };
+  }
+  if (typeof value === "object") {
+    return {
+      mapValue: {
+        fields: objectToFirestore(value)
+      }
+    };
+  }
+  return { stringValue: String(value) };
+}
+__name(valueToFirestore, "valueToFirestore");
+__name2(valueToFirestore, "valueToFirestore");
+function firestoreToObject(fields) {
+  const obj = {};
+  for (const [key, field] of Object.entries(fields)) {
+    obj[key] = firestoreValueToJs(field);
+  }
+  return obj;
+}
+__name(firestoreToObject, "firestoreToObject");
+__name2(firestoreToObject, "firestoreToObject");
+function firestoreValueToJs(field) {
+  if (field.stringValue !== void 0) return field.stringValue;
+  if (field.integerValue !== void 0) return parseInt(field.integerValue);
+  if (field.doubleValue !== void 0) return field.doubleValue;
+  if (field.booleanValue !== void 0) return field.booleanValue;
+  if (field.nullValue !== void 0) return null;
+  if (field.arrayValue) {
+    return field.arrayValue.values.map((v) => firestoreValueToJs(v));
+  }
+  if (field.mapValue) {
+    return firestoreToObject(field.mapValue.fields);
+  }
+  return null;
+}
+__name(firestoreValueToJs, "firestoreValueToJs");
+__name2(firestoreValueToJs, "firestoreValueToJs");
+async function callClaude(env, { name, problem, messages }) {
+  const apiKey = env.CLAUDE_API_KEY;
+  if (!apiKey) {
+    throw new Error("CLAUDE_API_KEY not configured");
+  }
+  const systemPrompt = `You are a helpful booking assistant for Plumber & Electrician to the Rescue.
+The customer ${name} reported this issue: ${problem}
+
+You are helping them book a plumbing or electrical service. Be friendly, professional, and brief.
+Help confirm details and schedule the appointment.`;
+  console.log("Claude request - Name:", name, "Problem:", problem, "Messages:", messages.length);
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "claude-opus-4-7",
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages
+    })
+  });
+  console.log("Claude response status:", response.status);
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Claude error:", errorText);
+    throw new Error(`Claude API error: ${response.status} ${errorText}`);
+  }
+  const result = await response.json();
+  return result.content[0].text;
+}
+__name(callClaude, "callClaude");
+__name2(callClaude, "callClaude");
+async function sendSMS2(env, { phone, message }) {
+  const apiKey = env.TRANSMITSMS_API_KEY;
+  const apiSecret = env.TRANSMITSMS_API_SECRET;
+  const credentials = btoa(`${apiKey}:${apiSecret}`);
+  const formData = new URLSearchParams();
+  formData.append("message", message);
+  formData.append("list_id", "10962457");
+  formData.append("countrycode", "au");
+  const response = await fetch("https://api.transmitsms.com/send-sms.json", {
+    method: "POST",
+    headers: {
+      "Authorization": `Basic ${credentials}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Accept": "text/plain"
+    },
+    body: formData.toString()
+  });
+  const responseText = await response.text();
+  console.log("SMS response:", responseText);
+  if (!response.ok) {
+    throw new Error(`SMS error: ${response.status} ${responseText}`);
+  }
+  return responseText;
+}
+__name(sendSMS2, "sendSMS2");
+__name2(sendSMS2, "sendSMS");
 var routes = [
   {
     routePath: "/api/quote",
@@ -473,6 +773,13 @@ var routes = [
     method: "",
     middlewares: [],
     modules: [onRequest]
+  },
+  {
+    routePath: "/api/sms-webhook",
+    mountPath: "/api",
+    method: "",
+    middlewares: [],
+    modules: [onRequest2]
   }
 ];
 function lexer(str) {
