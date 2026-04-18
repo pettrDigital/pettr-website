@@ -12,22 +12,18 @@ export async function onRequest(context) {
   }
 
   try {
-    const contentType = request.headers.get('content-type') || '';
-    console.log('Content-Type:', contentType);
+    const json = await request.json();
+    console.log('Webhook payload:', JSON.stringify(json));
 
+    // Kudosity sends SMS_INBOUND events with mo.message and mo.sender
     let message, phone;
 
-    if (contentType.includes('application/json')) {
-      const json = await request.json();
-      console.log('JSON payload:', json);
-      message = json.message || json.text || json.body;
-      phone = json.from || json.phone || json.sender;
+    if (json.event_type === 'SMS_INBOUND' && json.mo) {
+      message = json.mo.message;
+      phone = json.mo.sender;
     } else {
-      const body = await request.text();
-      console.log('Raw body:', body);
-      const formData = new URLSearchParams(body);
-      message = formData.get('message') || formData.get('text') || formData.get('body');
-      phone = formData.get('from') || formData.get('phone') || formData.get('sender');
+      message = json.message || json.mo?.message;
+      phone = json.phone || json.sender || json.mo?.sender;
     }
 
     console.log('Parsed - Phone:', phone, 'Message:', message);
