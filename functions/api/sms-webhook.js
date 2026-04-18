@@ -1,5 +1,3 @@
-import * as admin from 'firebase-admin';
-
 export async function onRequest(context) {
   const { request, env } = context;
 
@@ -38,7 +36,7 @@ export async function onRequest(context) {
 
     console.log(`SMS received from ${phone}: ${message}`);
 
-    // Initialize Firebase
+    // Decode Firebase credentials
     if (!env.FIREBASE_SERVICE_ACCOUNT_B64) {
       console.error('FIREBASE_SERVICE_ACCOUNT_B64 not configured');
       return new Response(JSON.stringify({ error: 'Firebase not configured' }), {
@@ -56,22 +54,11 @@ export async function onRequest(context) {
       throw parseError;
     }
 
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        projectId: serviceAccount.project_id,
-      });
-    }
-
-    const db = admin.firestore();
-    const conversationRef = db.collection('conversations').doc(phone);
-
-    // Fetch conversation history
+    // Fetch conversation from Firestore using REST API
     console.log('Fetching conversation for phone:', phone);
-    const snapshot = await conversationRef.get();
-    const conversationData = snapshot.data() || { messages: [], name: 'Customer' };
+    const conversationData = await getFirestoreDoc(serviceAccount, 'conversations', phone);
     console.log('Conversation data:', conversationData);
-    const messages = conversationData.messages || [];
+    const messages = conversationData?.messages || [];
 
     // Add customer message to history
     messages.push({
@@ -83,8 +70,8 @@ export async function onRequest(context) {
     // Call Claude API to generate response
     console.log('Calling Claude API...');
     const claudeResponse = await callClaude(env, {
-      name: conversationData.name,
-      problem: conversationData.problem || 'Not specified',
+      name: conversationData?.name || 'Customer',
+      problem: conversationData?.problem || 'Not specified',
       messages: messages.map(m => ({ role: m.role, content: m.text })),
     });
     console.log('Claude response:', claudeResponse);
@@ -97,7 +84,7 @@ export async function onRequest(context) {
     });
 
     // Store updated conversation in Firestore
-    await conversationRef.update({
+    await updateFirestoreDoc(serviceAccount, 'conversations', phone, {
       messages,
       lastUpdated: new Date().toISOString(),
     });
@@ -119,6 +106,188 @@ export async function onRequest(context) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
+}
+
+async function getFirestoreDoc(serviceAccount, collection, docId) {
+  const projectId = serviceAccount.project_id;
+  const accessToken = await getFirebaseAccessToken(serviceAccount);
+
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collection}/${docId}`;
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+    },
+  });
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    console.error('Firestore fetch error:', response.status);
+    return null;
+  }
+
+  const data = await response.json();
+  return firestoreToObject(data.fields);
+}
+
+async function updateFirestoreDoc(serviceAccount, collection, docId, data) {
+  const projectId = serviceAccount.project_id;
+  const accessToken = await getFirebaseAccessToken(serviceAccount);
+
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collection}/${docId}`;
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      fields: objectToFirestore(data),
+    }),
+  });
+
+  if (!response.ok) {
+    console.error('Firestore update error:', response.status);
+    throw new Error(`Failed to update Firestore: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+async function getFirebaseAccessToken(serviceAccount) {
+  const now = Math.floor(Date.now() / 1000);
+  const expiry = now + 3600;
+
+  const header = {
+    alg: 'RS256',
+    typ: 'JWT',
+  };
+
+  const payload = {
+    iss: serviceAccount.client_email,
+    scope: 'https://www.googleapis.com/auth/datastore',
+    aud: 'https://oauth2.googleapis.com/token',
+    exp: expiry,
+    iat: now,
+  };
+
+  const headerB64 = btoa(JSON.stringify(header)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  const payloadB64 = btoa(JSON.stringify(payload)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+
+  const message = `${headerB64}.${payloadB64}`;
+  const signature = await signJWT(message, serviceAccount.private_key);
+
+  const jwt = `${message}.${signature}`;
+
+  const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
+  });
+
+  const tokenData = await tokenResponse.json();
+  return tokenData.access_token;
+}
+
+async function signJWT(message, privateKey) {
+  const { webcrypto } = await import('crypto');
+
+  const keyData = privateKey
+    .replace('-----BEGIN PRIVATE KEY-----', '')
+    .replace('-----END PRIVATE KEY-----', '')
+    .replace(/\s/g, '');
+
+  const binaryString = atob(keyData);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+
+  const key = await webcrypto.subtle.importKey(
+    'pkcs8',
+    bytes.buffer,
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const encoder = new TextEncoder();
+  const signature = await webcrypto.subtle.sign('RSASSA-PKCS1-v1_5', key, encoder.encode(message));
+
+  const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+
+  return signatureB64;
+}
+
+function objectToFirestore(obj) {
+  const fields = {};
+  for (const [key, value] of Object.entries(obj)) {
+    fields[key] = valueToFirestore(value);
+  }
+  return fields;
+}
+
+function valueToFirestore(value) {
+  if (value === null) {
+    return { nullValue: null };
+  }
+  if (typeof value === 'string') {
+    return { stringValue: value };
+  }
+  if (typeof value === 'number') {
+    if (Number.isInteger(value)) {
+      return { integerValue: value };
+    }
+    return { doubleValue: value };
+  }
+  if (typeof value === 'boolean') {
+    return { booleanValue: value };
+  }
+  if (Array.isArray(value)) {
+    return {
+      arrayValue: {
+        values: value.map(v => valueToFirestore(v)),
+      },
+    };
+  }
+  if (typeof value === 'object') {
+    return {
+      mapValue: {
+        fields: objectToFirestore(value),
+      },
+    };
+  }
+  return { stringValue: String(value) };
+}
+
+function firestoreToObject(fields) {
+  const obj = {};
+  for (const [key, field] of Object.entries(fields)) {
+    obj[key] = firestoreValueToJs(field);
+  }
+  return obj;
+}
+
+function firestoreValueToJs(field) {
+  if (field.stringValue !== undefined) return field.stringValue;
+  if (field.integerValue !== undefined) return parseInt(field.integerValue);
+  if (field.doubleValue !== undefined) return field.doubleValue;
+  if (field.booleanValue !== undefined) return field.booleanValue;
+  if (field.nullValue !== undefined) return null;
+  if (field.arrayValue) {
+    return field.arrayValue.values.map(v => firestoreValueToJs(v));
+  }
+  if (field.mapValue) {
+    return firestoreToObject(field.mapValue.fields);
+  }
+  return null;
 }
 
 async function callClaude(env, { name, problem, messages }) {
