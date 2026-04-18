@@ -3,16 +3,26 @@ import * as admin from 'firebase-admin';
 export async function onRequest(context) {
   const { request, env } = context;
 
+  console.log('=== SMS WEBHOOK RECEIVED ===');
+  console.log('Method:', request.method);
+
   if (request.method !== 'POST') {
+    console.log('Not POST, rejecting');
     return new Response('Method not allowed', { status: 405 });
   }
 
   try {
-    const formData = await request.formData();
+    const body = await request.text();
+    console.log('Raw body:', body);
+
+    const formData = new URLSearchParams(body);
     const message = formData.get('message');
     const phone = formData.get('from');
 
+    console.log('Parsed - Phone:', phone, 'Message:', message);
+
     if (!message || !phone) {
+      console.log('Missing message or phone');
       return new Response(JSON.stringify({ error: 'Missing message or phone' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -34,8 +44,10 @@ export async function onRequest(context) {
     const conversationRef = db.collection('conversations').doc(phone);
 
     // Fetch conversation history
+    console.log('Fetching conversation for phone:', phone);
     const snapshot = await conversationRef.get();
     const conversationData = snapshot.data() || { messages: [], name: 'Customer' };
+    console.log('Conversation data:', conversationData);
     const messages = conversationData.messages || [];
 
     // Add customer message to history
@@ -46,11 +58,13 @@ export async function onRequest(context) {
     });
 
     // Call Claude API to generate response
+    console.log('Calling Claude API...');
     const claudeResponse = await callClaude(env, {
       name: conversationData.name,
       problem: conversationData.problem || 'Not specified',
       messages: messages.map(m => ({ role: m.role, content: m.text })),
     });
+    console.log('Claude response:', claudeResponse);
 
     // Add Claude response to history
     messages.push({
@@ -87,11 +101,17 @@ export async function onRequest(context) {
 async function callClaude(env, { name, problem, messages }) {
   const apiKey = env.CLAUDE_API_KEY;
 
+  if (!apiKey) {
+    throw new Error('CLAUDE_API_KEY not configured');
+  }
+
   const systemPrompt = `You are a helpful booking assistant for Plumber & Electrician to the Rescue.
 The customer ${name} reported this issue: ${problem}
 
 You are helping them book a plumbing or electrical service. Be friendly, professional, and brief.
 Help confirm details and schedule the appointment.`;
+
+  console.log('Claude request - Name:', name, 'Problem:', problem, 'Messages:', messages.length);
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -108,8 +128,12 @@ Help confirm details and schedule the appointment.`;
     }),
   });
 
+  console.log('Claude response status:', response.status);
+
   if (!response.ok) {
-    throw new Error(`Claude API error: ${response.status}`);
+    const errorText = await response.text();
+    console.error('Claude error:', errorText);
+    throw new Error(`Claude API error: ${response.status} ${errorText}`);
   }
 
   const result = await response.json();
