@@ -30,7 +30,10 @@
       "Bash(firebase deploy *)",
       "Bash(curl *)",
       "Bash(wrangler tail *)",
-      "Bash(pkill -f \"wrangler pages deployment tail\")"
+      "Bash(pkill -f \"wrangler pages deployment tail\")",
+      "Bash(awk '{print $2}')",
+      "Bash(wrangler kv:namespace *)",
+      "Bash(wrangler kv *)"
     ]
   }
 }

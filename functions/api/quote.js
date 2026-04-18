@@ -240,7 +240,13 @@ async function triggerRetellCallback(env, { phone, name }) {
 
 async function storeQuoteInFirestore(env, { phone, name, address, postcode, problem }) {
   try {
-    const serviceAccount = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT);
+    if (!env.FIREBASE_SERVICE_ACCOUNT_B64) {
+      console.error('FIREBASE_SERVICE_ACCOUNT_B64 not configured');
+      throw new Error('Firebase not configured');
+    }
+
+    const decoded = Buffer.from(env.FIREBASE_SERVICE_ACCOUNT_B64, 'base64').toString('utf-8');
+    const serviceAccount = JSON.parse(decoded);
     if (!admin.apps.length) {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
