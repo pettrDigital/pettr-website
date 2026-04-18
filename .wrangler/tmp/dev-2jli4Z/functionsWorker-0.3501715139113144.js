@@ -349,7 +349,10 @@ async function onRequest(context) {
       });
       await sendSMS(env, {
         phone: data.phone,
-        name: data.name
+        name: data.name,
+        address: data.address,
+        postcode: data.postcode,
+        problem: data.message
       });
     }
     return new Response(JSON.stringify({ success: true, message: "Quote request submitted. We will call you shortly!" }), {
@@ -397,13 +400,13 @@ async function sendEmail(env, { from, to, subject, html }) {
 }
 __name(sendEmail, "sendEmail");
 __name2(sendEmail, "sendEmail");
-async function sendSMS(env, { phone, name }) {
+async function sendSMS(env, { phone, name, address, postcode, problem }) {
   console.log("=== TRANSMIT SMS ===");
   console.log("Recipient phone:", phone);
   const apiKey = env.TRANSMITSMS_API_KEY;
   const apiSecret = env.TRANSMITSMS_API_SECRET;
   const credentials = btoa(`${apiKey}:${apiSecret}`);
-  const message = `Hi ${name}, thanks for your quote request. Reply to this message to confirm your booking!`;
+  const message = `Hi ${name}, we received your service enquiry: ${problem} at ${address} ${postcode}. Would you like to go ahead and book that service?`;
   const formData = new URLSearchParams();
   formData.append("message", message);
   formData.append("list_id", "10962457");

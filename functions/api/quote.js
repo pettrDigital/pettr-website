@@ -109,6 +109,9 @@ export async function onRequest(context) {
       await sendSMS(env, {
         phone: data.phone,
         name: data.name,
+        address: data.address,
+        postcode: data.postcode,
+        problem: data.message,
       });
     }
 
@@ -162,7 +165,7 @@ async function sendEmail(env, { from, to, subject, html }) {
   return JSON.parse(responseText);
 }
 
-async function sendSMS(env, { phone, name }) {
+async function sendSMS(env, { phone, name, address, postcode, problem }) {
   console.log('=== TRANSMIT SMS ===');
   console.log('Recipient phone:', phone);
 
@@ -170,7 +173,7 @@ async function sendSMS(env, { phone, name }) {
   const apiSecret = env.TRANSMITSMS_API_SECRET;
   const credentials = btoa(`${apiKey}:${apiSecret}`);
 
-  const message = `Hi ${name}, thanks for your quote request. Reply to this message to confirm your booking!`;
+  const message = `Hi ${name}, we received your service enquiry: ${problem} at ${address} ${postcode}. Would you like to go ahead and book that service?`;
 
   const formData = new URLSearchParams();
   formData.append('message', message);
