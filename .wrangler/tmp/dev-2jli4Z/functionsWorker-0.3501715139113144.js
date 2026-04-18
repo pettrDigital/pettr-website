@@ -409,7 +409,6 @@ async function sendSMS(env, { phone, name, address, postcode, problem }) {
   const message = `Hi ${name}, we received your service enquiry: ${problem} at ${address} ${postcode}. Would you like to go ahead and book that service?`;
   const formData = new URLSearchParams();
   formData.append("message", message);
-  formData.append("from", "PETTR");
   formData.append("list_id", "10962457");
   formData.append("countrycode", "au");
   const response = await fetch("https://api.transmitsms.com/send-sms.json", {
@@ -755,7 +754,6 @@ async function sendSMS2(env, { phone, message }) {
   const credentials = btoa(`${apiKey}:${apiSecret}`);
   const formData = new URLSearchParams();
   formData.append("message", message);
-  formData.append("from", "PETTR");
   formData.append("list_id", "10962457");
   formData.append("countrycode", "au");
   const response = await fetch("https://api.transmitsms.com/send-sms.json", {
