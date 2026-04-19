@@ -3834,6 +3834,24 @@ function closeConfirmation() {
   quoteForm.reset();
 }
 
+// Phone validation function
+function validateAustralianPhone(phone) {
+  const cleaned = phone.replace(/\D/g, '');
+  const withPlus = phone.includes('+');
+
+  // Mobile: 04xx xxx xxx (12 digits) or +614x xxx xxx (13 digits after +)
+  if (phone.startsWith('04') && cleaned.length === 10) return true; // 04xx xxx xxx format
+  if (phone.startsWith('+614') && cleaned.length === 12) return true; // +614x xxx xxx format
+
+  // Landline: (02) xxxx xxxx, 02 xxxx xxxx, etc. (10 digits with area code)
+  if (phone.match(/^\(?0[2-8]\)?[\s-]?\d{4}[\s-]?\d{4}$/)) return true; // Australian landline
+
+  // International landline: +612 xxxx xxxx, +613 xxxx xxxx, etc.
+  if (phone.match(/^\+61[2-8]\d{8}$/)) return true;
+
+  return false;
+}
+
 // Handle quote form submission
 const quoteForm = document.getElementById('quoteFormElement');
 if (quoteForm) {
@@ -3842,6 +3860,7 @@ if (quoteForm) {
 
     const submitBtn = document.getElementById('submitBtn');
     const formMessage = document.getElementById('formMessage');
+    const phoneInput = document.querySelector('input[name="phone"]');
     const addressInput = document.querySelector('input[name="address"]');
     const suburbInput = document.querySelector('input[name="suburb"]');
     const postcodeInput = document.querySelector('input[name="postcode"]');
@@ -3849,6 +3868,15 @@ if (quoteForm) {
     const step1Content = document.getElementById('step1Content');
     const step2Content = document.getElementById('step2Content');
     const isStep2 = step2Content.style.display !== 'none';
+
+    // Validate phone format
+    if (!validateAustralianPhone(phoneInput.value)) {
+      formMessage.style.backgroundColor = '#f8d7da';
+      formMessage.style.color = '#721c24';
+      formMessage.textContent = 'Please enter a valid Australian phone number (mobile: 04xx xxx xxx or landline: 0x xxxx xxxx).';
+      formMessage.style.display = 'block';
+      return;
+    }
 
     // Check that address was selected from Places OR manual entry was toggled
     if (!suburbInput.value) {
