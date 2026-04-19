@@ -4015,25 +4015,13 @@ function setupPlacesAutocomplete() {
       postcode = postalComponent?.long_name || '';
     }
 
-    // Store suburb in a data attribute
+    // Store suburb in a data attribute (for backend use in SMS/emails)
     addressInput.dataset.suburb = suburb;
 
     // Auto-fill postcode field
     const postcodeInput = document.querySelector('input[name="postcode"]');
     if (postcodeInput && postcode) {
       postcodeInput.value = postcode;
-    }
-
-    // Display suburb below address
-    let suburbDisplay = document.getElementById('suburbDisplay');
-    if (!suburbDisplay && suburb) {
-      suburbDisplay = document.createElement('div');
-      suburbDisplay.id = 'suburbDisplay';
-      suburbDisplay.style.cssText = 'font-size: 12px; color: #999; margin-top: 4px;';
-      addressInput.parentNode.insertBefore(suburbDisplay, addressInput.nextSibling);
-    }
-    if (suburbDisplay && suburb) {
-      suburbDisplay.textContent = `Suburb: ${suburb}`;
     }
   });
 }
