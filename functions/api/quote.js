@@ -59,11 +59,39 @@ export async function onRequest(context) {
       });
     }
 
-    if (requestType === 'callback' && !data.email) {
-      return new Response(JSON.stringify({ error: 'Email is required for call back requests' }), {
+    if ((requestType === 'callback' || requestType === 'bookNow') && !data.email) {
+      return new Response(JSON.stringify({ error: 'Email is required for this request type' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
+    }
+
+    if (requestType === 'bookNow') {
+      const urgency = formData.get('bookNowUrgency');
+      const ownership = formData.get('bookNowOwnership');
+      const appliance = formData.get('bookNowAppliance');
+      const slot = formData.get('bookNowSlot');
+
+      if (!urgency || !ownership || !appliance) {
+        return new Response(JSON.stringify({ error: 'Missing booking details' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (urgency === 'standard' && !slot) {
+        return new Response(JSON.stringify({ error: 'Time slot is required for standard bookings' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      data.bookNowUrgency = urgency;
+      data.bookNowOwnership = ownership;
+      data.bookNowAppliance = appliance;
+      if (slot) {
+        data.bookNowSlot = JSON.parse(slot);
+      }
     }
 
     if (!isInServiceArea(data.postcode)) {
@@ -130,6 +158,62 @@ export async function onRequest(context) {
         message: smsMessage,
       });
       console.log('Message 1 (combined) SMS sent to:', data.phone);
+    } else if (data.requestType === 'bookNow') {
+      console.log('=== INSTANT BOOKING INITIATED ===');
+      const trade = data.message.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
+
+      if (data.bookNowUrgency === 'tonight') {
+        // Emergency booking - send receipt SMS, tech will call within 5-10 mins
+        const smsMessage = `Hi ${data.name}, emergency ${trade} booking received. A tech will call you back within 5-10 minutes. Thanks!`;
+
+        await sendBookingSMS(env, {
+          phone: data.phone,
+          message: smsMessage,
+        });
+        console.log('Emergency booking receipt SMS sent to:', data.phone);
+      } else {
+        // Standard booking with selected slot
+        const slot = data.bookNowSlot;
+        const smsMessage = `Hi ${data.name}, your ${trade} booking is confirmed!\n\nSlot: ${slot.day} ${slot.start_time}-${slot.end_time}\nTech: ${slot.tech}\nAddress: ${data.address} ${data.postcode}\n\nTech will call 30min before arrival. Reply CONFIRM to finalize.`;
+
+        await sendBookingSMS(env, {
+          phone: data.phone,
+          message: smsMessage,
+        });
+        console.log('Standard booking confirmation SMS sent to:', data.phone);
+      }
+
+      // Send email to support with booking details
+      let emailHtml = `
+        <h2>New Instant Booking</h2>
+        <p><strong>Name:</strong> ${escapeHtml(data.name)}</p>
+        <p><strong>Email:</strong> ${escapeHtml(data.email)}</p>
+        <p><strong>Phone:</strong> ${escapeHtml(data.phone)}</p>
+        <p><strong>Address:</strong> ${escapeHtml(data.address)} ${escapeHtml(data.postcode)}</p>
+        <p><strong>Issue:</strong> ${escapeHtml(data.message)}</p>
+        <p><strong>Service Type:</strong> ${escapeHtml(trade)}</p>
+        <p><strong>Urgency:</strong> ${data.bookNowUrgency === 'tonight' ? 'Emergency - $549' : 'Standard - Free'}</p>
+        <p><strong>Homeowner/Tenant:</strong> ${data.bookNowOwnership}</p>
+        <p><strong>Appliance Type:</strong> ${data.bookNowAppliance}</p>
+      `;
+
+      if (data.bookNowSlot) {
+        const slot = data.bookNowSlot;
+        emailHtml += `
+        <p><strong>Booked Slot:</strong> ${slot.day} ${slot.start_time}-${slot.end_time}</p>
+        <p><strong>Assigned Tech:</strong> ${slot.tech}</p>
+        `;
+      }
+
+      emailHtml += `</div>`;
+
+      await sendEmail(env, {
+        from: 'webform@plumberandelectrician.com.au',
+        to: 'fergusg@mrwasher.com.au',
+        subject: `New Instant Booking - ${data.name}`,
+        html: emailHtml,
+      });
+      console.log('Booking email sent to support');
     }
 
     return new Response(JSON.stringify({ success: true, message: 'Quote request submitted. We will call you shortly!' }), {
@@ -218,43 +302,67 @@ async function sendSMS(env, { phone, name, address, postcode, problem }) {
 }
 
 async function triggerRetellCallback(env, { phone, name }) {
-  try {
-    console.log('=== RETELL CALLBACK ===');
-    console.log('Phone:', phone);
-    console.log('Name:', name);
+  console.log('=== RETELL CALLBACK ===');
+  console.log('Phone:', phone);
+  console.log('Name:', name);
 
-    const retellApiKey = env.RETELL_API_KEY;
-    const retellAgentId = env.RETELL_AGENT_ID;
+  const retellApiKey = env.RETELL_API_KEY;
+  const retellAgentId = env.RETELL_AGENT_ID;
+  const retellFromNumber = env.RETELL_FROM_NUMBER;
 
-    if (!retellApiKey || !retellAgentId) {
-      console.error('Retell API key or agent ID not configured');
-      return;
-    }
+  console.log('Env check:', {
+    hasApiKey: !!retellApiKey,
+    hasAgentId: !!retellAgentId,
+    hasFromNumber: !!retellFromNumber,
+  });
 
-    const response = await fetch('https://api.retell.ai/v2/create-web-call', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${retellApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        agent_id: retellAgentId,
-        phone_number: phone.replace(/\D/g, ''),
-        user_name: name,
-      }),
-    });
-
-    const result = await response.json();
-    console.log('Retell response:', JSON.stringify(result));
-
-    if (!response.ok) {
-      console.error('Retell error:', result);
-    }
-
-    return result;
-  } catch (error) {
-    console.error('Error triggering Retell callback:', error);
+  if (!retellApiKey || !retellAgentId || !retellFromNumber) {
+    throw new Error(`Retell config missing: apiKey=${!!retellApiKey}, agentId=${!!retellAgentId}, fromNumber=${!!retellFromNumber}`);
   }
+
+  let toNumber = phone.replace(/\D/g, '');
+  let fromNumber = retellFromNumber;
+
+  // Convert to_number to international format if needed
+  if (toNumber.startsWith('0')) {
+    toNumber = '61' + toNumber.slice(1);
+  }
+
+  console.log('Calling from:', fromNumber, 'to:', toNumber);
+
+  const payload = {
+    agent_id: retellAgentId,
+    from_number: fromNumber,
+    to_number: toNumber,
+  };
+  console.log('Payload:', JSON.stringify(payload));
+
+  const response = await fetch('https://api.retell.ai/v2/create-phone-call', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${retellApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const responseText = await response.text();
+  console.log('Retell response status:', response.status);
+  console.log('Retell response text:', responseText);
+
+  let result;
+  try {
+    result = JSON.parse(responseText);
+  } catch (e) {
+    console.log('Failed to parse Retell response as JSON');
+    throw new Error(`Retell API error: ${response.status} - ${responseText}`);
+  }
+
+  if (!response.ok) {
+    throw new Error(`Retell API error: ${response.status} - ${JSON.stringify(result)}`);
+  }
+
+  return result;
 }
 
 async function storeQuoteInFirestore(env, { phone, name, address, postcode, problem }) {
