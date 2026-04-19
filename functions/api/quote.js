@@ -292,6 +292,9 @@ async function triggerRetellCallback(env, { phone, name }) {
   let toNumber = phone.replace(/\D/g, '');
   let fromNumber = retellFromNumber;
 
+  console.log('Raw phone input:', phone);
+  console.log('toNumber after removing non-digits:', toNumber);
+
   // Convert to_number to international format if needed
   if (toNumber.startsWith('0')) {
     toNumber = '61' + toNumber.slice(1);
@@ -302,7 +305,7 @@ async function triggerRetellCallback(env, { phone, name }) {
   const payload = {
     agent_id: retellAgentId,
     from_number: fromNumber,
-    to_number: toNumber,
+    to_number: '+' + toNumber,
   };
   console.log('Payload:', JSON.stringify(payload));
 
