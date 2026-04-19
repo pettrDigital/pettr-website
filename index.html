@@ -562,16 +562,6 @@ ul { list-style: none; }
   padding: 0 12px 12px;
   position: relative;
 }
-#bookNowOptions {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: var(--blue);
-  padding: 12px;
-  border-radius: 6px;
-  z-index: 10;
-}
 .booking-form { display: flex; flex-direction: column; gap: 8px; }
 .booking-form input,
 .booking-form textarea,
@@ -2726,36 +2716,48 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="form-card-body">
         <form class="booking-form" id="quoteFormElement" action="/api/quote" method="POST">
-          <!-- UTM hidden fields - populated by JS -->
+          <!-- UTM hidden fields -->
           <input type="hidden" name="utm_source"   id="f_utm_source">
           <input type="hidden" name="utm_medium"   id="f_utm_medium">
           <input type="hidden" name="utm_campaign" id="f_utm_campaign">
           <input type="hidden" name="utm_term"     id="f_utm_term">
-          <input type="text"   name="name"         placeholder="Name*" required>
-          <input type="email"  name="email"        placeholder="Email*" required>
-          <input type="tel"    name="phone"        placeholder="Phone*" required>
-          <input type="text"   name="address"      placeholder="Address*" required>
-          <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999">
-          <textarea            name="message"      placeholder="How Can We Help?*" required rows="3"></textarea>
+          <input type="hidden" name="requestType"  id="f_requestType">
 
-          <div style="margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px;">
-            <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">What would you like to do?</div>
-            <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer;">
-              <input type="radio" name="requestType" value="callback" required style="margin: 0; flex-shrink: 0; width: auto;">
-              <span style="font-size: 14px; color: #fff;">Request a call back</span>
-            </label>
-            <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer;">
-              <input type="radio" name="requestType" value="booking" required style="margin: 0; flex-shrink: 0; width: auto;">
-              <span style="font-size: 14px; color: #fff;">Book service via SMS</span>
-            </label>
-            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-              <input type="radio" name="requestType" value="bookNow" required style="margin: 0; flex-shrink: 0; width: auto;">
-              <span style="font-size: 14px; color: #fff;">Book now</span>
-            </label>
+          <!-- STEP 1: Initial Details -->
+          <div id="step1Content">
+            <input type="text"   name="name"         placeholder="Name*" required>
+            <input type="email"  name="email"        placeholder="Email*" required>
+            <input type="tel"    name="phone"        placeholder="Phone*" required>
+            <input type="text"   name="address"      placeholder="Address*" required>
+            <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999">
+            <textarea            name="message"      placeholder="How Can We Help?*" required rows="3"></textarea>
+
+            <div style="margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px;">
+              <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">What would you like to do?</div>
+              <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer;">
+                <input type="radio" name="requestTypeStep1" value="callback" required style="margin: 0; flex-shrink: 0; width: auto;">
+                <span style="font-size: 14px; color: #fff;">Request a call back</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer;">
+                <input type="radio" name="requestTypeStep1" value="booking" required style="margin: 0; flex-shrink: 0; width: auto;">
+                <span style="font-size: 14px; color: #fff;">Book service via SMS</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="radio" name="requestTypeStep1" value="bookNow" required style="margin: 0; flex-shrink: 0; width: auto;">
+                <span style="font-size: 14px; color: #fff;">Book now</span>
+              </label>
+            </div>
           </div>
 
-          <!-- Booking details for "Book now" option -->
-          <div id="bookNowOptions" style="display: none; margin-top: 12px;">
+          <!-- STEP 2: Booking Details -->
+          <div id="step2Content" style="display: none;">
+            <div style="margin-bottom: 12px; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px;">
+              <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 6px;">Issue:</div>
+              <div style="font-size: 14px; color: #fff;" id="summaryMessage"></div>
+              <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 8px; margin-bottom: 6px;">Address:</div>
+              <div style="font-size: 14px; color: #fff;" id="summaryAddress"></div>
+            </div>
+
             <!-- Urgency -->
             <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
               <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">When do you need this?</div>
@@ -2799,14 +2801,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               </label>
             </div>
 
-            <!-- Available Slots -->
-            <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+            <!-- Available Slots (only for standard) -->
+            <div id="slotsSection" style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
               <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Select your preferred time slot</div>
-              <select name="bookNowSlot" id="bookNowSlot" required style="width: 100%; padding: 10px; border-radius: 4px; background: #fff; border: 1px solid #e0e0e0; font-size: 14px; color: #333;">
+              <select name="bookNowSlot" id="bookNowSlot" style="width: 100%; padding: 10px; border-radius: 4px; background: #fff; border: 1px solid #e0e0e0; font-size: 14px; color: #333;">
                 <option value="">-- Loading available slots --</option>
               </select>
               <div id="slotsLoading" style="margin-top: 8px; font-size: 12px; color: rgba(255,255,255,0.7);">Loading...</div>
             </div>
+
+            <button type="button" onclick="goBackToStep1()" style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 10px; border-radius: 4px; width: 100%; cursor: pointer; margin-bottom: 8px; font-size: 14px;">← Back</button>
           </div>
 
           <button type="submit" class="submit-btn" id="submitBtn">NEXT</button>
@@ -3624,45 +3628,56 @@ document.addEventListener("DOMContentLoaded", function () {
 
 const SYDNEY_POSTCODES = new Set([2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 2048, 2049, 2050, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074, 2075, 2076, 2077, 2079, 2080, 2081, 2082, 2083, 2084, 2085, 2086, 2087, 2088, 2089, 2090, 2092, 2093, 2094, 2095, 2096, 2097, 2098, 2099, 2100, 2101, 2102, 2103, 2104, 2105, 2106, 2107, 2108, 2109, 2110, 2111, 2112, 2113, 2114, 2115, 2116, 2117, 2118, 2119, 2120, 2121, 2122, 2123, 2124, 2125, 2126, 2127, 2128, 2129, 2130, 2131, 2132, 2133, 2134, 2135, 2136, 2137, 2138, 2139, 2140, 2141, 2142, 2143, 2144, 2145, 2146, 2147, 2148, 2150, 2151, 2152, 2153, 2154, 2155, 2156, 2157, 2158, 2159, 2160, 2161, 2162, 2163, 2164, 2165, 2166, 2167, 2168, 2170, 2171, 2172, 2173, 2174, 2175, 2176, 2177, 2178, 2179, 2190, 2191, 2192, 2193, 2194, 2195, 2196, 2197, 2198, 2199, 2200, 2203, 2204, 2205, 2206, 2207, 2208, 2209, 2210, 2211, 2212, 2213, 2214, 2216, 2217, 2218, 2219, 2220, 2221, 2222, 2223, 2224, 2225, 2226, 2227, 2228, 2229, 2230, 2231, 2232, 2233, 2234, 2560, 2563, 2564, 2565, 2566, 2567, 2568, 2569, 2570, 2745, 2747, 2748, 2749, 2750, 2751, 2752, 2753, 2754, 2755, 2756, 2757, 2758, 2759, 2760, 2761, 2762, 2763, 2765, 2766, 2767, 2768, 2769, 2770, 2773, 2774, 2775, 2776, 2777, 2778, 2779, 2780, 2782, 2783, 2784, 2785, 2786, 2787, 2790, 2557, 2558, 2559, 2561, 2562, 2571, 2572, 2573, 2574, 2575, 2576]);
 
-// Handle "Book now" option visibility and slot fetching
-const bookNowOptions = document.getElementById('bookNowOptions');
-const requestTypeRadios = document.querySelectorAll('input[name="requestType"]');
-const bookNowUrgencyRadios = document.querySelectorAll('input[name="bookNowUrgency"]');
+// Step-based form handling
+function goToStep2() {
+  const step1Content = document.getElementById('step1Content');
+  const step2Content = document.getElementById('step2Content');
+  const formStepText = document.getElementById('formStepText');
 
-function updateBookNowVisibility() {
-  const selectedType = document.querySelector('input[name="requestType"]:checked')?.value;
-  if (bookNowOptions) {
-    bookNowOptions.style.display = selectedType === 'bookNow' ? 'block' : 'none';
-  }
-  if (selectedType === 'bookNow') {
-    updateSlotVisibility();
-  }
+  // Show step 2, hide step 1
+  step1Content.style.display = 'none';
+  step2Content.style.display = 'block';
+  formStepText.textContent = 'Complete Your Booking';
+
+  // Populate summary
+  const message = document.querySelector('textarea[name="message"]').value;
+  const address = document.querySelector('input[name="address"]').value;
+  const postcode = document.querySelector('input[name="postcode"]').value;
+
+  document.getElementById('summaryMessage').textContent = message;
+  document.getElementById('summaryAddress').textContent = `${address} ${postcode}`;
+
+  // Update slots visibility
+  updateSlotVisibility();
+}
+
+function goBackToStep1() {
+  document.getElementById('step1Content').style.display = 'block';
+  document.getElementById('step2Content').style.display = 'none';
+  document.getElementById('formStepText').textContent = 'How Can We Help You?';
+  document.getElementById('submitBtn').textContent = 'NEXT';
 }
 
 function updateSlotVisibility() {
   const urgency = document.querySelector('input[name="bookNowUrgency"]:checked')?.value || 'standard';
-  const slotsContainer = document.querySelector('div:has(#bookNowSlot)');
+  const slotsSection = document.getElementById('slotsSection');
   const slotSelect = document.getElementById('bookNowSlot');
 
-  if (slotsContainer) {
-    slotsContainer.style.display = urgency === 'standard' ? 'block' : 'none';
-  }
-
   if (urgency === 'standard') {
+    slotsSection.style.display = 'block';
     slotSelect.required = true;
     fetchAvailableSlots();
   } else {
+    slotsSection.style.display = 'none';
     slotSelect.required = false;
     slotSelect.value = '';
   }
 }
 
 async function fetchAvailableSlots() {
-  const trade = document.querySelector('textarea[name="message"]')?.value.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
+  const trade = document.querySelector('textarea[name="message"]').value.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
   const slotSelect = document.getElementById('bookNowSlot');
   const slotsLoading = document.getElementById('slotsLoading');
-
-  if (!slotSelect) return;
 
   try {
     slotsLoading.textContent = 'Loading available slots...';
@@ -3696,11 +3711,7 @@ async function fetchAvailableSlots() {
   }
 }
 
-requestTypeRadios.forEach(radio => {
-  radio.addEventListener('change', updateBookNowVisibility);
-});
-
-bookNowUrgencyRadios.forEach(radio => {
+document.querySelectorAll('input[name="bookNowUrgency"]').forEach(radio => {
   radio.addEventListener('change', updateSlotVisibility);
 });
 
@@ -3713,9 +3724,11 @@ if (quoteForm) {
     const submitBtn = document.getElementById('submitBtn');
     const formMessage = document.getElementById('formMessage');
     const postcode = parseInt(document.querySelector('input[name="postcode"]').value);
-    const requestType = document.querySelector('input[name="requestType"]:checked')?.value;
-    const originalText = submitBtn.textContent;
+    const step1Content = document.getElementById('step1Content');
+    const step2Content = document.getElementById('step2Content');
+    const isStep2 = step2Content.style.display !== 'none';
 
+    // Check postcode validity once
     if (!SYDNEY_POSTCODES.has(postcode)) {
       formMessage.style.backgroundColor = '#f8d7da';
       formMessage.style.color = '#721c24';
@@ -3724,90 +3737,111 @@ if (quoteForm) {
       return;
     }
 
-    if (!requestType) {
+    // STEP 1: Collect details and transition to Step 2 if booking now
+    if (!isStep2) {
+      const requestType = document.querySelector('input[name="requestTypeStep1"]:checked')?.value;
+
+      if (!requestType) {
+        formMessage.style.backgroundColor = '#f8d7da';
+        formMessage.style.color = '#721c24';
+        formMessage.textContent = 'Please select an option.';
+        formMessage.style.display = 'block';
+        return;
+      }
+
+      // If booking now, go to step 2 instead of submitting
+      if (requestType === 'bookNow') {
+        goToStep2();
+        return;
+      }
+
+      // Otherwise, submit immediately
+      submitForm(requestType);
+      return;
+    }
+
+    // STEP 2: Validate and submit booking
+    const urgency = document.querySelector('input[name="bookNowUrgency"]:checked')?.value;
+    const ownership = document.querySelector('input[name="bookNowOwnership"]:checked')?.value;
+    const appliance = document.querySelector('input[name="bookNowAppliance"]:checked')?.value;
+    const slot = document.querySelector('select[name="bookNowSlot"]')?.value;
+
+    if (!urgency || !ownership || !appliance) {
       formMessage.style.backgroundColor = '#f8d7da';
       formMessage.style.color = '#721c24';
-      formMessage.textContent = 'Please select an option above.';
+      formMessage.textContent = 'Please complete all booking details.';
       formMessage.style.display = 'block';
       return;
     }
 
-    // Validate bookNow required fields
-    if (requestType === 'bookNow') {
-      const urgency = document.querySelector('input[name="bookNowUrgency"]:checked')?.value;
-      const ownership = document.querySelector('input[name="bookNowOwnership"]:checked')?.value;
-      const appliance = document.querySelector('input[name="bookNowAppliance"]:checked')?.value;
-      const slot = document.querySelector('select[name="bookNowSlot"]')?.value;
-
-      if (!urgency || !ownership || !appliance) {
-        formMessage.style.backgroundColor = '#f8d7da';
-        formMessage.style.color = '#721c24';
-        formMessage.textContent = 'Please complete all booking details.';
-        formMessage.style.display = 'block';
-        return;
-      }
-
-      if (urgency === 'standard' && !slot) {
-        formMessage.style.backgroundColor = '#f8d7da';
-        formMessage.style.color = '#721c24';
-        formMessage.textContent = 'Please select a time slot.';
-        formMessage.style.display = 'block';
-        return;
-      }
-    }
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
-    formMessage.style.display = 'none';
-
-    try {
-      const formData = new FormData(quoteForm);
-      formData.append('requestType', requestType);
-
-      if (requestType === 'bookNow') {
-        formData.append('bookNowUrgency', document.querySelector('input[name="bookNowUrgency"]:checked').value);
-        formData.append('bookNowOwnership', document.querySelector('input[name="bookNowOwnership"]:checked').value);
-        formData.append('bookNowAppliance', document.querySelector('input[name="bookNowAppliance"]:checked').value);
-        formData.append('bookNowSlot', document.querySelector('select[name="bookNowSlot"]').value);
-      }
-
-      const response = await fetch('/api/quote', {
-        method: 'POST',
-        body: formData
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        formMessage.style.backgroundColor = '#d4edda';
-        formMessage.style.color = '#155724';
-
-        if (requestType === 'callback') {
-          formMessage.textContent = 'Thank you! We will call you shortly.';
-        } else if (requestType === 'bookNow') {
-          formMessage.textContent = 'Booking confirmed! Check your SMS for details.';
-        } else {
-          formMessage.textContent = 'Thank you! Check your SMS to confirm your booking.';
-        }
-
-        quoteForm.reset();
-        if (bookNowOptions) bookNowOptions.style.display = 'none';
-      } else {
-        formMessage.style.backgroundColor = '#f8d7da';
-        formMessage.style.color = '#721c24';
-        formMessage.textContent = result.error || 'An error occurred. Please try again.';
-      }
-      formMessage.style.display = 'block';
-    } catch (error) {
+    if (urgency === 'standard' && !slot) {
       formMessage.style.backgroundColor = '#f8d7da';
       formMessage.style.color = '#721c24';
-      formMessage.textContent = 'Network error. Please try again.';
+      formMessage.textContent = 'Please select a time slot.';
       formMessage.style.display = 'block';
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = originalText;
+      return;
     }
+
+    submitForm('bookNow', { urgency, ownership, appliance, slot });
   });
+}
+
+async function submitForm(requestType, bookingData = {}) {
+  const submitBtn = document.getElementById('submitBtn');
+  const formMessage = document.getElementById('formMessage');
+  const originalText = submitBtn.textContent;
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting...';
+  formMessage.style.display = 'none';
+
+  try {
+    const formData = new FormData(quoteForm);
+    formData.set('requestType', requestType);
+
+    if (requestType === 'bookNow') {
+      formData.set('bookNowUrgency', bookingData.urgency);
+      formData.set('bookNowOwnership', bookingData.ownership);
+      formData.set('bookNowAppliance', bookingData.appliance);
+      formData.set('bookNowSlot', bookingData.slot);
+    }
+
+    const response = await fetch('/api/quote', {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (response.ok && result.success) {
+      formMessage.style.backgroundColor = '#d4edda';
+      formMessage.style.color = '#155724';
+
+      if (requestType === 'callback') {
+        formMessage.textContent = 'Thank you! We will call you shortly.';
+      } else if (requestType === 'bookNow') {
+        formMessage.textContent = 'Booking confirmed! Check your SMS for details.';
+      } else {
+        formMessage.textContent = 'Thank you! Check your SMS to confirm your booking.';
+      }
+
+      quoteForm.reset();
+      goBackToStep1();
+    } else {
+      formMessage.style.backgroundColor = '#f8d7da';
+      formMessage.style.color = '#721c24';
+      formMessage.textContent = result.error || 'An error occurred. Please try again.';
+    }
+    formMessage.style.display = 'block';
+  } catch (error) {
+    formMessage.style.backgroundColor = '#f8d7da';
+    formMessage.style.color = '#721c24';
+    formMessage.textContent = 'Network error. Please try again.';
+    formMessage.style.display = 'block';
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  }
 }
 </script>
 
