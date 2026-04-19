@@ -320,7 +320,7 @@ async function triggerRetellCallback(env, { phone, name }) {
   };
   console.log('Payload:', JSON.stringify(payload));
 
-  const response = await fetch('https://api.retell.ai/v2/create-phone-call', {
+  const response = await fetch('https://api.retellai.com/v2/create-phone-call', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${retellApiKey}`,
