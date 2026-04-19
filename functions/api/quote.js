@@ -491,8 +491,8 @@ async function sendBookingSMS(env, { phone, message }) {
   const credentials = btoa(`${apiKey}:${apiSecret}`);
 
   const formData = new URLSearchParams();
+  formData.append('to', phone);
   formData.append('message', message);
-  formData.append('list_id', '10962457');
   formData.append('countrycode', 'au');
 
   console.log('Sending to Transmit SMS API...');
