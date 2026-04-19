@@ -3739,7 +3739,7 @@ async function fetchAvailableSlots() {
     slots.forEach(slot => {
       const option = document.createElement('option');
       option.value = JSON.stringify(slot);
-      option.textContent = `${slot.day} ${slot.start_time}-${slot.end_time}`;
+      option.textContent = `${slot.day} (${slot.date}) ${slot.start_time}-${slot.end_time}`;
       slotSelect.appendChild(option);
     });
 
