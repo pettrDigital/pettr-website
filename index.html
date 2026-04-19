@@ -10,8 +10,22 @@
 <link rel="icon" type="image/png" sizes="32x32" href="https://plumbertotherescue.com.au/wp-content/uploads/2023/07/cropped-Plumber-Man-Favicon-32x32.png?v=20260415">
 <link rel="icon" type="image/png" sizes="16x16" href="https://plumbertotherescue.com.au/wp-content/uploads/2023/07/cropped-Plumber-Man-Favicon-32x32.png?v=20260415">
 <link rel="apple-touch-icon" href="https://plumbertotherescue.com.au/wp-content/uploads/2023/07/cropped-Plumber-Man-Favicon-32x32.png?v=20260415">
-<link rel="preload" as="image" href="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-plumber-sydney-mobile.webp" media="(max-width: 767px)" fetchpriority="high">
-<link rel="preload" as="image" href="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-plumber-sydney-1440.webp" media="(min-width: 768px)" fetchpriority="high">
+
+<!-- FIX 1: preconnect to image origin and font origin so DNS/TCP/TLS are ready before fetches fire -->
+<link rel="preconnect" href="https://plumbertotherescue.com.au" crossorigin>
+<link rel="preconnect" href="https://pettr-website.pages.dev" crossorigin>
+
+<!-- FIX 2: single preload using imagesrcset+imagesizes so it matches exactly what the <img> will pick -->
+<link rel="preload" as="image"
+  imagesrcset="
+    https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-plumber-sydney-mobile.webp 768w,
+    https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-plumber-sydney-1024.webp 1024w,
+    https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-plumber-sydney-1440.webp 1440w,
+    https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-plumber-sydney-1920.webp 1920w,
+    https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-plumber-sydney-2560.webp 2560w
+  "
+  imagesizes="100vw"
+  fetchpriority="high">
 
 <link rel="preload" as="font" type="font/woff2" crossorigin href="https://pettr-website.pages.dev/fonts/montserrat-variable.woff2">
 
@@ -814,6 +828,11 @@ ul { list-style: none; }
     margin: 32px 48px 32px auto;
     position: relative;
     z-index: 3;
+    /* FIX: constrain to viewport height so form never overflows the hero */
+    max-height: calc(100vh - 180px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 28px;
   }
 
   .form-card {
@@ -924,6 +943,11 @@ ul { list-style: none; }
     width: 340px;
     align-self: center;
     margin: 24px 24px 24px auto;
+    /* FIX: constrain to viewport height so form never overflows the hero */
+    max-height: calc(100vh - 180px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 28px;
   }
 
   .form-card-header {
@@ -1041,6 +1065,11 @@ ul { list-style: none; }
     margin: 20px 20px 20px auto;
     position: relative;
     z-index: 3;
+    /* FIX: constrain to available hero height so form never overflows */
+    max-height: calc(56.25vw - 40px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 28px;
   }
 
   .form-card-header {
@@ -1067,6 +1096,10 @@ ul { list-style: none; }
     display: none;
   }
 }
+
+/* Hide scrollbar on the form container while keeping it scrollable */
+#quote-form::-webkit-scrollbar { display: none; }
+#quote-form { scrollbar-width: none; -ms-overflow-style: none; }
 
 /* #endregion */
 
@@ -2736,7 +2769,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <input type="text"   name="name"         placeholder="Name*" required>
             <input type="email"  name="email"        placeholder="Email*" required>
             <input type="tel"    name="phone"        placeholder="Phone*" required>
-            <input type="text"   name="address"      placeholder="Address*" required>
+            <input type="text"   name="address"      placeholder="Address*" required id="addressInput">
             <button type="button" id="manualEntryToggle" style="margin-top: 2px; margin-bottom: 6px; padding: 0; background: transparent; color: #fff; border: none; cursor: pointer; font-size: 11px; text-decoration: underline; font-weight: 400; text-align: left;">Can't find your address? Enter manually</button>
             <input type="text"   name="suburb"       placeholder="Suburb*" required style="display: none;" id="suburbField">
             <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999" style="display: none;" id="postcodeField">
@@ -3109,7 +3142,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="wrap">
 
     <div class="strata-header">
-      <p class="strata-eyebrow">Used by Sydney’s Leading Property Managers</p>
+      <p class="strata-eyebrow">Used by Sydney's Leading Property Managers</p>
       <h2 class="strata-heading">The same team trusted to manage entire buildings — working in your home.</h2>
     </div>
 
@@ -3662,32 +3695,16 @@ const SYDNEY_POSTCODES = new Set([2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008
 
 // Step-based form handling
 function goToStep2() {
-  console.log('=== goToStep2 called ===');
   const step1Content = document.getElementById('step1Content');
   const step2Content = document.getElementById('step2Content');
-  const formStepText = document.getElementById('formStepText');
-
-  console.log('Elements found:', { step1Content: !!step1Content, step2Content: !!step2Content, formStepText: !!formStepText });
-
-  // Show step 2, hide step 1
   if (step1Content) step1Content.style.display = 'none';
   if (step2Content) step2Content.style.display = 'flex';
-  if (formStepText) {
-    formStepText.textContent = 'Complete Your Booking';
-  }
-
-  // Update slots visibility
   updateSlotVisibility();
-  console.log('=== goToStep2 complete ===');
 }
 
 function goBackToStep1() {
   document.getElementById('step1Content').style.display = 'flex';
   document.getElementById('step2Content').style.display = 'none';
-  const formStepText = document.getElementById('formStepText');
-  if (formStepText) {
-    formStepText.textContent = 'How Can We Help You?';
-  }
   document.getElementById('submitBtn').textContent = 'NEXT';
 }
 
@@ -3722,9 +3739,7 @@ async function fetchAvailableSlots() {
       body: JSON.stringify({ trade })
     });
 
-    if (!response.ok) {
-      throw new Error(`API returned ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`API returned ${response.status}`);
 
     const data = await response.json();
     const slots = data.slots || [];
@@ -3763,8 +3778,6 @@ if (manualEntryToggle) {
     suburbField.style.display = isHidden ? 'block' : 'none';
     postcodeField.style.display = isHidden ? 'block' : 'none';
     manualEntryToggle.textContent = isHidden ? 'Hide manual entry' : "Can't find your address? Enter manually";
-
-    // Update required attribute based on visibility
     if (isHidden) {
       suburbField.setAttribute('required', '');
       postcodeField.setAttribute('required', '');
@@ -3779,19 +3792,15 @@ document.querySelectorAll('input[name="bookNowUrgency"]').forEach(radio => {
   radio.addEventListener('change', updateSlotVisibility);
 });
 
-// Handle ownership warning (tenant)
 document.querySelectorAll('input[name="bookNowOwnership"]').forEach(radio => {
   radio.addEventListener('change', function() {
-    const tenantWarning = document.getElementById('tenantWarning');
-    tenantWarning.style.display = this.value === 'tenant' ? 'block' : 'none';
+    document.getElementById('tenantWarning').style.display = this.value === 'tenant' ? 'block' : 'none';
   });
 });
 
-// Handle appliance warning (existing)
 document.querySelectorAll('input[name="bookNowAppliance"]').forEach(radio => {
   radio.addEventListener('change', function() {
-    const existingWarning = document.getElementById('existingApplianceWarning');
-    existingWarning.style.display = this.value === 'existing' ? 'block' : 'none';
+    document.getElementById('existingApplianceWarning').style.display = this.value === 'existing' ? 'block' : 'none';
   });
 });
 
@@ -3832,25 +3841,15 @@ function closeConfirmation() {
   quoteForm.reset();
 }
 
-// Phone validation function
 function validateAustralianPhone(phone) {
   const cleaned = phone.replace(/\D/g, '');
-  const withPlus = phone.includes('+');
-
-  // Mobile: 04xx xxx xxx (12 digits) or +614x xxx xxx (13 digits after +)
-  if (phone.startsWith('04') && cleaned.length === 10) return true; // 04xx xxx xxx format
-  if (phone.startsWith('+614') && cleaned.length === 12) return true; // +614x xxx xxx format
-
-  // Landline: (02) xxxx xxxx, 02 xxxx xxxx, etc. (10 digits with area code)
-  if (phone.match(/^\(?0[2-8]\)?[\s-]?\d{4}[\s-]?\d{4}$/)) return true; // Australian landline
-
-  // International landline: +612 xxxx xxxx, +613 xxxx xxxx, etc.
+  if (phone.startsWith('04') && cleaned.length === 10) return true;
+  if (phone.startsWith('+614') && cleaned.length === 12) return true;
+  if (phone.match(/^\(?0[2-8]\)?[\s-]?\d{4}[\s-]?\d{4}$/)) return true;
   if (phone.match(/^\+61[2-8]\d{8}$/)) return true;
-
   return false;
 }
 
-// Handle quote form submission
 const quoteForm = document.getElementById('quoteFormElement');
 if (quoteForm) {
   quoteForm.addEventListener('submit', async function(e) {
@@ -3859,15 +3858,12 @@ if (quoteForm) {
     const submitBtn = document.getElementById('submitBtn');
     const formMessage = document.getElementById('formMessage');
     const phoneInput = document.querySelector('input[name="phone"]');
-    const addressInput = document.querySelector('input[name="address"]');
     const suburbInput = document.querySelector('input[name="suburb"]');
     const postcodeInput = document.querySelector('input[name="postcode"]');
     const postcode = parseInt(postcodeInput.value);
-    const step1Content = document.getElementById('step1Content');
     const step2Content = document.getElementById('step2Content');
     const isStep2 = step2Content.style.display !== 'none';
 
-    // Validate phone format
     if (!validateAustralianPhone(phoneInput.value)) {
       formMessage.style.backgroundColor = '#f8d7da';
       formMessage.style.color = '#721c24';
@@ -3876,7 +3872,6 @@ if (quoteForm) {
       return;
     }
 
-    // Check that address was selected from Places OR manual entry was toggled
     if (!suburbInput.value) {
       formMessage.style.backgroundColor = '#f8d7da';
       formMessage.style.color = '#721c24';
@@ -3885,7 +3880,6 @@ if (quoteForm) {
       return;
     }
 
-    // Check postcode validity once
     if (!SYDNEY_POSTCODES.has(postcode)) {
       formMessage.style.backgroundColor = '#f8d7da';
       formMessage.style.color = '#721c24';
@@ -3894,10 +3888,8 @@ if (quoteForm) {
       return;
     }
 
-    // STEP 1: Collect details and transition to Step 2 if booking now
     if (!isStep2) {
       const requestType = document.querySelector('input[name="requestTypeStep1"]:checked')?.value;
-
       if (!requestType) {
         formMessage.style.backgroundColor = '#f8d7da';
         formMessage.style.color = '#721c24';
@@ -3905,21 +3897,15 @@ if (quoteForm) {
         formMessage.style.display = 'block';
         return;
       }
-
-      // If booking now, go to step 2 instead of submitting
       if (requestType === 'bookNow') {
         goToStep2();
         return;
       }
-
-      // Otherwise, submit immediately
       submitForm(requestType);
       return;
     }
 
-    // STEP 2: Validate and submit booking
     const urgency = document.querySelector('input[name="bookNowUrgency"]:checked')?.value;
-
     if (!urgency) {
       formMessage.style.backgroundColor = '#f8d7da';
       formMessage.style.color = '#721c24';
@@ -3929,12 +3915,10 @@ if (quoteForm) {
     }
 
     if (urgency === 'tonight') {
-      // Emergency booking - just submit with urgency
       submitForm('bookNow', { urgency });
       return;
     }
 
-    // Standard booking - validate all fields
     const ownership = document.querySelector('input[name="bookNowOwnership"]:checked')?.value;
     const appliance = document.querySelector('input[name="bookNowAppliance"]:checked')?.value;
     const slot = document.querySelector('select[name="bookNowSlot"]')?.value;
@@ -3976,28 +3960,19 @@ async function submitForm(requestType, bookingData = {}) {
       formData.set('bookNowUrgency', bookingData.urgency);
       formData.set('bookNowOwnership', bookingData.ownership);
       formData.set('bookNowAppliance', bookingData.appliance);
-      if (bookingData.slot) {
-        formData.set('bookNowSlot', bookingData.slot);
-      }
+      if (bookingData.slot) formData.set('bookNowSlot', bookingData.slot);
     }
 
-    const response = await fetch('/api/quote', {
-      method: 'POST',
-      body: formData
-    });
-
+    const response = await fetch('/api/quote', { method: 'POST', body: formData });
     const result = await response.json();
 
     if (response.ok && result.success) {
       if (requestType === 'bookNow') {
-        // Show confirmation modal with booking details
         showConfirmation(new FormData(quoteForm));
       } else {
         formMessage.style.backgroundColor = '#d4edda';
         formMessage.style.color = '#155724';
-        if (requestType === 'callback') {
-          formMessage.textContent = 'Thank you! We will call you shortly.';
-        }
+        formMessage.textContent = requestType === 'callback' ? 'Thank you! We will call you shortly.' : 'Thank you!';
         formMessage.style.display = 'block';
         quoteForm.reset();
         goBackToStep1();
@@ -4019,19 +3994,21 @@ async function submitForm(requestType, bookingData = {}) {
   }
 }
 
-// Google Maps Places Autocomplete
+// FIX 3: Google Maps Places Autocomplete — deferred until user focuses the address field
+// This prevents /api/config and the Maps JS library from loading on page load,
+// eliminating network contention during the critical LCP window.
+let placesInitialized = false;
+
 async function initializePlacesAutocomplete() {
+  if (placesInitialized) return;
+  placesInitialized = true;
+
   try {
     const configResponse = await fetch('/api/config');
     const config = await configResponse.json();
     const apiKey = config.googleMapsApiKey;
+    if (!apiKey) { console.error('Google Maps API key not available'); return; }
 
-    if (!apiKey) {
-      console.error('Google Maps API key not available');
-      return;
-    }
-
-    // Load Google Maps library
     const script = document.createElement('script');
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
     script.async = true;
@@ -4044,17 +4021,10 @@ async function initializePlacesAutocomplete() {
 }
 
 function setupPlacesAutocomplete() {
-  const addressInput = document.querySelector('input[name="address"]');
+  const addressInput = document.getElementById('addressInput');
   if (!addressInput || !window.google) return;
 
-  // Greater Sydney bounds (rough boundaries)
-  const sydneyBounds = {
-    north: -33.4,   // Gosford
-    south: -34.2,   // Wollongong
-    east: 151.35,   // Coast
-    west: 150.3     // Penrith
-  };
-
+  const sydneyBounds = { north: -33.4, south: -34.2, east: 151.35, west: 150.3 };
   const options = {
     componentRestrictions: { country: 'au' },
     bounds: sydneyBounds,
@@ -4064,49 +4034,33 @@ function setupPlacesAutocomplete() {
   };
 
   const autocomplete = new google.maps.places.Autocomplete(addressInput, options);
-
   autocomplete.addListener('place_changed', () => {
     const place = autocomplete.getPlace();
+    if (!place.geometry) return;
 
-    if (!place.geometry) {
-      console.error('No geometry found');
-      return;
-    }
-
-    // Extract suburb/locality and postcode from address components
     let suburb = '';
     let postcode = '';
     if (place.address_components) {
-      const localityComponent = place.address_components.find(component =>
-        component.types.includes('locality')
-      );
+      const localityComponent = place.address_components.find(c => c.types.includes('locality'));
       suburb = localityComponent?.long_name || '';
-
-      const postalComponent = place.address_components.find(component =>
-        component.types.includes('postal_code')
-      );
+      const postalComponent = place.address_components.find(c => c.types.includes('postal_code'));
       postcode = postalComponent?.long_name || '';
     }
 
-    // Auto-fill suburb and postcode fields
     const suburbInput = document.querySelector('input[name="suburb"]');
     const postcodeInput = document.querySelector('input[name="postcode"]');
-
-    if (suburbInput && suburb) {
-      suburbInput.value = suburb;
-    }
-    if (postcodeInput && postcode) {
-      postcodeInput.value = postcode;
-    }
+    if (suburbInput && suburb) suburbInput.value = suburb;
+    if (postcodeInput && postcode) postcodeInput.value = postcode;
   });
 }
 
-// Initialize Places on DOM ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializePlacesAutocomplete);
-} else {
-  initializePlacesAutocomplete();
-}
+// Attach the lazy loader to the address field focus event
+document.addEventListener('DOMContentLoaded', function() {
+  const addressInput = document.getElementById('addressInput');
+  if (addressInput) {
+    addressInput.addEventListener('input', initializePlacesAutocomplete, { once: true });
+  }
+});
 </script>
 
 </body>
