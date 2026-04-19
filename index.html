@@ -2736,10 +2736,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <input type="tel"    name="phone"        placeholder="Phone*" required>
             <input type="text"   name="address"      placeholder="Address*" required>
             <button type="button" id="manualEntryToggle" style="margin-top: 2px; margin-bottom: 6px; padding: 0; background: transparent; color: #fff; border: none; cursor: pointer; font-size: 11px; text-decoration: underline; font-weight: 400; text-align: left;">Can't find your address? Enter manually</button>
-            <div id="manualEntryFields" style="display: none; flex-direction: column; gap: 8px;">
-              <input type="text"   name="suburb"       placeholder="Suburb*" required>
-              <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999">
-            </div>
+            <input type="text"   name="suburb"       placeholder="Suburb*" required style="display: none;" id="suburbField">
+            <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999" style="display: none;" id="postcodeField">
             <textarea            name="message"      placeholder="How Can We Help?*" required rows="3"></textarea>
 
             <div style="margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px;">
@@ -3753,24 +3751,24 @@ async function fetchAvailableSlots() {
 
 // Handle manual address entry toggle
 const manualEntryToggle = document.getElementById('manualEntryToggle');
-const manualEntryFields = document.getElementById('manualEntryFields');
-const suburbInput = document.querySelector('input[name="suburb"]');
-const postcodeInput = document.querySelector('input[name="postcode"]');
+const suburbField = document.getElementById('suburbField');
+const postcodeField = document.getElementById('postcodeField');
 
 if (manualEntryToggle) {
   manualEntryToggle.addEventListener('click', function(e) {
     e.preventDefault();
-    const isHidden = manualEntryFields.style.display === 'none';
-    manualEntryFields.style.display = isHidden ? 'flex' : 'none';
+    const isHidden = suburbField.style.display === 'none';
+    suburbField.style.display = isHidden ? 'block' : 'none';
+    postcodeField.style.display = isHidden ? 'block' : 'none';
     manualEntryToggle.textContent = isHidden ? 'Hide manual entry' : "Can't find your address? Enter manually";
 
     // Update required attribute based on visibility
     if (isHidden) {
-      suburbInput.setAttribute('required', '');
-      postcodeInput.setAttribute('required', '');
+      suburbField.setAttribute('required', '');
+      postcodeField.setAttribute('required', '');
     } else {
-      suburbInput.removeAttribute('required');
-      postcodeInput.removeAttribute('required');
+      suburbField.removeAttribute('required');
+      postcodeField.removeAttribute('required');
     }
   });
 }
