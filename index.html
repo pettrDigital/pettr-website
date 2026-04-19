@@ -2785,6 +2785,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </label>
               </div>
 
+              <!-- Tenant Warning -->
+              <div id="tenantWarning" style="display: none; padding: 12px; background: rgba(255, 193, 7, 0.2); border: 1px solid rgba(255, 193, 7, 0.4); border-radius: 6px; margin-bottom: 12px;">
+                <div style="font-size: 14px; color: #fff; line-height: 1.4;">We recommend speaking to your landlord or Real Estate Manager. By proceeding you will be responsible for any service costs incurred.</div>
+              </div>
+
               <!-- Appliance Type -->
               <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
                 <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Does this relate to an appliance?</div>
@@ -2800,6 +2805,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                   <input type="radio" name="bookNowAppliance" value="neither" style="margin: 0; flex-shrink: 0; width: auto;">
                   <span style="font-size: 14px; color: #fff;">Neither</span>
                 </label>
+              </div>
+
+              <!-- Existing Appliance Warning -->
+              <div id="existingApplianceWarning" style="display: none; padding: 12px; background: rgba(244, 67, 54, 0.2); border: 1px solid rgba(244, 67, 54, 0.4); border-radius: 6px; margin-bottom: 12px;">
+                <div style="font-size: 14px; color: #fff; line-height: 1.4;">Unfortunately we are not able to service existing appliances.</div>
               </div>
 
               <!-- Available Slots -->
@@ -3722,6 +3732,22 @@ async function fetchAvailableSlots() {
 
 document.querySelectorAll('input[name="bookNowUrgency"]').forEach(radio => {
   radio.addEventListener('change', updateSlotVisibility);
+});
+
+// Handle ownership warning (tenant)
+document.querySelectorAll('input[name="bookNowOwnership"]').forEach(radio => {
+  radio.addEventListener('change', function() {
+    const tenantWarning = document.getElementById('tenantWarning');
+    tenantWarning.style.display = this.value === 'tenant' ? 'block' : 'none';
+  });
+});
+
+// Handle appliance warning (existing)
+document.querySelectorAll('input[name="bookNowAppliance"]').forEach(radio => {
+  radio.addEventListener('change', function() {
+    const existingWarning = document.getElementById('existingApplianceWarning');
+    existingWarning.style.display = this.value === 'existing' ? 'block' : 'none';
+  });
 });
 
 // Handle quote form submission
