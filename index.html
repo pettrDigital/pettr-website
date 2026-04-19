@@ -2735,8 +2735,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <input type="email"  name="email"        placeholder="Email*" required>
             <input type="tel"    name="phone"        placeholder="Phone*" required>
             <input type="text"   name="address"      placeholder="Address*" required>
-            <input type="text"   name="suburb"       placeholder="Suburb*" required>
-            <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999">
+            <button type="button" id="manualEntryToggle" style="margin-top: 8px; padding: 8px 12px; background: transparent; color: #077bab; border: none; cursor: pointer; font-size: 13px; text-decoration: underline;">Can't find your address? Enter manually</button>
+            <div id="manualEntryFields" style="display: none;">
+              <input type="text"   name="suburb"       placeholder="Suburb*" required>
+              <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999">
+            </div>
             <textarea            name="message"      placeholder="How Can We Help?*" required rows="3"></textarea>
 
             <div style="margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px;">
@@ -3748,6 +3751,32 @@ async function fetchAvailableSlots() {
   }
 }
 
+// Handle manual address entry toggle
+const manualEntryToggle = document.getElementById('manualEntryToggle');
+const manualEntryFields = document.getElementById('manualEntryFields');
+const suburbInput = document.querySelector('input[name="suburb"]');
+const postcodeInput = document.querySelector('input[name="postcode"]');
+
+if (manualEntryToggle) {
+  manualEntryToggle.addEventListener('click', function(e) {
+    e.preventDefault();
+    const isHidden = manualEntryFields.style.display === 'none';
+    manualEntryFields.style.display = isHidden ? 'block' : 'none';
+    manualEntryToggle.textContent = isHidden ? 'Hide manual entry' : "Can't find your address? Enter manually";
+
+    // Update required attribute based on visibility
+    if (isHidden) {
+      suburbInput.setAttribute('required', '');
+      postcodeInput.setAttribute('required', '');
+    } else {
+      suburbInput.removeAttribute('required');
+      postcodeInput.removeAttribute('required');
+      suburbInput.value = '';
+      postcodeInput.value = '';
+    }
+  });
+}
+
 document.querySelectorAll('input[name="bookNowUrgency"]').forEach(radio => {
   radio.addEventListener('change', updateSlotVisibility);
 });
@@ -3813,10 +3842,22 @@ if (quoteForm) {
 
     const submitBtn = document.getElementById('submitBtn');
     const formMessage = document.getElementById('formMessage');
-    const postcode = parseInt(document.querySelector('input[name="postcode"]').value);
+    const addressInput = document.querySelector('input[name="address"]');
+    const suburbInput = document.querySelector('input[name="suburb"]');
+    const postcodeInput = document.querySelector('input[name="postcode"]');
+    const postcode = parseInt(postcodeInput.value);
     const step1Content = document.getElementById('step1Content');
     const step2Content = document.getElementById('step2Content');
     const isStep2 = step2Content.style.display !== 'none';
+
+    // Check that address was selected from Places OR manual entry was toggled
+    if (!suburbInput.value) {
+      formMessage.style.backgroundColor = '#f8d7da';
+      formMessage.style.color = '#721c24';
+      formMessage.textContent = 'Please select your address from the suggestions or click "Can\'t find your address? Enter manually".';
+      formMessage.style.display = 'block';
+      return;
+    }
 
     // Check postcode validity once
     if (!SYDNEY_POSTCODES.has(postcode)) {
