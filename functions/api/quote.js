@@ -164,7 +164,7 @@ export async function onRequest(context) {
 
       if (data.bookNowUrgency === 'tonight') {
         // Emergency booking - send receipt SMS, tech will call within 5-10 mins
-        const smsMessage = `Hi ${data.name}, emergency ${trade} booking received. A tech will call you back within 5-10 minutes. Thanks!`;
+        const smsMessage = `Hi ${data.name}, emergency ${trade} booking received at ${data.address} ${data.postcode}. A tech will call you back within 5-10 minutes. Thanks!`;
 
         await sendBookingSMS(env, {
           phone: data.phone,
@@ -174,7 +174,7 @@ export async function onRequest(context) {
       } else {
         // Standard booking with selected slot
         const slot = data.bookNowSlot;
-        const smsMessage = `Hi ${data.name}, your ${trade} booking is confirmed!\n\nSlot: ${slot.day} ${slot.start_time}-${slot.end_time}\nTech: ${slot.tech}\nAddress: ${data.address} ${data.postcode}\n\nTech will call 30min before arrival. Reply CONFIRM to finalize.`;
+        const smsMessage = `Hi ${data.name}, your ${trade} booking is confirmed!\n\nTime: ${slot.day} ${slot.start_time}-${slot.end_time}\nAddress: ${data.address} ${data.postcode}\nIssue: ${data.message}\n\nTech will call 30min before arrival.`;
 
         await sendBookingSMS(env, {
           phone: data.phone,
@@ -192,7 +192,7 @@ export async function onRequest(context) {
         <p><strong>Address:</strong> ${escapeHtml(data.address)} ${escapeHtml(data.postcode)}</p>
         <p><strong>Issue:</strong> ${escapeHtml(data.message)}</p>
         <p><strong>Service Type:</strong> ${escapeHtml(trade)}</p>
-        <p><strong>Urgency:</strong> ${data.bookNowUrgency === 'tonight' ? 'Emergency - $549' : 'Standard - Free'}</p>
+        <p><strong>Urgency:</strong> ${data.bookNowUrgency === 'tonight' ? 'Emergency - $549 call our fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
         <p><strong>Homeowner/Tenant:</strong> ${data.bookNowOwnership}</p>
         <p><strong>Appliance Type:</strong> ${data.bookNowAppliance}</p>
       `;
@@ -201,7 +201,6 @@ export async function onRequest(context) {
         const slot = data.bookNowSlot;
         emailHtml += `
         <p><strong>Booked Slot:</strong> ${slot.day} ${slot.start_time}-${slot.end_time}</p>
-        <p><strong>Assigned Tech:</strong> ${slot.tech}</p>
         `;
       }
 

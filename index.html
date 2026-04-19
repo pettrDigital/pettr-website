@@ -2832,6 +2832,26 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div><!-- /.form-card-body -->
       </div>
     </div>
+
+    <!-- Booking Confirmation Modal -->
+    <div id="confirmationModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center;">
+      <div style="background: #fff; border-radius: 12px; padding: 32px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <h2 style="color: #077bab; margin-bottom: 16px; font-family: 'Montserrat', sans-serif;">Booking Confirmed!</h2>
+        <div style="background: #f5f6f7; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Name:</strong> <span id="confirmName"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Email:</strong> <span id="confirmEmail"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Phone:</strong> <span id="confirmPhone"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Address:</strong> <span id="confirmAddress"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Issue:</strong> <span id="confirmIssue"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Urgency:</strong> <span id="confirmUrgency"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Homeowner/Tenant:</strong> <span id="confirmOwnership"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Appliance Type:</strong> <span id="confirmAppliance"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;" id="confirmSlotRow"><strong>Booked Slot:</strong> <span id="confirmSlot"></span></p>
+        </div>
+        <p style="color: #666; font-size: 14px; margin-bottom: 16px;">Check your SMS and email for confirmation details.</p>
+        <button onclick="closeConfirmation()" style="background: #077bab; color: #fff; border: none; padding: 12px 24px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; width: 100%;">Done</button>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -3751,6 +3771,37 @@ document.querySelectorAll('input[name="bookNowAppliance"]').forEach(radio => {
   });
 });
 
+function showConfirmation(formData) {
+  const modal = document.getElementById('confirmationModal');
+  const urgency = formData.get('bookNowUrgency');
+  const slot = formData.get('bookNowSlot') ? JSON.parse(formData.get('bookNowSlot')) : null;
+
+  document.getElementById('confirmName').textContent = formData.get('name');
+  document.getElementById('confirmEmail').textContent = formData.get('email');
+  document.getElementById('confirmPhone').textContent = formData.get('phone');
+  document.getElementById('confirmAddress').textContent = `${formData.get('address')} ${formData.get('postcode')}`;
+  document.getElementById('confirmIssue').textContent = formData.get('message');
+  document.getElementById('confirmUrgency').textContent = urgency === 'tonight' ? 'Emergency - $549 call our fee including first 1/2 hour labour' : 'Standard Business Hours';
+  document.getElementById('confirmOwnership').textContent = formData.get('bookNowOwnership');
+  document.getElementById('confirmAppliance').textContent = formData.get('bookNowAppliance');
+
+  const slotRow = document.getElementById('confirmSlotRow');
+  if (slot) {
+    document.getElementById('confirmSlot').textContent = `${slot.day} ${slot.start_time}-${slot.end_time}`;
+    slotRow.style.display = 'block';
+  } else {
+    slotRow.style.display = 'none';
+  }
+
+  modal.style.display = 'flex';
+}
+
+function closeConfirmation() {
+  document.getElementById('confirmationModal').style.display = 'none';
+  goBackToStep1();
+  quoteForm.reset();
+}
+
 // Handle quote form submission
 const quoteForm = document.getElementById('quoteFormElement');
 if (quoteForm) {
@@ -3866,25 +3917,27 @@ async function submitForm(requestType, bookingData = {}) {
     const result = await response.json();
 
     if (response.ok && result.success) {
-      formMessage.style.backgroundColor = '#d4edda';
-      formMessage.style.color = '#155724';
-
-      if (requestType === 'callback') {
-        formMessage.textContent = 'Thank you! We will call you shortly.';
-      } else if (requestType === 'bookNow') {
-        formMessage.textContent = 'Booking confirmed! Check your SMS for details.';
+      if (requestType === 'bookNow') {
+        // Show confirmation modal with booking details
+        showConfirmation(new FormData(quoteForm));
       } else {
-        formMessage.textContent = 'Thank you! Check your SMS to confirm your booking.';
+        formMessage.style.backgroundColor = '#d4edda';
+        formMessage.style.color = '#155724';
+        if (requestType === 'callback') {
+          formMessage.textContent = 'Thank you! We will call you shortly.';
+        } else {
+          formMessage.textContent = 'Thank you! Check your SMS to confirm your booking.';
+        }
+        formMessage.style.display = 'block';
+        quoteForm.reset();
+        goBackToStep1();
       }
-
-      quoteForm.reset();
-      goBackToStep1();
     } else {
       formMessage.style.backgroundColor = '#f8d7da';
       formMessage.style.color = '#721c24';
       formMessage.textContent = result.error || 'An error occurred. Please try again.';
+      formMessage.style.display = 'block';
     }
-    formMessage.style.display = 'block';
   } catch (error) {
     formMessage.style.backgroundColor = '#f8d7da';
     formMessage.style.color = '#721c24';
