@@ -3974,7 +3974,9 @@ async function submitForm(requestType, bookingData = {}) {
       formData.set('bookNowUrgency', bookingData.urgency);
       formData.set('bookNowOwnership', bookingData.ownership);
       formData.set('bookNowAppliance', bookingData.appliance);
-      formData.set('bookNowSlot', bookingData.slot);
+      if (bookingData.slot) {
+        formData.set('bookNowSlot', bookingData.slot);
+      }
     }
 
     const response = await fetch('/api/quote', {
