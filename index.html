@@ -2757,13 +2757,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
           <!-- STEP 2: Booking Details -->
           <div id="step2Content" style="display: none;">
-            <div style="margin-bottom: 12px; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px;">
-              <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 6px;">Issue:</div>
-              <div style="font-size: 14px; color: #fff;" id="summaryMessage"></div>
-              <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 8px; margin-bottom: 6px;">Address:</div>
-              <div style="font-size: 14px; color: #fff;" id="summaryAddress"></div>
-            </div>
-
             <!-- Urgency -->
             <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
               <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">When do you need this?</div>
@@ -2777,43 +2770,46 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               </label>
             </div>
 
-            <!-- Homeowner/Tenant -->
-            <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
-              <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Are you the homeowner or a tenant?</div>
-              <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
-                <input type="radio" name="bookNowOwnership" value="homeowner" style="margin: 0; flex-shrink: 0; width: auto;">
-                <span style="font-size: 14px; color: #fff;">Homeowner</span>
-              </label>
-              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="radio" name="bookNowOwnership" value="tenant" style="margin: 0; flex-shrink: 0; width: auto;">
-                <span style="font-size: 14px; color: #fff;">Tenant</span>
-              </label>
-            </div>
+            <!-- Additional options (shown only for standard) -->
+            <div id="standardOptions" style="display: none;">
+              <!-- Homeowner/Tenant -->
+              <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+                <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Are you the homeowner or a tenant?</div>
+                <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
+                  <input type="radio" name="bookNowOwnership" value="homeowner" style="margin: 0; flex-shrink: 0; width: auto;">
+                  <span style="font-size: 14px; color: #fff;">Homeowner</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                  <input type="radio" name="bookNowOwnership" value="tenant" style="margin: 0; flex-shrink: 0; width: auto;">
+                  <span style="font-size: 14px; color: #fff;">Tenant</span>
+                </label>
+              </div>
 
-            <!-- Appliance Type -->
-            <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
-              <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Does this relate to an appliance?</div>
-              <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
-                <input type="radio" name="bookNowAppliance" value="new" style="margin: 0; flex-shrink: 0; width: auto;">
-                <span style="font-size: 14px; color: #fff;">New appliance</span>
-              </label>
-              <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
-                <input type="radio" name="bookNowAppliance" value="existing" style="margin: 0; flex-shrink: 0; width: auto;">
-                <span style="font-size: 14px; color: #fff;">Existing appliance</span>
-              </label>
-              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="radio" name="bookNowAppliance" value="neither" style="margin: 0; flex-shrink: 0; width: auto;">
-                <span style="font-size: 14px; color: #fff;">Neither</span>
-              </label>
-            </div>
+              <!-- Appliance Type -->
+              <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+                <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Does this relate to an appliance?</div>
+                <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
+                  <input type="radio" name="bookNowAppliance" value="new" style="margin: 0; flex-shrink: 0; width: auto;">
+                  <span style="font-size: 14px; color: #fff;">New appliance</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
+                  <input type="radio" name="bookNowAppliance" value="existing" style="margin: 0; flex-shrink: 0; width: auto;">
+                  <span style="font-size: 14px; color: #fff;">Existing appliance</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                  <input type="radio" name="bookNowAppliance" value="neither" style="margin: 0; flex-shrink: 0; width: auto;">
+                  <span style="font-size: 14px; color: #fff;">Neither</span>
+                </label>
+              </div>
 
-            <!-- Available Slots (only for standard) -->
-            <div id="slotsSection" style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
-              <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Select your preferred time slot</div>
-              <select name="bookNowSlot" id="bookNowSlot" style="width: 100%; padding: 10px; border-radius: 4px; background: #fff; border: 1px solid #e0e0e0; font-size: 14px; color: #333;">
-                <option value="">-- Loading available slots --</option>
-              </select>
-              <div id="slotsLoading" style="margin-top: 8px; font-size: 12px; color: rgba(255,255,255,0.7);">Loading...</div>
+              <!-- Available Slots -->
+              <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+                <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Select your preferred time slot</div>
+                <select name="bookNowSlot" id="bookNowSlot" style="width: 100%; padding: 10px; border-radius: 4px; background: #fff; border: 1px solid #e0e0e0; font-size: 14px; color: #333;">
+                  <option value="">-- Loading available slots --</option>
+                </select>
+                <div id="slotsLoading" style="margin-top: 8px; font-size: 12px; color: rgba(255,255,255,0.7);">Loading...</div>
+              </div>
             </div>
 
             <button type="button" onclick="goBackToStep1()" style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 10px; border-radius: 4px; width: 100%; cursor: pointer; margin-bottom: 8px; font-size: 14px;">← Back</button>
@@ -3666,15 +3662,15 @@ function goBackToStep1() {
 
 function updateSlotVisibility() {
   const urgency = document.querySelector('input[name="bookNowUrgency"]:checked')?.value || 'standard';
-  const slotsSection = document.getElementById('slotsSection');
+  const standardOptions = document.getElementById('standardOptions');
   const slotSelect = document.getElementById('bookNowSlot');
 
   if (urgency === 'standard') {
-    slotsSection.style.display = 'block';
+    standardOptions.style.display = 'block';
     slotSelect.required = true;
     fetchAvailableSlots();
   } else {
-    slotsSection.style.display = 'none';
+    standardOptions.style.display = 'none';
     slotSelect.required = false;
     slotSelect.value = '';
   }
@@ -3698,10 +3694,19 @@ async function fetchAvailableSlots() {
       })
     });
 
+    if (!response.ok) {
+      throw new Error(`API returned ${response.status}`);
+    }
+
     const data = await response.json();
     const slots = data.slots || [];
 
-    slotSelect.innerHTML = slots.length ? '' : '<option value="">No slots available</option>';
+    slotSelect.innerHTML = '';
+    if (slots.length === 0) {
+      slotSelect.innerHTML = '<option value="">No slots available</option>';
+      slotsLoading.style.display = 'none';
+      return;
+    }
 
     slots.forEach(slot => {
       const option = document.createElement('option');
@@ -3713,7 +3718,8 @@ async function fetchAvailableSlots() {
     slotsLoading.style.display = 'none';
   } catch (error) {
     console.error('Error fetching slots:', error);
-    slotsLoading.textContent = 'Error loading slots. Please try again.';
+    slotSelect.innerHTML = '<option value="">Unable to load slots</option>';
+    slotsLoading.style.display = 'none';
   }
 }
 
@@ -3768,11 +3774,27 @@ if (quoteForm) {
 
     // STEP 2: Validate and submit booking
     const urgency = document.querySelector('input[name="bookNowUrgency"]:checked')?.value;
+
+    if (!urgency) {
+      formMessage.style.backgroundColor = '#f8d7da';
+      formMessage.style.color = '#721c24';
+      formMessage.textContent = 'Please select urgency.';
+      formMessage.style.display = 'block';
+      return;
+    }
+
+    if (urgency === 'tonight') {
+      // Emergency booking - just submit with urgency
+      submitForm('bookNow', { urgency });
+      return;
+    }
+
+    // Standard booking - validate all fields
     const ownership = document.querySelector('input[name="bookNowOwnership"]:checked')?.value;
     const appliance = document.querySelector('input[name="bookNowAppliance"]:checked')?.value;
     const slot = document.querySelector('select[name="bookNowSlot"]')?.value;
 
-    if (!urgency || !ownership || !appliance) {
+    if (!ownership || !appliance) {
       formMessage.style.backgroundColor = '#f8d7da';
       formMessage.style.color = '#721c24';
       formMessage.textContent = 'Please complete all booking details.';
@@ -3780,7 +3802,7 @@ if (quoteForm) {
       return;
     }
 
-    if (urgency === 'standard' && !slot) {
+    if (!slot) {
       formMessage.style.backgroundColor = '#f8d7da';
       formMessage.style.color = '#721c24';
       formMessage.textContent = 'Please select a time slot.';
