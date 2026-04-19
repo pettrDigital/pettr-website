@@ -3685,13 +3685,10 @@ async function fetchAvailableSlots() {
     slotsLoading.textContent = 'Loading available slots...';
     slotsLoading.style.display = 'block';
 
-    const response = await fetch('https://us-central1-pettrdashboards.cloudfunctions.net/aroFloAgent', {
+    const response = await fetch('/api/slots', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'get_available_slots',
-        arguments: { trade }
-      })
+      body: JSON.stringify({ trade })
     });
 
     if (!response.ok) {
