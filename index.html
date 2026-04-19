@@ -3671,7 +3671,7 @@ function goToStep2() {
 
   // Show step 2, hide step 1
   if (step1Content) step1Content.style.display = 'none';
-  if (step2Content) step2Content.style.display = 'block';
+  if (step2Content) step2Content.style.display = 'flex';
   if (formStepText) {
     formStepText.textContent = 'Complete Your Booking';
   }
@@ -3682,7 +3682,7 @@ function goToStep2() {
 }
 
 function goBackToStep1() {
-  document.getElementById('step1Content').style.display = 'block';
+  document.getElementById('step1Content').style.display = 'flex';
   document.getElementById('step2Content').style.display = 'none';
   const formStepText = document.getElementById('formStepText');
   if (formStepText) {
