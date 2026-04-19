@@ -283,6 +283,7 @@ async function triggerRetellCallback(env, { phone, name }) {
     hasApiKey: !!retellApiKey,
     hasAgentId: !!retellAgentId,
     hasFromNumber: !!retellFromNumber,
+    fromNumberValue: retellFromNumber,
   });
 
   if (!retellApiKey || !retellAgentId || !retellFromNumber) {
