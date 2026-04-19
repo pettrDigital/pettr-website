@@ -48,12 +48,12 @@ export async function onRequest(context) {
       phone: formData.get('phone'),
       address: formData.get('address'),
       postcode: formData.get('postcode'),
-      suburb: formData.get('suburb') || '',
+      suburb: formData.get('suburb'),
       message: formData.get('message'),
       requestType,
     };
 
-    if (!data.name || !data.phone || !data.address || !data.postcode || !data.message || !requestType) {
+    if (!data.name || !data.phone || !data.address || !data.postcode || !data.suburb || !data.message || !requestType) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },

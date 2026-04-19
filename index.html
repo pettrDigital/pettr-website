@@ -2735,6 +2735,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <input type="email"  name="email"        placeholder="Email*" required>
             <input type="tel"    name="phone"        placeholder="Phone*" required>
             <input type="text"   name="address"      placeholder="Address*" required>
+            <input type="text"   name="suburb"       placeholder="Suburb*" required>
             <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999">
             <textarea            name="message"      placeholder="How Can We Help?*" required rows="3"></textarea>
 
@@ -3904,13 +3905,6 @@ async function submitForm(requestType, bookingData = {}) {
     const formData = new FormData(quoteForm);
     formData.set('requestType', requestType);
 
-    // Add suburb from Places Autocomplete
-    const addressInput = document.querySelector('input[name="address"]');
-    const suburb = addressInput?.dataset?.suburb || '';
-    if (suburb) {
-      formData.set('suburb', suburb);
-    }
-
     if (requestType === 'bookNow') {
       formData.set('bookNowUrgency', bookingData.urgency);
       formData.set('bookNowOwnership', bookingData.ownership);
@@ -4015,11 +4009,13 @@ function setupPlacesAutocomplete() {
       postcode = postalComponent?.long_name || '';
     }
 
-    // Store suburb in a data attribute (for backend use in SMS/emails)
-    addressInput.dataset.suburb = suburb;
-
-    // Auto-fill postcode field
+    // Auto-fill suburb and postcode fields
+    const suburbInput = document.querySelector('input[name="suburb"]');
     const postcodeInput = document.querySelector('input[name="postcode"]');
+
+    if (suburbInput && suburb) {
+      suburbInput.value = suburb;
+    }
     if (postcodeInput && postcode) {
       postcodeInput.value = postcode;
     }
