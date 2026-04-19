@@ -2765,7 +2765,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <span style="font-size: 14px; color: #fff;">Tonight (Emergency - $549)</span>
               </label>
               <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="radio" name="bookNowUrgency" value="standard" checked style="margin: 0; flex-shrink: 0; width: auto;">
+                <input type="radio" name="bookNowUrgency" value="standard" style="margin: 0; flex-shrink: 0; width: auto;">
                 <span style="font-size: 14px; color: #fff;">Standard (Free call-out, 7am-3pm)</span>
               </label>
             </div>
@@ -3661,7 +3661,7 @@ function goBackToStep1() {
 }
 
 function updateSlotVisibility() {
-  const urgency = document.querySelector('input[name="bookNowUrgency"]:checked')?.value || 'standard';
+  const urgency = document.querySelector('input[name="bookNowUrgency"]:checked')?.value;
   const standardOptions = document.getElementById('standardOptions');
   const slotSelect = document.getElementById('bookNowSlot');
 
