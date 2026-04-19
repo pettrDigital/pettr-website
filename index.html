@@ -4000,19 +4000,31 @@ function setupPlacesAutocomplete() {
       return;
     }
 
-    // Extract suburb/locality from address components
+    // Extract suburb/locality and postcode from address components
     let suburb = '';
+    let postcode = '';
     if (place.address_components) {
       const localityComponent = place.address_components.find(component =>
         component.types.includes('locality')
       );
       suburb = localityComponent?.long_name || '';
+
+      const postalComponent = place.address_components.find(component =>
+        component.types.includes('postal_code')
+      );
+      postcode = postalComponent?.long_name || '';
     }
 
     // Store suburb in a data attribute
     addressInput.dataset.suburb = suburb;
 
-    // Optionally display suburb below address
+    // Auto-fill postcode field
+    const postcodeInput = document.querySelector('input[name="postcode"]');
+    if (postcodeInput && postcode) {
+      postcodeInput.value = postcode;
+    }
+
+    // Display suburb below address
     let suburbDisplay = document.getElementById('suburbDisplay');
     if (!suburbDisplay && suburb) {
       suburbDisplay = document.createElement('div');
