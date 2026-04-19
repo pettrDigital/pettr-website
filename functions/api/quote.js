@@ -124,40 +124,6 @@ export async function onRequest(context) {
         phone: data.phone,
         name: data.name,
       });
-    } else if (data.requestType === 'booking') {
-      console.log('=== BOOKING FLOW INITIATED ===');
-      console.log('Phone:', data.phone);
-      console.log('Name:', data.name);
-      console.log('Problem:', data.message);
-
-      // Detect trade and send Message 1 of outbound booking flow
-      const trade = data.message.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
-      console.log('Detected trade:', trade);
-
-      const problemBrief = await claudeInterpret(env, {
-        problem: data.message,
-        trade,
-      });
-      console.log('Claude summary:', problemBrief);
-
-      await storeBookingFlowState(env, {
-        phone: data.phone,
-        name: data.name,
-        address: data.address,
-        postcode: data.postcode,
-        problem: data.message,
-        trade,
-        step: 'message_1_sent',
-        createdAt: new Date().toISOString(),
-      });
-      console.log('Booking flow state stored');
-
-      const smsMessage = `Hi ${data.name}, confirming your ${trade} issue at ${data.address} ${data.postcode}. We understand ${problemBrief}. Two options: (1) TONIGHT - $549 emergency call-out, or (2) STANDARD - Free call-out and quote (7am-3pm). Reply TONIGHT or STANDARD or give corrections`;
-      await sendBookingSMS(env, {
-        phone: data.phone,
-        message: smsMessage,
-      });
-      console.log('Message 1 (combined) SMS sent to:', data.phone);
     } else if (data.requestType === 'bookNow') {
       console.log('=== INSTANT BOOKING INITIATED ===');
       const trade = data.message.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';

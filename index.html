@@ -2744,10 +2744,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <input type="radio" name="requestTypeStep1" value="callback" required style="margin: 0; flex-shrink: 0; width: auto;">
                 <span style="font-size: 14px; color: #fff;">Request a call back</span>
               </label>
-              <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer;">
-                <input type="radio" name="requestTypeStep1" value="booking" required style="margin: 0; flex-shrink: 0; width: auto;">
-                <span style="font-size: 14px; color: #fff;">Book service via SMS</span>
-              </label>
               <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                 <input type="radio" name="requestTypeStep1" value="bookNow" required style="margin: 0; flex-shrink: 0; width: auto;">
                 <span style="font-size: 14px; color: #fff;">Book now</span>
@@ -3925,8 +3921,6 @@ async function submitForm(requestType, bookingData = {}) {
         formMessage.style.color = '#155724';
         if (requestType === 'callback') {
           formMessage.textContent = 'Thank you! We will call you shortly.';
-        } else {
-          formMessage.textContent = 'Thank you! Check your SMS to confirm your booking.';
         }
         formMessage.style.display = 'block';
         quoteForm.reset();
