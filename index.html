@@ -3989,7 +3989,7 @@ function setupPlacesAutocomplete() {
   const options = {
     componentRestrictions: { country: 'au' },
     bounds: sydneyBounds,
-    strictBounds: false,
+    strictBounds: true,
     fields: ['formatted_address', 'address_components', 'geometry'],
     types: ['address']
   };
