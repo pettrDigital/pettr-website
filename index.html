@@ -3642,27 +3642,23 @@ const SYDNEY_POSTCODES = new Set([2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008
 
 // Step-based form handling
 function goToStep2() {
+  console.log('=== goToStep2 called ===');
   const step1Content = document.getElementById('step1Content');
   const step2Content = document.getElementById('step2Content');
   const formStepText = document.getElementById('formStepText');
 
+  console.log('Elements found:', { step1Content: !!step1Content, step2Content: !!step2Content, formStepText: !!formStepText });
+
   // Show step 2, hide step 1
-  step1Content.style.display = 'none';
-  step2Content.style.display = 'block';
+  if (step1Content) step1Content.style.display = 'none';
+  if (step2Content) step2Content.style.display = 'block';
   if (formStepText) {
     formStepText.textContent = 'Complete Your Booking';
   }
 
-  // Populate summary
-  const message = document.querySelector('textarea[name="message"]').value;
-  const address = document.querySelector('input[name="address"]').value;
-  const postcode = document.querySelector('input[name="postcode"]').value;
-
-  document.getElementById('summaryMessage').textContent = message;
-  document.getElementById('summaryAddress').textContent = `${address} ${postcode}`;
-
   // Update slots visibility
   updateSlotVisibility();
+  console.log('=== goToStep2 complete ===');
 }
 
 function goBackToStep1() {
