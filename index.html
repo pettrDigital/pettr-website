@@ -3649,7 +3649,9 @@ function goToStep2() {
   // Show step 2, hide step 1
   step1Content.style.display = 'none';
   step2Content.style.display = 'block';
-  formStepText.textContent = 'Complete Your Booking';
+  if (formStepText) {
+    formStepText.textContent = 'Complete Your Booking';
+  }
 
   // Populate summary
   const message = document.querySelector('textarea[name="message"]').value;
@@ -3666,7 +3668,10 @@ function goToStep2() {
 function goBackToStep1() {
   document.getElementById('step1Content').style.display = 'block';
   document.getElementById('step2Content').style.display = 'none';
-  document.getElementById('formStepText').textContent = 'How Can We Help You?';
+  const formStepText = document.getElementById('formStepText');
+  if (formStepText) {
+    formStepText.textContent = 'How Can We Help You?';
+  }
   document.getElementById('submitBtn').textContent = 'NEXT';
 }
 
