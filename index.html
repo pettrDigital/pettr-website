@@ -558,7 +558,11 @@ ul { list-style: none; }
   color: #fff;
   text-align: center;
 }
-.form-card-body { padding: 0 12px 12px; }
+.form-card-body {
+  padding: 0 12px 12px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
 .booking-form { display: flex; flex-direction: column; gap: 8px; }
 .booking-form input,
 .booking-form textarea,
@@ -3620,6 +3624,9 @@ function updateBookNowVisibility() {
   const selectedType = document.querySelector('input[name="requestType"]:checked')?.value;
   if (bookNowOptions) {
     bookNowOptions.style.display = selectedType === 'bookNow' ? 'block' : 'none';
+    if (selectedType === 'bookNow') {
+      setTimeout(() => bookNowOptions.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+    }
   }
   if (selectedType === 'bookNow') {
     updateSlotVisibility();
