@@ -287,7 +287,7 @@ async function triggerRetellCallback(env, { phone, name }) {
   });
 
   if (!retellApiKey || !retellAgentId || !retellFromNumber) {
-    throw new Error(`Retell config missing: apiKey=${!!retellApiKey}, agentId=${!!retellAgentId}, fromNumber=${!!retellFromNumber}`);
+    throw new Error(`Retell config missing: apiKey=${!!retellApiKey}, agentId=${!!retellAgentId}, fromNumber=${!!retellFromNumber}, fromNumberValue="${retellFromNumber}"`);
   }
 
   let toNumber = phone.replace(/\D/g, '');
@@ -342,7 +342,7 @@ async function triggerRetellCallback(env, { phone, name }) {
   }
 
   if (!response.ok) {
-    throw new Error(`Retell API error: ${response.status} - ${JSON.stringify(result)}`);
+    throw new Error(`Retell API error: ${response.status} - payload: ${JSON.stringify(payload)} - response: ${JSON.stringify(result)}`);
   }
 
   return result;
