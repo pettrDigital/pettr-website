@@ -3978,8 +3978,18 @@ function setupPlacesAutocomplete() {
   const addressInput = document.querySelector('input[name="address"]');
   if (!addressInput || !window.google) return;
 
+  // Greater Sydney bounds (rough boundaries)
+  const sydneyBounds = {
+    north: -33.4,   // Gosford
+    south: -34.2,   // Wollongong
+    east: 151.35,   // Coast
+    west: 150.3     // Penrith
+  };
+
   const options = {
     componentRestrictions: { country: 'au' },
+    bounds: sydneyBounds,
+    strictBounds: false,
     fields: ['formatted_address', 'address_components', 'geometry'],
     types: ['address']
   };
