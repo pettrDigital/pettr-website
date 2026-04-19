@@ -300,12 +300,22 @@ async function triggerRetellCallback(env, { phone, name }) {
     toNumber = '61' + toNumber.slice(1);
   }
 
+  // Ensure to_number has + prefix
+  if (!toNumber.startsWith('+')) {
+    toNumber = '+' + toNumber;
+  }
+
+  // Ensure from_number has + prefix
+  if (!fromNumber.startsWith('+')) {
+    fromNumber = '+' + fromNumber;
+  }
+
   console.log('Calling from:', fromNumber, 'to:', toNumber);
 
   const payload = {
     agent_id: retellAgentId,
     from_number: fromNumber,
-    to_number: '+' + toNumber,
+    to_number: toNumber,
   };
   console.log('Payload:', JSON.stringify(payload));
 
