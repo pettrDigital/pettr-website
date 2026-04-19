@@ -48,6 +48,7 @@ export async function onRequest(context) {
       phone: formData.get('phone'),
       address: formData.get('address'),
       postcode: formData.get('postcode'),
+      suburb: formData.get('suburb') || '',
       message: formData.get('message'),
       requestType,
     };
@@ -102,13 +103,13 @@ export async function onRequest(context) {
     }
 
     if (data.requestType === 'callback') {
+      const suburb = data.suburb ? `, ${escapeHtml(data.suburb)}` : '';
       const emailHtml = `
         <h2>New Quote Request - Call Back</h2>
         <p><strong>Name:</strong> ${escapeHtml(data.name)}</p>
         <p><strong>Email:</strong> ${escapeHtml(data.email)}</p>
         <p><strong>Phone:</strong> ${escapeHtml(data.phone)}</p>
-        <p><strong>Address:</strong> ${escapeHtml(data.address)}</p>
-        <p><strong>Postcode:</strong> ${escapeHtml(data.postcode)}</p>
+        <p><strong>Address:</strong> ${escapeHtml(data.address)}${suburb} ${escapeHtml(data.postcode)}</p>
         <p><strong>Message:</strong> ${escapeHtml(data.message).replace(/\n/g, '<br>')}</p>
       `;
 
@@ -128,9 +129,11 @@ export async function onRequest(context) {
       console.log('=== INSTANT BOOKING INITIATED ===');
       const trade = data.message.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
 
+      const suburbStr = data.suburb ? ` ${data.suburb}` : '';
+
       if (data.bookNowUrgency === 'tonight') {
         // Emergency booking - send receipt SMS, tech will call within 5-10 mins
-        const smsMessage = `Hi ${data.name}, emergency ${trade} booking received at ${data.address} ${data.postcode}. A tech will call you back within 5-10 minutes. Thanks!`;
+        const smsMessage = `Hi ${data.name}, emergency ${trade} booking received at ${data.address}${suburbStr} ${data.postcode}. A tech will call you back within 5-10 minutes. Thanks!`;
 
         await sendBookingSMS(env, {
           phone: data.phone,
@@ -140,7 +143,7 @@ export async function onRequest(context) {
       } else {
         // Standard booking with selected slot
         const slot = data.bookNowSlot;
-        const smsMessage = `Hi ${data.name}, your ${trade} booking is confirmed!\n\nTime: ${slot.day} ${slot.start_time}-${slot.end_time}\nAddress: ${data.address} ${data.postcode}\nIssue: ${data.message}\n\nTech will call 30min before arrival.`;
+        const smsMessage = `Hi ${data.name}, your ${trade} booking is confirmed!\n\nTime: ${slot.day} ${slot.start_time}-${slot.end_time}\nAddress: ${data.address}${suburbStr} ${data.postcode}\nIssue: ${data.message}\n\nTech will call 30min before arrival.`;
 
         await sendBookingSMS(env, {
           phone: data.phone,
@@ -150,12 +153,13 @@ export async function onRequest(context) {
       }
 
       // Send email to support with booking details
+      const suburbDisplay = data.suburb ? `, ${escapeHtml(data.suburb)}` : '';
       let emailHtml = `
         <h2>New Instant Booking</h2>
         <p><strong>Name:</strong> ${escapeHtml(data.name)}</p>
         <p><strong>Email:</strong> ${escapeHtml(data.email)}</p>
         <p><strong>Phone:</strong> ${escapeHtml(data.phone)}</p>
-        <p><strong>Address:</strong> ${escapeHtml(data.address)} ${escapeHtml(data.postcode)}</p>
+        <p><strong>Address:</strong> ${escapeHtml(data.address)}${suburbDisplay} ${escapeHtml(data.postcode)}</p>
         <p><strong>Issue:</strong> ${escapeHtml(data.message)}</p>
         <p><strong>Service Type:</strong> ${escapeHtml(trade)}</p>
         <p><strong>Urgency:</strong> ${data.bookNowUrgency === 'tonight' ? 'Emergency - $549 call our fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>

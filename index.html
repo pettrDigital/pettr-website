@@ -3775,7 +3775,13 @@ function showConfirmation(formData) {
   document.getElementById('confirmName').textContent = formData.get('name');
   document.getElementById('confirmEmail').textContent = formData.get('email');
   document.getElementById('confirmPhone').textContent = formData.get('phone');
-  document.getElementById('confirmAddress').textContent = `${formData.get('address')} ${formData.get('postcode')}`;
+
+  const suburb = formData.get('suburb');
+  const addressDisplay = suburb
+    ? `${formData.get('address')}, ${suburb} ${formData.get('postcode')}`
+    : `${formData.get('address')} ${formData.get('postcode')}`;
+  document.getElementById('confirmAddress').textContent = addressDisplay;
+
   document.getElementById('confirmIssue').textContent = formData.get('message');
   document.getElementById('confirmUrgency').textContent = urgency === 'tonight' ? 'Emergency - $549 call our fee including first 1/2 hour labour' : 'Standard Business Hours';
   document.getElementById('confirmOwnership').textContent = formData.get('bookNowOwnership');
@@ -3898,6 +3904,13 @@ async function submitForm(requestType, bookingData = {}) {
     const formData = new FormData(quoteForm);
     formData.set('requestType', requestType);
 
+    // Add suburb from Places Autocomplete
+    const addressInput = document.querySelector('input[name="address"]');
+    const suburb = addressInput?.dataset?.suburb || '';
+    if (suburb) {
+      formData.set('suburb', suburb);
+    }
+
     if (requestType === 'bookNow') {
       formData.set('bookNowUrgency', bookingData.urgency);
       formData.set('bookNowOwnership', bookingData.ownership);
@@ -3941,6 +3954,83 @@ async function submitForm(requestType, bookingData = {}) {
     submitBtn.disabled = false;
     submitBtn.textContent = originalText;
   }
+}
+
+// Google Maps Places Autocomplete
+async function initializePlacesAutocomplete() {
+  try {
+    const configResponse = await fetch('/api/config');
+    const config = await configResponse.json();
+    const apiKey = config.googleMapsApiKey;
+
+    if (!apiKey) {
+      console.error('Google Maps API key not available');
+      return;
+    }
+
+    // Load Google Maps library
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => setupPlacesAutocomplete();
+    document.head.appendChild(script);
+  } catch (error) {
+    console.error('Error initializing Places:', error);
+  }
+}
+
+function setupPlacesAutocomplete() {
+  const addressInput = document.querySelector('input[name="address"]');
+  if (!addressInput || !window.google) return;
+
+  const options = {
+    componentRestrictions: { country: 'au' },
+    fields: ['formatted_address', 'address_components', 'geometry'],
+    types: ['address']
+  };
+
+  const autocomplete = new google.maps.places.Autocomplete(addressInput, options);
+
+  autocomplete.addListener('place_changed', () => {
+    const place = autocomplete.getPlace();
+
+    if (!place.geometry) {
+      console.error('No geometry found');
+      return;
+    }
+
+    // Extract suburb/locality from address components
+    let suburb = '';
+    if (place.address_components) {
+      const localityComponent = place.address_components.find(component =>
+        component.types.includes('locality')
+      );
+      suburb = localityComponent?.long_name || '';
+    }
+
+    // Store suburb in a data attribute
+    addressInput.dataset.suburb = suburb;
+
+    // Optionally display suburb below address
+    let suburbDisplay = document.getElementById('suburbDisplay');
+    if (!suburbDisplay && suburb) {
+      suburbDisplay = document.createElement('div');
+      suburbDisplay.id = 'suburbDisplay';
+      suburbDisplay.style.cssText = 'font-size: 12px; color: #999; margin-top: 4px;';
+      addressInput.parentNode.insertBefore(suburbDisplay, addressInput.nextSibling);
+    }
+    if (suburbDisplay && suburb) {
+      suburbDisplay.textContent = `Suburb: ${suburb}`;
+    }
+  });
+}
+
+// Initialize Places on DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializePlacesAutocomplete);
+} else {
+  initializePlacesAutocomplete();
 }
 </script>
 
