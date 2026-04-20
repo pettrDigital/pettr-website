@@ -14,6 +14,8 @@
 <!-- FIX 1: preconnect to image origin and font origin so DNS/TCP/TLS are ready before fetches fire -->
 <link rel="preconnect" href="https://plumbertotherescue.com.au" crossorigin>
 <link rel="preconnect" href="https://pettr-website.pages.dev" crossorigin>
+<link rel="preconnect" href="https://maps.googleapis.com" crossorigin>
+<link rel="dns-prefetch" href="https://maps.gstatic.com">
 
 <!-- FIX 2: single preload using imagesrcset+imagesizes so it matches exactly what the <img> will pick -->
 <link rel="preload" as="image"
@@ -4046,9 +4048,8 @@ async function initializePlacesAutocomplete() {
     if (!apiKey) { console.error('Google Maps API key not available'); return; }
 
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
     script.async = true;
-    script.defer = true;
     script.onload = () => setupPlacesAutocomplete();
     document.head.appendChild(script);
   } catch (error) {
@@ -4061,27 +4062,27 @@ function setupPlacesAutocomplete() {
   if (!addressInput || !window.google) return;
 
   const sydneyBounds = { north: -33.4, south: -34.2, east: 151.35, west: 150.3 };
+  const cache = {};
+
   const options = {
     componentRestrictions: { country: 'au' },
     bounds: sydneyBounds,
     strictBounds: true,
-    fields: ['formatted_address', 'address_components', 'geometry'],
+    fields: ['formatted_address', 'address_components'],
     types: ['address']
   };
 
   const autocomplete = new google.maps.places.Autocomplete(addressInput, options);
   autocomplete.addListener('place_changed', () => {
     const place = autocomplete.getPlace();
-    if (!place.geometry) return;
+    if (!place.address_components) return;
 
     let suburb = '';
     let postcode = '';
-    if (place.address_components) {
-      const localityComponent = place.address_components.find(c => c.types.includes('locality'));
-      suburb = localityComponent?.long_name || '';
-      const postalComponent = place.address_components.find(c => c.types.includes('postal_code'));
-      postcode = postalComponent?.long_name || '';
-    }
+    const localityComponent = place.address_components.find(c => c.types.includes('locality'));
+    suburb = localityComponent?.long_name || '';
+    const postalComponent = place.address_components.find(c => c.types.includes('postal_code'));
+    postcode = postalComponent?.long_name || '';
 
     const suburbInput = document.querySelector('input[name="suburb"]');
     const postcodeInput = document.querySelector('input[name="postcode"]');
