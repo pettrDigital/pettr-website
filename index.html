@@ -2790,6 +2790,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
           <!-- STEP 2: Booking Details -->
           <div id="step2Content" style="display: none;">
+            <!-- Service Type -->
+            <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+              <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">What service type do you need?</div>
+              <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
+                <input type="radio" name="bookNowServiceType" value="plumbing" required style="margin: 0; flex-shrink: 0; width: auto;">
+                <span style="font-size: 14px; color: #fff;">Plumbing</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="radio" name="bookNowServiceType" value="electrical" style="margin: 0; flex-shrink: 0; width: auto;">
+                <span style="font-size: 14px; color: #fff;">Electrical</span>
+              </label>
+            </div>
+
             <!-- Urgency -->
             <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
               <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">When do you need this?</div>
@@ -3725,7 +3738,7 @@ function updateSlotVisibility() {
 }
 
 async function fetchAvailableSlots() {
-  const trade = document.querySelector('textarea[name="message"]').value.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
+  const trade = document.querySelector('input[name="bookNowServiceType"]:checked')?.value || 'plumbing';
   const slotSelect = document.getElementById('bookNowSlot');
   const slotsLoading = document.getElementById('slotsLoading');
 
@@ -3790,6 +3803,15 @@ if (manualEntryToggle) {
 
 document.querySelectorAll('input[name="bookNowUrgency"]').forEach(radio => {
   radio.addEventListener('change', updateSlotVisibility);
+});
+
+document.querySelectorAll('input[name="bookNowServiceType"]').forEach(radio => {
+  radio.addEventListener('change', function() {
+    const urgency = document.querySelector('input[name="bookNowUrgency"]:checked')?.value;
+    if (urgency === 'standard') {
+      fetchAvailableSlots();
+    }
+  });
 });
 
 document.querySelectorAll('input[name="bookNowOwnership"]').forEach(radio => {

@@ -68,12 +68,13 @@ export async function onRequest(context) {
     }
 
     if (requestType === 'bookNow') {
+      const serviceType = formData.get('bookNowServiceType');
       const urgency = formData.get('bookNowUrgency');
       const ownership = formData.get('bookNowOwnership');
       const appliance = formData.get('bookNowAppliance');
       const slot = formData.get('bookNowSlot');
 
-      if (!urgency || !ownership || !appliance) {
+      if (!serviceType || !urgency || !ownership || !appliance) {
         return new Response(JSON.stringify({ error: 'Missing booking details' }), {
           status: 400,
           headers: { 'Content-Type': 'application/json' },
@@ -87,6 +88,7 @@ export async function onRequest(context) {
         });
       }
 
+      data.bookNowServiceType = serviceType;
       data.bookNowUrgency = urgency;
       data.bookNowOwnership = ownership;
       data.bookNowAppliance = appliance;
@@ -127,7 +129,7 @@ export async function onRequest(context) {
       });
     } else if (data.requestType === 'bookNow') {
       console.log('=== INSTANT BOOKING INITIATED ===');
-      const trade = data.message.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
+      const trade = data.bookNowServiceType;
 
       const suburbStr = data.suburb ? ` ${data.suburb}` : '';
 
