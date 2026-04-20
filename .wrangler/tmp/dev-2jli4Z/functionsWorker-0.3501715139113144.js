@@ -415,37 +415,54 @@ async function sendEmail(env, { from, to, subject, html }) {
 __name(sendEmail, "sendEmail");
 __name2(sendEmail, "sendEmail");
 async function triggerRetellCallback(env, { phone, name }) {
-  try {
-    console.log("=== RETELL CALLBACK ===");
-    console.log("Phone:", phone);
-    console.log("Name:", name);
-    const retellApiKey = env.RETELL_API_KEY;
-    const retellAgentId = env.RETELL_AGENT_ID;
-    if (!retellApiKey || !retellAgentId) {
-      console.error("Retell API key or agent ID not configured");
-      return;
-    }
-    const response = await fetch("https://api.retell.ai/v2/create-web-call", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${retellApiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        agent_id: retellAgentId,
-        phone_number: phone.replace(/\D/g, ""),
-        user_name: name
-      })
-    });
-    const result = await response.json();
-    console.log("Retell response:", JSON.stringify(result));
-    if (!response.ok) {
-      console.error("Retell error:", result);
-    }
-    return result;
-  } catch (error) {
-    console.error("Error triggering Retell callback:", error);
+  console.log("=== RETELL CALLBACK ===");
+  console.log("Phone:", phone);
+  console.log("Name:", name);
+  const retellApiKey = env.RETELL_API_KEY;
+  const retellAgentId = env.RETELL_AGENT_ID;
+  const retellFromNumber = env.RETELL_FROM_NUMBER;
+  console.log("Env check:", {
+    hasApiKey: !!retellApiKey,
+    hasAgentId: !!retellAgentId,
+    hasFromNumber: !!retellFromNumber
+  });
+  if (!retellApiKey || !retellAgentId || !retellFromNumber) {
+    throw new Error(`Retell config missing: apiKey=${!!retellApiKey}, agentId=${!!retellAgentId}, fromNumber=${!!retellFromNumber}`);
   }
+  let toNumber = phone.replace(/\D/g, "");
+  let fromNumber = retellFromNumber;
+  if (toNumber.startsWith("0")) {
+    toNumber = "61" + toNumber.slice(1);
+  }
+  console.log("Calling from:", fromNumber, "to:", toNumber);
+  const payload = {
+    agent_id: retellAgentId,
+    from_number: fromNumber,
+    to_number: toNumber
+  };
+  console.log("Payload:", JSON.stringify(payload));
+  const response = await fetch("https://api.retell.ai/v2/create-phone-call", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${retellApiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+  const responseText = await response.text();
+  console.log("Retell response status:", response.status);
+  console.log("Retell response text:", responseText);
+  let result;
+  try {
+    result = JSON.parse(responseText);
+  } catch (e) {
+    console.log("Failed to parse Retell response as JSON");
+    throw new Error(`Retell API error: ${response.status} - ${responseText}`);
+  }
+  if (!response.ok) {
+    throw new Error(`Retell API error: ${response.status} - ${JSON.stringify(result)}`);
+  }
+  return result;
 }
 __name(triggerRetellCallback, "triggerRetellCallback");
 __name2(triggerRetellCallback, "triggerRetellCallback");
@@ -663,14 +680,14 @@ __name2(onRequest2, "onRequest");
 async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
   const step = bookingFlow.step;
   const isYes = message.toLowerCase().trim() === "yes";
+  addMessageToConversation(env, phone, "user", message).catch((err) => console.error("Failed to save user message:", err));
   try {
     if (step === "message_1_sent") {
       const choice = message.toLowerCase().trim();
       if (choice === "tonight") {
-        await sendOutboundSMS(env, {
-          phone,
-          message: `After-hours booking confirmed. Tech will call back within 5-10 mins. Call-out fee $549. Confirm? YES/NO`
-        });
+        const responseMsg = `After-hours booking confirmed. Tech will call back within 5-10 mins. Call-out fee $549. Confirm? YES/NO`;
+        await sendOutboundSMS(env, { phone, message: responseMsg });
+        addMessageToConversation(env, phone, "assistant", responseMsg).catch((err) => console.error("Failed to save assistant message:", err));
         await updateBookingFlowStep(env, phone, "emergency_confirm_sent");
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
       } else if (choice === "standard") {
@@ -686,7 +703,7 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
         const slot = slots[0];
         await sendOutboundSMS(env, {
           phone,
-          message: `${slot.day} ${slot.start_time}-${slot.end_time} with ${slot.tech} - available? Reply YES or give alternate time`
+          message: `${slot.day} ${slot.start_time}-${slot.end_time} - available? Reply YES or give alternate time`
         });
         await updateBookingFlowStep(env, phone, "standard_slots_offered", { selectedSlot: JSON.stringify(slot) });
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
@@ -700,6 +717,11 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
     } else if (step === "emergency_confirm_sent") {
       if (isYes) {
         await createEmergencyJob(env, bookingFlow);
+        const confirmMsg = `Emergency booking confirmed! Tech will call back shortly.`;
+        addMessageToConversation(env, phone, "assistant", confirmMsg).catch((err) => console.error("Failed to save assistant message:", err));
+        const conversationData = await getFirestoreDoc(env, "conversations", phone);
+        const allMessages = conversationData?.messages || [];
+        sendBookingConfirmationEmail(env, { phone, bookingFlow, messages: allMessages }).catch((err) => console.error("Failed to send email:", err));
         await updateBookingFlowStep(env, phone, "emergency_booked");
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
       }
@@ -707,10 +729,12 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
       if (isYes) {
         const slot = JSON.parse(bookingFlow.selectedSlot || "{}");
         await createStandardJob(env, bookingFlow, slot);
-        await sendOutboundSMS(env, {
-          phone,
-          message: `Booked for ${slot.day} ${slot.start_time}-${slot.end_time}. Tech calls 30min before.`
-        });
+        const confirmMsg = `Booked for ${slot.day} ${slot.start_time}-${slot.end_time}. Tech calls 30min before.`;
+        await sendOutboundSMS(env, { phone, message: confirmMsg });
+        addMessageToConversation(env, phone, "assistant", confirmMsg).catch((err) => console.error("Failed to save assistant message:", err));
+        const conversationData = await getFirestoreDoc(env, "conversations", phone);
+        const allMessages = conversationData?.messages || [];
+        sendBookingConfirmationEmail(env, { phone, bookingFlow, messages: allMessages }).catch((err) => console.error("Failed to send email:", err));
         await updateBookingFlowStep(env, phone, "standard_booked");
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
       } else {
@@ -756,6 +780,19 @@ async function updateBookingFlowStep(env, phone, step, extras = {}) {
 }
 __name(updateBookingFlowStep, "updateBookingFlowStep");
 __name2(updateBookingFlowStep, "updateBookingFlowStep");
+async function addMessageToConversation(env, phone, role, text) {
+  try {
+    const conversationData = await getFirestoreDoc(env, "conversations", phone);
+    const messages = conversationData?.messages || [];
+    messages.push({ role, text, timestamp: (/* @__PURE__ */ new Date()).toISOString() });
+    await updateFirestoreDoc(env, "conversations", phone, { messages, lastUpdated: (/* @__PURE__ */ new Date()).toISOString() });
+    console.log("Message saved to conversation:", phone);
+  } catch (error) {
+    console.error("Error saving message to conversation:", error);
+  }
+}
+__name(addMessageToConversation, "addMessageToConversation");
+__name2(addMessageToConversation, "addMessageToConversation");
 async function createEmergencyJob(env, bookingFlow) {
   console.log("Creating emergency job for:", bookingFlow.phone);
 }
@@ -954,7 +991,12 @@ Customer Details:
 - Issue: ${problem}
 - Service: ${trade}
 
-You already have their contact details and address. Help them confirm the booking and offer the available appointment slots below. Be friendly, professional, and brief. Keep responses to 1-2 sentences for SMS.${slotsText}`;
+Pricing:
+- Standard Hours (7am-3pm): FREE call-out and quote
+- Emergency/After-Hours: $549 call-out fee inclusive of 1/2 hour of labour.
+- Licensed & insured with 35+ years experience
+
+Your role: Help them confirm the booking and offer available appointment slots. If they ask about fees or how we work, explain the pricing above. Be friendly, professional, and brief - keep responses to 1-2 sentences for SMS.${slotsText}`;
   console.log("Claude request - Name:", name, "Problem:", problem, "Messages:", messages.length);
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -1007,6 +1049,46 @@ async function sendSMS(env, { phone, message }) {
 }
 __name(sendSMS, "sendSMS");
 __name2(sendSMS, "sendSMS");
+async function sendBookingConfirmationEmail(env, { phone, bookingFlow, messages }) {
+  try {
+    const apiKey = env.SMTP2GO_API_KEY;
+    if (!apiKey) {
+      console.error("SMTP2GO_API_KEY not configured");
+      return;
+    }
+    const conversationHtml = messages.map((m) => `<p><strong>${m.role === "user" ? "Customer" : "System"}:</strong> ${m.text}</p>`).join("");
+    const emailHtml = `
+      <h2>Booking Confirmed</h2>
+      <p><strong>Name:</strong> ${bookingFlow.name}</p>
+      <p><strong>Phone:</strong> ${phone}</p>
+      <p><strong>Address:</strong> ${bookingFlow.address} ${bookingFlow.postcode}</p>
+      <p><strong>Issue:</strong> ${bookingFlow.problem}</p>
+      <p><strong>Service Type:</strong> ${bookingFlow.trade}</p>
+      <h3>SMS Conversation</h3>
+      ${conversationHtml}
+    `;
+    const response = await fetch("https://api.smtp2go.com/v3/email/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        api_key: apiKey,
+        to: ["fergusg@mrwasher.com.au"],
+        sender: "webform@plumberandelectrician.com.au",
+        subject: `Booking Confirmed - ${bookingFlow.name}`,
+        html_body: emailHtml
+      })
+    });
+    if (!response.ok) {
+      console.error("Email send failed:", response.status);
+      return;
+    }
+    console.log("Booking confirmation email sent");
+  } catch (error) {
+    console.error("Error sending booking confirmation email:", error);
+  }
+}
+__name(sendBookingConfirmationEmail, "sendBookingConfirmationEmail");
+__name2(sendBookingConfirmationEmail, "sendBookingConfirmationEmail");
 var routes = [
   {
     routePath: "/api/quote",

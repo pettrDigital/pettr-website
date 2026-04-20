@@ -31,7 +31,87 @@ function isInServiceArea(postcodeRaw) {
   return !isNaN(pc) && SYDNEY_POSTCODES.has(pc);
 }
 
+let retellSetupDone = false;
+
+async function setupRetellFunctions(env) {
+  if (retellSetupDone) return;
+  retellSetupDone = true;
+
+  const apiKey = env.RETELL_API_KEY;
+  const outboundAgentId = 'agent_ae39eceb83f12b6a4fcdfd4c89';
+
+  if (!apiKey) return;
+
+  try {
+    const functions = [
+      {
+        name: 'get_available_slots',
+        description: 'Get available appointment slots for a given trade',
+        parameters: {
+          type: 'object',
+          properties: {
+            trade: { type: 'string', enum: ['plumbing', 'electrical'] },
+          },
+          required: ['trade'],
+        },
+      },
+      {
+        name: 'create_afterhours_job',
+        description: 'Create an emergency after-hours job',
+        parameters: {
+          type: 'object',
+          properties: {
+            caller_phone: { type: 'string' },
+            first_name: { type: 'string' },
+            last_name: { type: 'string' },
+            trade: { type: 'string', enum: ['plumbing', 'electrical'] },
+            description: { type: 'string' },
+            street_address: { type: 'string' },
+            suburb: { type: 'string' },
+            postcode: { type: 'string' },
+            client_id: { type: 'string', nullable: true },
+          },
+          required: ['caller_phone', 'first_name', 'last_name', 'trade', 'description', 'street_address', 'suburb', 'postcode'],
+        },
+      },
+      {
+        name: 'create_standard_job',
+        description: 'Create a standard business hours job',
+        parameters: {
+          type: 'object',
+          properties: {
+            caller_phone: { type: 'string' },
+            first_name: { type: 'string' },
+            last_name: { type: 'string' },
+            trade: { type: 'string', enum: ['plumbing', 'electrical'] },
+            description: { type: 'string' },
+            street_address: { type: 'string' },
+            suburb: { type: 'string' },
+            postcode: { type: 'string' },
+            client_id: { type: 'string', nullable: true },
+            scheduled_date: { type: 'string', nullable: true },
+            scheduled_time: { type: 'string', nullable: true },
+          },
+          required: ['caller_phone', 'first_name', 'last_name', 'trade', 'description', 'street_address', 'suburb', 'postcode'],
+        },
+      },
+    ];
+
+    await fetch(`https://api.retellai.com/v2/agents/${outboundAgentId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ functions }),
+    }).catch(err => console.warn('Retell setup warning:', err.message));
+  } catch (err) {
+    console.warn('Retell function setup failed:', err.message);
+  }
+}
+
 export async function onRequest(context) {
+  await setupRetellFunctions(context.env);
   const { request, env } = context;
 
   if (request.method !== 'POST') {

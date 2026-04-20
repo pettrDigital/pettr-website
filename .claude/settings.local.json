@@ -36,7 +36,17 @@
       "Bash(wrangler kv *)",
       "Bash(grep -v \"^$\")",
       "Bash(cat)",
-      "Bash(node /tmp/test_firebase_decode.js)"
+      "Bash(node /tmp/test_firebase_decode.js)",
+      "Bash(wrangler deployments *)",
+      "WebFetch(domain:docs.retellai.com)",
+      "Bash(awk -F'│' '{print $2}')",
+      "WebFetch(domain:pettr-website.pages.dev)",
+      "Bash(git checkout *)",
+      "Bash(wrangler deploy *)",
+      "Bash(npm run *)",
+      "Bash(git fetch *)",
+      "Bash(git pull *)",
+      "Bash(node *)"
     ]
   }
 }

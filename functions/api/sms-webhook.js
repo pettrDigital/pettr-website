@@ -124,16 +124,18 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
   const step = bookingFlow.step;
   const isYes = message.toLowerCase().trim() === 'yes';
 
+  // Save incoming message asynchronously (non-blocking)
+  addMessageToConversation(env, phone, 'user', message).catch(err => console.error('Failed to save user message:', err));
+
   try {
     if (step === 'message_1_sent') {
       // Waiting for TONIGHT/STANDARD/corrections response to combined Message 1
       const choice = message.toLowerCase().trim();
 
       if (choice === 'tonight') {
-        await sendOutboundSMS(env, {
-          phone,
-          message: `After-hours booking confirmed. Tech will call back within 5-10 mins. Call-out fee $549. Confirm? YES/NO`,
-        });
+        const responseMsg = `After-hours booking confirmed. Tech will call back within 5-10 mins. Call-out fee $549. Confirm? YES/NO`;
+        await sendOutboundSMS(env, { phone, message: responseMsg });
+        addMessageToConversation(env, phone, 'assistant', responseMsg).catch(err => console.error('Failed to save assistant message:', err));
         await updateBookingFlowStep(env, phone, 'emergency_confirm_sent');
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
       } else if (choice === 'standard') {
@@ -151,7 +153,7 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
         const slot = slots[0];
         await sendOutboundSMS(env, {
           phone,
-          message: `${slot.day} ${slot.start_time}-${slot.end_time} with ${slot.tech} - available? Reply YES or give alternate time`,
+          message: `${slot.day} ${slot.start_time}-${slot.end_time} - available? Reply YES or give alternate time`,
         });
         await updateBookingFlowStep(env, phone, 'standard_slots_offered', { selectedSlot: JSON.stringify(slot) });
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -167,6 +169,14 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
       if (isYes) {
         // Create emergency job
         await createEmergencyJob(env, bookingFlow);
+        const confirmMsg = `Emergency booking confirmed! Tech will call back shortly.`;
+        addMessageToConversation(env, phone, 'assistant', confirmMsg).catch(err => console.error('Failed to save assistant message:', err));
+
+        // Get conversation and send confirmation email
+        const conversationData = await getFirestoreDoc(env, 'conversations', phone);
+        const allMessages = conversationData?.messages || [];
+        sendBookingConfirmationEmail(env, { phone, bookingFlow, messages: allMessages }).catch(err => console.error('Failed to send email:', err));
+
         await updateBookingFlowStep(env, phone, 'emergency_booked');
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
       }
@@ -175,10 +185,15 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
         // Create standard job with offered slot
         const slot = JSON.parse(bookingFlow.selectedSlot || '{}');
         await createStandardJob(env, bookingFlow, slot);
-        await sendOutboundSMS(env, {
-          phone,
-          message: `Booked for ${slot.day} ${slot.start_time}-${slot.end_time}. Tech calls 30min before.`,
-        });
+        const confirmMsg = `Booked for ${slot.day} ${slot.start_time}-${slot.end_time}. Tech calls 30min before.`;
+        await sendOutboundSMS(env, { phone, message: confirmMsg });
+        addMessageToConversation(env, phone, 'assistant', confirmMsg).catch(err => console.error('Failed to save assistant message:', err));
+
+        // Get conversation and send confirmation email
+        const conversationData = await getFirestoreDoc(env, 'conversations', phone);
+        const allMessages = conversationData?.messages || [];
+        sendBookingConfirmationEmail(env, { phone, bookingFlow, messages: allMessages }).catch(err => console.error('Failed to send email:', err));
+
         await updateBookingFlowStep(env, phone, 'standard_booked');
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
       } else {
@@ -224,6 +239,18 @@ async function updateBookingFlowStep(env, phone, step, extras = {}) {
     });
   } catch (error) {
     console.error('Error updating booking flow step:', error);
+  }
+}
+
+async function addMessageToConversation(env, phone, role, text) {
+  try {
+    const conversationData = await getFirestoreDoc(env, 'conversations', phone);
+    const messages = conversationData?.messages || [];
+    messages.push({ role, text, timestamp: new Date().toISOString() });
+    await updateFirestoreDoc(env, 'conversations', phone, { messages, lastUpdated: new Date().toISOString() });
+    console.log('Message saved to conversation:', phone);
+  } catch (error) {
+    console.error('Error saving message to conversation:', error);
   }
 }
 
@@ -439,7 +466,12 @@ Customer Details:
 - Issue: ${problem}
 - Service: ${trade}
 
-You already have their contact details and address. Help them confirm the booking and offer the available appointment slots below. Be friendly, professional, and brief. Keep responses to 1-2 sentences for SMS.${slotsText}`;
+Pricing:
+- Standard Hours (7am-3pm): FREE call-out and quote
+- Emergency/After-Hours: $549 call-out fee inclusive of 1/2 hour of labour.
+- Licensed & insured with 35+ years experience
+
+Your role: Help them confirm the booking and offer available appointment slots. If they ask about fees or how we work, explain the pricing above. Be friendly, professional, and brief - keep responses to 1-2 sentences for SMS.${slotsText}`;
 
   console.log('Claude request - Name:', name, 'Problem:', problem, 'Messages:', messages.length);
 
@@ -498,4 +530,50 @@ async function sendSMS(env, { phone, message }) {
   }
 
   return responseText;
+}
+
+async function sendBookingConfirmationEmail(env, { phone, bookingFlow, messages }) {
+  try {
+    const apiKey = env.SMTP2GO_API_KEY;
+    if (!apiKey) {
+      console.error('SMTP2GO_API_KEY not configured');
+      return;
+    }
+
+    const conversationHtml = messages
+      .map(m => `<p><strong>${m.role === 'user' ? 'Customer' : 'System'}:</strong> ${m.text}</p>`)
+      .join('');
+
+    const emailHtml = `
+      <h2>Booking Confirmed</h2>
+      <p><strong>Name:</strong> ${bookingFlow.name}</p>
+      <p><strong>Phone:</strong> ${phone}</p>
+      <p><strong>Address:</strong> ${bookingFlow.address} ${bookingFlow.postcode}</p>
+      <p><strong>Issue:</strong> ${bookingFlow.problem}</p>
+      <p><strong>Service Type:</strong> ${bookingFlow.trade}</p>
+      <h3>SMS Conversation</h3>
+      ${conversationHtml}
+    `;
+
+    const response = await fetch('https://api.smtp2go.com/v3/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        api_key: apiKey,
+        to: ['fergusg@mrwasher.com.au'],
+        sender: 'webform@plumberandelectrician.com.au',
+        subject: `Booking Confirmed - ${bookingFlow.name}`,
+        html_body: emailHtml,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Email send failed:', response.status);
+      return;
+    }
+
+    console.log('Booking confirmation email sent');
+  } catch (error) {
+    console.error('Error sending booking confirmation email:', error);
+  }
 }
