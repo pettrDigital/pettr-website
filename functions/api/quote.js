@@ -123,9 +123,15 @@ export async function onRequest(context) {
       });
 
       console.log('Triggering Retell callback for:', data.phone);
+      const trade = data.message.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
       await triggerRetellCallback(env, {
         phone: data.phone,
         name: data.name,
+        address: data.address,
+        suburb: data.suburb,
+        postcode: data.postcode,
+        message: data.message,
+        trade: trade,
       });
     } else if (data.requestType === 'bookNow') {
       console.log('=== INSTANT BOOKING INITIATED ===');
@@ -272,10 +278,15 @@ async function sendSMS(env, { phone, name, address, postcode, problem }) {
   return responseText;
 }
 
-async function triggerRetellCallback(env, { phone, name }) {
+async function triggerRetellCallback(env, { phone, name, address, suburb, postcode, message, trade }) {
   console.log('=== RETELL CALLBACK ===');
   console.log('Phone:', phone);
   console.log('Name:', name);
+  console.log('Address:', address);
+  console.log('Suburb:', suburb);
+  console.log('Postcode:', postcode);
+  console.log('Message:', message);
+  console.log('Trade:', trade);
 
   const retellApiKey = env.RETELL_API_KEY;
   const retellAgentId = env.RETELL_AGENT_ID;
@@ -319,6 +330,16 @@ async function triggerRetellCallback(env, { phone, name }) {
     agent_id: retellAgentId,
     from_number: fromNumber,
     to_number: toNumber,
+    variables: {
+      first_name: name ? name.split(' ')[0] : '',
+      last_name: name ? name.split(' ').slice(1).join(' ') : '',
+      phone: phone,
+      street_address: address || '',
+      suburb: suburb || '',
+      postcode: postcode || '',
+      description: message || '',
+      trade: trade || '',
+    },
   };
   console.log('Payload:', JSON.stringify(payload));
 
