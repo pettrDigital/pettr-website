@@ -75,7 +75,7 @@ Message: ${message}
       },
       body: JSON.stringify({
         api_key: env.SMTP2GO_API_KEY,
-        sender: env.FORM_FROM_EMAIL,
+        sender: ["fergusg@mrwasher.com.au"], // HARD CODED FOR NOW
         to: ["digital.plumbertotherescue@gmail.com"], // HARD CODED FOR NOW
         subject,
         text_body: textBody,
