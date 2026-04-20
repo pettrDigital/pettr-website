@@ -547,57 +547,75 @@ ul { list-style: none; }
 }
 #hero-form { scroll-margin-top: 200px; }
 .form-card-header {
-  padding: 12px 12px 6px;
+  padding: 10px 12px 4px;
   background: transparent;
   position: relative;
 }
 .form-close-btn {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 10px;
+  right: 12px;
   background: none;
   border: none;
-  font-size: 18px;
-  color: #fff;
+  font-size: 14px;
+  color: rgba(255,255,255,0.5);
   cursor: pointer;
   line-height: 1;
   padding: 4px 6px;
   border-radius: 4px;
   transition: color .15s, background .15s;
 }
-.form-close-btn:hover { background: rgba(255,255,255,0.15); }
+.form-close-btn:hover { color: rgba(255,255,255,0.9); }
 .form-card-header h2 {
-  font-size: 20px;
-  line-height: 1.02;
-  font-weight: 900;
-  text-transform: uppercase;
+  font-size: 18px;
+  line-height: 1.1;
+  font-weight: 800;
+  text-transform: none;
   color: #fff;
   text-align: center;
+  margin-bottom: 2px;
+}
+.form-card-subtext {
+  font-size: 12px;
+  color: rgba(255,255,255,0.75);
+  text-align: center;
+  line-height: 1.4;
+  margin: 0;
 }
 .form-card-body {
   padding: 0 12px 12px;
   position: relative;
 }
-.booking-form { display: flex; flex-direction: column; gap: 8px; }
+.booking-form { display: flex; flex-direction: column; gap: 6px; }
 #step1Content,
 #step2Content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 .booking-form input,
 .booking-form textarea,
 .booking-form select {
   width: 100%;
-  padding: 12px 12px;
-  border: none;
-  border-radius: 6px;
+  padding: 9px 12px;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 10px;
   font-family: 'Montserrat', sans-serif;
   font-size: 13px;
   background: #fff;
-  color: #555;
+  color: #333;
+  transition: border-color .15s, box-shadow .15s;
 }
-.booking-form textarea { min-height: 52px; resize: vertical; }
+.booking-form input::placeholder,
+.booking-form textarea::placeholder { color: #888; }
+.booking-form input:focus,
+.booking-form textarea:focus,
+.booking-form select:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(7,123,171,0.15);
+}
+.booking-form textarea { min-height: 60px; resize: vertical; }
 .booking-form .submit-btn {
   width: 100%;
   border: none;
@@ -842,11 +860,11 @@ ul { list-style: none; }
   }
 
   .form-card-header {
-    padding: 20px 30px 8px;
+    padding: 18px 30px 8px;
   }
 
   .form-card-header h2 {
-    font-size: 26px;
+    font-size: 20px;
   }
 
   .form-card-body {
@@ -2752,7 +2770,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div id="quote-form" class="form-hidden">
       <div class="form-card" id="hero-form">
         <div class="form-card-header">
-          <h2>How Can We <span style="color:var(--yellow)">Help You?</span></h2>
+          <h2>Request Service</h2>
+          <p class="form-card-subtext">Tell us what's going on and we'll get back to you fast.</p>
           <button class="form-close-btn" onclick="toggleForm(); return false;" aria-label="Close form">&#x2715;</button>
         </div>
         <div class="form-card-body">
@@ -2770,21 +2789,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <input type="email"  name="email"        placeholder="Email*" required>
             <input type="tel"    name="phone"        placeholder="Phone*" required>
             <input type="text"   name="address"      placeholder="Address*" required id="addressInput">
-            <button type="button" id="manualEntryToggle" style="margin-top: 2px; margin-bottom: 6px; padding: 0; background: transparent; color: #fff; border: none; cursor: pointer; font-size: 11px; text-decoration: underline; font-weight: 400; text-align: left;">Can't find your address? Enter manually</button>
+            <button type="button" id="manualEntryToggle" style="margin-top: 4px; margin-bottom: 2px; padding: 0; background: transparent; color: rgba(255,255,255,0.85); border: none; cursor: pointer; font-size: 12px; text-decoration: underline; font-weight: 500; text-align: left; font-family: 'Montserrat', sans-serif;">Can't find your address? Enter it manually</button>
             <input type="text"   name="suburb"       placeholder="Suburb*" required style="display: none;" id="suburbField">
             <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999" style="display: none;" id="postcodeField">
             <textarea            name="message"      placeholder="How Can We Help?*" required rows="2"></textarea>
 
-            <div style="margin-top: 8px; padding: 10px 12px; background: rgba(255,255,255,0.08); border-radius: 6px;">
-              <div style="margin-bottom: 8px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9);">What would you like to do?</div>
-              <div style="display: flex; gap: 10px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; background: rgba(255,255,255,0.1); border-radius: 6px; padding: 8px 10px;">
+            <div style="margin-top: 6px; padding: 8px 10px; background: rgba(255,255,255,0.08); border-radius: 6px;">
+              <div style="margin-bottom: 6px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9);">Preferred response</div>
+              <div style="display: flex; gap: 8px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; background: rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 10px; transition: background .15s;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
                   <input type="radio" name="requestTypeStep1" value="callback" required style="margin: 0; flex-shrink: 0; width: auto;">
-                  <span style="font-size: 13px; color: #fff;">Call back</span>
+                  <span style="font-size: 12px; color: #fff; line-height: 1.3;">Call me back</span>
                 </label>
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; background: rgba(255,255,255,0.1); border-radius: 6px; padding: 8px 10px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; background: rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 10px; transition: background .15s;" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
                   <input type="radio" name="requestTypeStep1" value="bookNow" required style="margin: 0; flex-shrink: 0; width: auto;">
-                  <span style="font-size: 13px; color: #fff;">Book now</span>
+                  <span style="font-size: 12px; color: #fff; line-height: 1.3;">Book a time</span>
                 </label>
               </div>
             </div>
@@ -2860,7 +2879,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <button type="button" onclick="goBackToStep1()" style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 10px; border-radius: 4px; width: 100%; cursor: pointer; margin-bottom: 8px; font-size: 14px;">← Back</button>
           </div>
 
-          <button type="submit" class="submit-btn" id="submitBtn">NEXT</button>
+          <button type="submit" class="submit-btn" id="submitBtn">Request Service</button>
           <div id="formMessage" style="margin-top: 1rem; padding: 1rem; display: none; border-radius: 4px; text-align: center;"></div>
         </form>
         <p class="form-licence">Licence number A3403</p>
@@ -3707,7 +3726,7 @@ function goToStep2() {
 function goBackToStep1() {
   document.getElementById('step1Content').style.display = 'flex';
   document.getElementById('step2Content').style.display = 'none';
-  document.getElementById('submitBtn').textContent = 'NEXT';
+  document.getElementById('submitBtn').textContent = 'Request Service';
 }
 
 function updateSlotVisibility() {
