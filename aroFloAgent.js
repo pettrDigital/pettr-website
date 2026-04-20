@@ -349,7 +349,7 @@ async function getAvailableSlots(trade) {
   tomorrowD.setUTCDate(tomorrowD.getUTCDate() + 1);
   const tomorrowSyd = tomorrowD.toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" });
 
-  return sorted
+  const slots = sorted
     .filter(s => s.start_sydney && s.end_sydney)
     .filter(s => new Date(s.start) > nowPlus30)
     .map(s => {
@@ -368,6 +368,15 @@ async function getAvailableSlots(trade) {
         date:       slotDate,
       };
     });
+
+  // Deduplicate: keep only the best tech (least busy) per time slot
+  const seenTimes = new Set();
+  return slots.filter(s => {
+    const timeKey = `${s.date}${s.start_time}${s.end_time}`;
+    if (seenTimes.has(timeKey)) return false;
+    seenTimes.add(timeKey);
+    return true;
+  });
 }
 
 // ====================== AROFLO WRITE OPERATIONS ======================
