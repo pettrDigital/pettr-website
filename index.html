@@ -4059,11 +4059,12 @@ async function initializePlacesAutocomplete() {
 
 function setupPlacesAutocomplete() {
   const addressInput = document.getElementById('addressInput');
-  if (!addressInput || !window.google) return;
+  if (!addressInput || !window.google?.maps?.places) {
+    setTimeout(setupPlacesAutocomplete, 100);
+    return;
+  }
 
   const sydneyBounds = { north: -33.4, south: -34.2, east: 151.35, west: 150.3 };
-  const cache = {};
-
   const options = {
     componentRestrictions: { country: 'au' },
     bounds: sydneyBounds,
