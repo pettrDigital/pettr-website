@@ -461,27 +461,6 @@ async function triggerRetellCallback(env, { phone, name, address, suburb, postco
   };
   console.log('Payload:', JSON.stringify(payload));
 
-  try {
-    if (env.FIREBASE_API_KEY && env.FIREBASE_PROJECT_ID) {
-      const apiKey = env.FIREBASE_API_KEY;
-      const projectId = env.FIREBASE_PROJECT_ID;
-      const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/retell_payloads/${phone}?key=${apiKey}`;
-      await fetch(url, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fields: {
-            phone: { stringValue: phone },
-            payload: { stringValue: JSON.stringify(payload) },
-            timestamp: { stringValue: new Date().toISOString() },
-          },
-        }),
-      });
-    }
-  } catch (err) {
-    console.warn('Firebase log failed:', err.message);
-  }
-
   const response = await fetch('https://api.retellai.com/v2/create-phone-call', {
     method: 'POST',
     headers: {
