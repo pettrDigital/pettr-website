@@ -13,9 +13,9 @@
 <link rel="preload" as="image" href="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-plumber-sydney-mobile.webp" media="(max-width: 767px)" fetchpriority="high">
 <link rel="preload" as="image" href="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-plumber-sydney-1440.webp" media="(min-width: 768px)" fetchpriority="high">
 
-<link rel="preload" as="font" type="font/woff2" crossorigin href="https://pettr-website.pages.dev/fonts/montserrat-variable.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/montserrat-variable.woff2">
 
-<style> @font-face {font-family: 'Montserrat'; src: url('https://pettr-website.pages.dev/fonts/montserrat-variable.woff2') format('woff2-variations');font-weight: 100 900;font-style: normal; font-display: swap;} </style>
+<style> @font-face {font-family: 'Montserrat'; src: url('/fonts/montserrat-variable.woff2') format('woff2-variations');font-weight: 100 900;font-style: normal; font-display: swap;} </style>
 
 <!-- Google Tag Manager -->
 <script>
@@ -42,7 +42,6 @@ html {
   scroll-behavior: smooth;
   overflow-x: hidden;
   max-width: 100%;
-  scroll-padding-top: 180px;
 }
 body {
   font-family: Arial, Helvetica, sans-serif;
@@ -512,26 +511,18 @@ ul { list-style: none; }
   width: 100%;
 }
 #quote-form.form-hidden { display: none !important; }
-#quote-form {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-  align-self: flex-start;
-}
 
 .form-card {
   width: 100%;
-  box-sizing: border-box;
   background: var(--blue);
   border-radius: 0;
   overflow: hidden;
   box-shadow: none;
   border-top: 1px solid #000;
 }
-#hero-form { scroll-margin-top: 200px; }
+#hero-form { scroll-margin-top: 180px; }
 .form-card-header {
-  padding: 12px 12px 6px;
+  padding: 22px 18px 8px;
   background: transparent;
   position: relative;
 }
@@ -551,46 +542,37 @@ ul { list-style: none; }
 }
 .form-close-btn:hover { background: rgba(255,255,255,0.15); }
 .form-card-header h2 {
-  font-size: 20px;
+  font-size: 24px;
   line-height: 1.02;
   font-weight: 900;
   text-transform: uppercase;
   color: #fff;
   text-align: center;
 }
-.form-card-body {
-  padding: 0 12px 12px;
-  position: relative;
-}
-.booking-form { display: flex; flex-direction: column; gap: 8px; }
-#step1Content,
-#step2Content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+.form-card-body { padding: 0 18px 22px; }
+.booking-form { display: flex; flex-direction: column; gap: 12px; }
 .booking-form input,
 .booking-form textarea,
 .booking-form select {
   width: 100%;
-  padding: 12px 12px;
+  padding: 15px 16px;
   border: none;
-  border-radius: 6px;
+  border-radius: 7px;
   font-family: 'Montserrat', sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   background: #fff;
   color: #555;
 }
-.booking-form textarea { min-height: 70px; resize: vertical; }
+.booking-form textarea { min-height: 100px; resize: vertical; }
 .booking-form .submit-btn {
   width: 100%;
   border: none;
   border-radius: 20px;
-  padding: 12px;
+  padding: 16px;
   background: var(--red);
   color: var(--white);
   font-family: 'Montserrat', sans-serif;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 900;
   cursor: pointer;
   margin-top: 2px;
@@ -2598,26 +2580,26 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <header id="header">
   <div class="wrap">
     <div class="header-logo">
-      <a href="index.html#"><img src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/PETTR-logo.webp" alt="Plumber & Electrician To The Rescue" width="220" height="63" loading="lazy" decoding="async" fetchpriority="low"></a>
+      <a href="#"><img src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/PETTR-logo.webp" alt="Plumber & Electrician To The Rescue" width="220" height="63" loading="lazy" decoding="async" fetchpriority="low"></a>
     </div>
     <nav class="header-nav">
       <a href="https://plumbertotherescue.com.au/emergency-plumber/" target="_blank" rel="noopener">Emergency</a>
       <a href="https://plumbertotherescue.com.au/" target="_blank" rel="noopener">Plumbing</a>
       <a href="https://electriciantotherescue.com.au/" target="_blank" rel="noopener">Electrical</a>
-      <a href="index.html#strata-proof">Strata</a>
-      <a href="index.html#areas-we-serve">Areas We Serve</a>
+      <a href="#strata-proof">Strata</a>
+      <a href="#areas-we-serve">Areas We Serve</a>
       <a href="https://plumbertotherescue.com.au/about/" target="_blank" rel="noopener">About</a>
     </nav>
     <div class="header-right">
       <div class="header-phone">
-        <a href="tel:0258393807">
+        <a href="tel:0281034607">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
           <span class="phone-text">
-            (02) 5839 3807
+            (02) 8103 4607
           </span>
         </a>
       </div>
-      <a href="index.html#" class="btn btn-red" onclick="openForm(); return false;">Book A Service</a>
+      <a href="#" class="btn btn-red" onclick="openForm(); return false;">Book A Service</a>
       <button id="hamburgerBtn" class="hamburger-btn" aria-label="Open menu" onclick="openDrawer()">
         <span></span>
         <span></span>
@@ -2636,12 +2618,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <a href="https://plumbertotherescue.com.au/emergency-plumber/" target="_blank" rel="noopener">Emergency</a>
     <a href="https://plumbertotherescue.com.au/" target="_blank" rel="noopener">Plumbing</a>
     <a href="https://electriciantotherescue.com.au/" target="_blank" rel="noopener">Electrical</a>
-    <a href="index.html#strata-proof" onclick="closeDrawer()">Strata</a>
-    <a href="index.html#areas-we-serve" onclick="closeDrawer()">Areas We Serve</a>
+    <a href="#strata-proof" onclick="closeDrawer()">Strata</a>
+    <a href="#areas-we-serve" onclick="closeDrawer()">Areas We Serve</a>
     <a href="https://plumbertotherescue.com.au/about/" target="_blank" rel="noopener">About</a>
   </nav>
   <div class="nav-drawer-cta">
-    <a href="tel:0258393807" class="btn btn-red" style="width:100%;justify-content:center;">Call (02) 5839 3807</a>
+    <a href="tel:0281034607" class="btn btn-red" style="width:100%;justify-content:center;">Call (02) 8103 4607</a>
   </div>
 </div>
 <div id="navOverlay" class="nav-overlay" onclick="closeDrawer()"></div>
@@ -2707,8 +2689,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </ul>
   <!-- CTAs -->
   <div class="hero-cta-row">
-    <a href="tel:0258393807" class="btn btn-red">Call Now</a>
-    <a href="index.html#" class="hero-btn-outline" onclick="openForm(); return false;">Request a Call Back</a>
+    <a href="tel:0281034607" class="btn btn-red">Call Now</a>
+    <a href="#" class="hero-btn-outline" onclick="openForm(); return false;">Request a Call Back</a>
   </div>
 
 </div>
@@ -2721,133 +2703,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <button class="form-close-btn" onclick="toggleForm(); return false;" aria-label="Close form">&#x2715;</button>
         </div>
         <div class="form-card-body">
-        <form class="booking-form" id="quoteFormElement" action="/api/quote" method="POST">
-          <!-- UTM hidden fields -->
+        <form class="booking-form" action="https://formspree.io/f/YOUR_ENDPOINT" method="POST">
+          <!-- UTM hidden fields - populated by JS -->
           <input type="hidden" name="utm_source"   id="f_utm_source">
           <input type="hidden" name="utm_medium"   id="f_utm_medium">
           <input type="hidden" name="utm_campaign" id="f_utm_campaign">
           <input type="hidden" name="utm_term"     id="f_utm_term">
-          <input type="hidden" name="requestType"  id="f_requestType">
-
-          <!-- STEP 1: Initial Details -->
-          <div id="step1Content">
-            <input type="text"   name="name"         placeholder="Name*" required>
-            <input type="email"  name="email"        placeholder="Email*" required>
-            <input type="tel"    name="phone"        placeholder="Phone*" required>
-            <input type="text"   name="address"      placeholder="Address*" required>
-            <button type="button" id="manualEntryToggle" style="margin-top: 2px; margin-bottom: 6px; padding: 0; background: transparent; color: #fff; border: none; cursor: pointer; font-size: 11px; text-decoration: underline; font-weight: 400; text-align: left;">Can't find your address? Enter manually</button>
-            <input type="text"   name="suburb"       placeholder="Suburb*" required style="display: none;" id="suburbField">
-            <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999" style="display: none;" id="postcodeField">
-            <textarea            name="message"      placeholder="How Can We Help?*" required rows="3"></textarea>
-
-            <div style="margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px;">
-              <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">What would you like to do?</div>
-              <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer;">
-                <input type="radio" name="requestTypeStep1" value="callback" required style="margin: 0; flex-shrink: 0; width: auto;">
-                <span style="font-size: 14px; color: #fff;">Request a call back</span>
-              </label>
-              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="radio" name="requestTypeStep1" value="bookNow" required style="margin: 0; flex-shrink: 0; width: auto;">
-                <span style="font-size: 14px; color: #fff;">Book now</span>
-              </label>
-            </div>
-          </div>
-
-          <!-- STEP 2: Booking Details -->
-          <div id="step2Content" style="display: none;">
-            <!-- Urgency -->
-            <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
-              <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">When do you need this?</div>
-              <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
-                <input type="radio" name="bookNowUrgency" value="tonight" style="margin: 0; flex-shrink: 0; width: auto;">
-                <span style="font-size: 14px; color: #fff;">Tonight (Emergency - $549)</span>
-              </label>
-              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="radio" name="bookNowUrgency" value="standard" style="margin: 0; flex-shrink: 0; width: auto;">
-                <span style="font-size: 14px; color: #fff;">Standard (Free call-out, 7am-3pm)</span>
-              </label>
-            </div>
-
-            <!-- Additional options (shown only for standard) -->
-            <div id="standardOptions" style="display: none;">
-              <!-- Homeowner/Tenant -->
-              <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
-                <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Are you the homeowner or a tenant?</div>
-                <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
-                  <input type="radio" name="bookNowOwnership" value="homeowner" style="margin: 0; flex-shrink: 0; width: auto;">
-                  <span style="font-size: 14px; color: #fff;">Homeowner</span>
-                </label>
-                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                  <input type="radio" name="bookNowOwnership" value="tenant" style="margin: 0; flex-shrink: 0; width: auto;">
-                  <span style="font-size: 14px; color: #fff;">Tenant</span>
-                </label>
-              </div>
-
-              <!-- Tenant Warning -->
-              <div id="tenantWarning" style="display: none; padding: 12px; background: rgba(255, 193, 7, 0.2); border: 1px solid rgba(255, 193, 7, 0.4); border-radius: 6px; margin-bottom: 12px;">
-                <div style="font-size: 14px; color: #fff; line-height: 1.4;">We recommend speaking to your landlord or Real Estate Manager. By proceeding you will be responsible for any service costs incurred.</div>
-              </div>
-
-              <!-- Appliance Type -->
-              <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
-                <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Does this relate to an appliance?</div>
-                <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
-                  <input type="radio" name="bookNowAppliance" value="new" style="margin: 0; flex-shrink: 0; width: auto;">
-                  <span style="font-size: 14px; color: #fff;">New appliance</span>
-                </label>
-                <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
-                  <input type="radio" name="bookNowAppliance" value="existing" style="margin: 0; flex-shrink: 0; width: auto;">
-                  <span style="font-size: 14px; color: #fff;">Existing appliance</span>
-                </label>
-                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                  <input type="radio" name="bookNowAppliance" value="neither" style="margin: 0; flex-shrink: 0; width: auto;">
-                  <span style="font-size: 14px; color: #fff;">Neither</span>
-                </label>
-              </div>
-
-              <!-- Existing Appliance Warning -->
-              <div id="existingApplianceWarning" style="display: none; padding: 12px; background: rgba(244, 67, 54, 0.2); border: 1px solid rgba(244, 67, 54, 0.4); border-radius: 6px; margin-bottom: 12px;">
-                <div style="font-size: 14px; color: #fff; line-height: 1.4;">Unfortunately we are not able to service existing appliances.</div>
-              </div>
-
-              <!-- Available Slots -->
-              <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
-                <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Select your preferred time slot</div>
-                <select name="bookNowSlot" id="bookNowSlot" style="width: 100%; padding: 10px; border-radius: 4px; background: #fff; border: 1px solid #e0e0e0; font-size: 14px; color: #333;">
-                  <option value="">-- Loading available slots --</option>
-                </select>
-                <div id="slotsLoading" style="margin-top: 8px; font-size: 12px; color: rgba(255,255,255,0.7);">Loading...</div>
-              </div>
-            </div>
-
-            <button type="button" onclick="goBackToStep1()" style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 10px; border-radius: 4px; width: 100%; cursor: pointer; margin-bottom: 8px; font-size: 14px;">← Back</button>
-          </div>
-
-          <button type="submit" class="submit-btn" id="submitBtn">NEXT</button>
-          <div id="formMessage" style="margin-top: 1rem; padding: 1rem; display: none; border-radius: 4px; text-align: center;"></div>
+          <input type="text"   name="name"         placeholder="Name*" required>
+          <input type="tel"    name="phone"        placeholder="Phone*" required pattern="[0-9()#&+*\-=.]+">
+          <input type="text"   name="address"      placeholder="Address*" required>
+          <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999">
+          <textarea            name="message"      placeholder="How Can We Help?*" required rows="3"></textarea>
+          <button type="submit" class="submit-btn">GET FREE QUOTE</button>
         </form>
         <p class="form-licence">Licence number A3403</p>
         </div><!-- /.form-card-body -->
-      </div>
-    </div>
-
-    <!-- Booking Confirmation Modal -->
-    <div id="confirmationModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center;">
-      <div style="background: #fff; border-radius: 12px; padding: 32px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-        <h2 style="color: #077bab; margin-bottom: 16px; font-family: 'Montserrat', sans-serif;">Booking Confirmed!</h2>
-        <div style="background: #f5f6f7; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
-          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Name:</strong> <span id="confirmName"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Email:</strong> <span id="confirmEmail"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Phone:</strong> <span id="confirmPhone"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Address:</strong> <span id="confirmAddress"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Issue:</strong> <span id="confirmIssue"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Urgency:</strong> <span id="confirmUrgency"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Homeowner/Tenant:</strong> <span id="confirmOwnership"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Appliance Type:</strong> <span id="confirmAppliance"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;" id="confirmSlotRow"><strong>Booked Slot:</strong> <span id="confirmSlot"></span></p>
-        </div>
-        <p style="color: #666; font-size: 14px; margin-bottom: 16px;">Check your SMS and email for confirmation details.</p>
-        <button onclick="closeConfirmation()" style="background: #077bab; color: #fff; border: none; padding: 12px 24px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; width: 100%;">Done</button>
       </div>
     </div>
   </div>
@@ -2990,7 +2860,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   <div class="services-footer">
     <p>Not sure what the issue is? Call us now and we'll guide you.</p>
-    <a href="tel:0258393807" class="btn btn-red">Call Now</a>
+    <a href="tel:0281034607" class="btn btn-red">Call Now</a>
   </div>
 </section>
 
@@ -3004,9 +2874,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="guarantee-block">
       <p class="g-title">100% Satisfaction Guarantee. If it's not right, we'll make it right.</p>
       <p class="g-body">If you aren't completely satisfied after our service, just call us and we'll make things right so you are.<br>All workmanship backed by our lifetime guarantee.</p>
-      <a href="index.html#" class="g-link">See full guarantee &rarr;</a>
+      <a href="#" class="g-link">See full guarantee &rarr;</a>
     </div>
-    <a href="index.html#" class="btn btn-red promise-cta" onclick="openForm(); return false;">Book a Service</a>
+    <a href="#" class="btn btn-red promise-cta" onclick="openForm(); return false;">Book a Service</a>
   </div>
 
   <div class="promise-right">
@@ -3125,8 +2995,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <li>Proper, long-term fixes</li>
         </ul>
         <div class="strata-ctas">
-          <a href="tel:0258393807" class="btn btn-red">Call Now</a>
-          <a href="index.html#" class="btn btn-outline" onclick="openForm(); return false;">Book a Service</a>
+          <a href="tel:0281034607" class="btn btn-red">Call Now</a>
+          <a href="#" class="btn btn-outline" onclick="openForm(); return false;">Book a Service</a>
         </div>
       </div>
 
@@ -3158,7 +3028,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <p class="team-sub">Licensed, experienced, and respectful — every time.</p>
 
 <div class="team-grid">
-  <a href="index.html#" class="team-card-wrap" onclick="openTeamModal('modal-david'); return false;">
+  <a href="#" class="team-card-wrap" onclick="openTeamModal('modal-david'); return false;">
     <div class="team-card">
       <div class="team-card-header">
         <img class="team-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-plumber-dave.webp" alt="David" width="240" height="240" loading="lazy" decoding="async">
@@ -3173,7 +3043,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </a>
 
 
-  <a href="index.html#" class="team-card-wrap" onclick="openTeamModal('modal-peter'); return false;">
+  <a href="#" class="team-card-wrap" onclick="openTeamModal('modal-peter'); return false;">
     <div class="team-card">
       <div class="team-card-header">
         <img class="team-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-plumber-peter.webp" alt="Peter" width="240" height="240" loading="lazy" decoding="async">
@@ -3187,7 +3057,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
   </a>
 
-   <a href="index.html#" class="team-card-wrap" onclick="openTeamModal('modal-rohan'); return false;">
+   <a href="#" class="team-card-wrap" onclick="openTeamModal('modal-rohan'); return false;">
     <div class="team-card">
       <div class="team-card-header">
         <img class="team-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-plumber-rohan.webp" alt="Rohan" width="240" height="240" loading="lazy" decoding="async">
@@ -3201,7 +3071,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
   </a>
 
- <a href="index.html#" class="team-card-wrap" onclick="openTeamModal('modal-christos'); return false;">
+ <a href="#" class="team-card-wrap" onclick="openTeamModal('modal-christos'); return false;">
     <div class="team-card">
       <div class="team-card-header">
         <img class="team-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-plumber-chris.webp" alt="Chris" width="240" height="240" loading="lazy" decoding="async">
@@ -3216,7 +3086,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </a>
 
 
-  <a href="index.html#" class="team-card-wrap" onclick="openTeamModal('modal-nathan'); return false;">
+  <a href="#" class="team-card-wrap" onclick="openTeamModal('modal-nathan'); return false;">
     <div class="team-card">
       <div class="team-card-header">
         <img class="team-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-plumber-nathan.webp" alt="Nathan" width="240" height="240" loading="lazy" decoding="async">
@@ -3459,8 +3329,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <p class="final-cta-sub">Call Now.  We'll handle it.</p>
   <p class="final-cta-support">Call now and we'll tell you exactly how quickly we can be there.</p>
   <div class="final-cta-btns">
-    <a href="tel:0258393807" class="btn btn-red">Call Now</a>
-    <a href="index.html#" class="btn btn-ghost" onclick="openForm(); return false;">Book a Service</a>
+    <a href="tel:0281034607" class="btn btn-red">Call Now</a>
+    <a href="#" class="btn btn-ghost" onclick="openForm(); return false;">Book a Service</a>
   </div>
   <p class="final-cta-tagline">ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.</p>
 </section>
@@ -3496,7 +3366,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
     <div class="footer-contact">
       <h3>Get In Touch</h3>
-      <a href="tel:0258393807">
+      <a href="tel:0281034607">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
         02 8103 4607
       </a>
@@ -3655,456 +3525,6 @@ document.addEventListener("DOMContentLoaded", function () {
     launcher.addEventListener("click", loadTawkAndOpen);
   }
 });
-
-const SYDNEY_POSTCODES = new Set([2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 2048, 2049, 2050, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074, 2075, 2076, 2077, 2079, 2080, 2081, 2082, 2083, 2084, 2085, 2086, 2087, 2088, 2089, 2090, 2092, 2093, 2094, 2095, 2096, 2097, 2098, 2099, 2100, 2101, 2102, 2103, 2104, 2105, 2106, 2107, 2108, 2109, 2110, 2111, 2112, 2113, 2114, 2115, 2116, 2117, 2118, 2119, 2120, 2121, 2122, 2123, 2124, 2125, 2126, 2127, 2128, 2129, 2130, 2131, 2132, 2133, 2134, 2135, 2136, 2137, 2138, 2139, 2140, 2141, 2142, 2143, 2144, 2145, 2146, 2147, 2148, 2150, 2151, 2152, 2153, 2154, 2155, 2156, 2157, 2158, 2159, 2160, 2161, 2162, 2163, 2164, 2165, 2166, 2167, 2168, 2170, 2171, 2172, 2173, 2174, 2175, 2176, 2177, 2178, 2179, 2190, 2191, 2192, 2193, 2194, 2195, 2196, 2197, 2198, 2199, 2200, 2203, 2204, 2205, 2206, 2207, 2208, 2209, 2210, 2211, 2212, 2213, 2214, 2216, 2217, 2218, 2219, 2220, 2221, 2222, 2223, 2224, 2225, 2226, 2227, 2228, 2229, 2230, 2231, 2232, 2233, 2234, 2560, 2563, 2564, 2565, 2566, 2567, 2568, 2569, 2570, 2745, 2747, 2748, 2749, 2750, 2751, 2752, 2753, 2754, 2755, 2756, 2757, 2758, 2759, 2760, 2761, 2762, 2763, 2765, 2766, 2767, 2768, 2769, 2770, 2773, 2774, 2775, 2776, 2777, 2778, 2779, 2780, 2782, 2783, 2784, 2785, 2786, 2787, 2790, 2557, 2558, 2559, 2561, 2562, 2571, 2572, 2573, 2574, 2575, 2576]);
-
-// Step-based form handling
-function goToStep2() {
-  console.log('=== goToStep2 called ===');
-  const step1Content = document.getElementById('step1Content');
-  const step2Content = document.getElementById('step2Content');
-  const formStepText = document.getElementById('formStepText');
-
-  console.log('Elements found:', { step1Content: !!step1Content, step2Content: !!step2Content, formStepText: !!formStepText });
-
-  // Show step 2, hide step 1
-  if (step1Content) step1Content.style.display = 'none';
-  if (step2Content) step2Content.style.display = 'flex';
-  if (formStepText) {
-    formStepText.textContent = 'Complete Your Booking';
-  }
-
-  // Update slots visibility
-  updateSlotVisibility();
-  console.log('=== goToStep2 complete ===');
-}
-
-function goBackToStep1() {
-  document.getElementById('step1Content').style.display = 'flex';
-  document.getElementById('step2Content').style.display = 'none';
-  const formStepText = document.getElementById('formStepText');
-  if (formStepText) {
-    formStepText.textContent = 'How Can We Help You?';
-  }
-  document.getElementById('submitBtn').textContent = 'NEXT';
-}
-
-function updateSlotVisibility() {
-  const urgency = document.querySelector('input[name="bookNowUrgency"]:checked')?.value;
-  const standardOptions = document.getElementById('standardOptions');
-  const slotSelect = document.getElementById('bookNowSlot');
-
-  if (urgency === 'standard') {
-    standardOptions.style.display = 'block';
-    slotSelect.required = true;
-    fetchAvailableSlots();
-  } else {
-    standardOptions.style.display = 'none';
-    slotSelect.required = false;
-    slotSelect.value = '';
-  }
-}
-
-async function fetchAvailableSlots() {
-  const trade = document.querySelector('textarea[name="message"]').value.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
-  const slotSelect = document.getElementById('bookNowSlot');
-  const slotsLoading = document.getElementById('slotsLoading');
-
-  try {
-    slotsLoading.textContent = 'Loading available slots...';
-    slotsLoading.style.display = 'block';
-
-    const response = await fetch('/api/slots', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ trade })
-    });
-
-    if (!response.ok) {
-      throw new Error(`API returned ${response.status}`);
-    }
-
-    const data = await response.json();
-    const slots = data.slots || [];
-
-    slotSelect.innerHTML = '';
-    if (slots.length === 0) {
-      slotSelect.innerHTML = '<option value="">No slots available</option>';
-      slotsLoading.style.display = 'none';
-      return;
-    }
-
-    slots.forEach(slot => {
-      const option = document.createElement('option');
-      option.value = JSON.stringify(slot);
-      option.textContent = `${slot.day} (${slot.date}) ${slot.start_time}-${slot.end_time}`;
-      slotSelect.appendChild(option);
-    });
-
-    slotsLoading.style.display = 'none';
-  } catch (error) {
-    console.error('Error fetching slots:', error);
-    slotSelect.innerHTML = '<option value="">Unable to load slots</option>';
-    slotsLoading.style.display = 'none';
-  }
-}
-
-// Handle manual address entry toggle
-const manualEntryToggle = document.getElementById('manualEntryToggle');
-const suburbField = document.getElementById('suburbField');
-const postcodeField = document.getElementById('postcodeField');
-
-if (manualEntryToggle) {
-  manualEntryToggle.addEventListener('click', function(e) {
-    e.preventDefault();
-    const isHidden = suburbField.style.display === 'none';
-    suburbField.style.display = isHidden ? 'block' : 'none';
-    postcodeField.style.display = isHidden ? 'block' : 'none';
-    manualEntryToggle.textContent = isHidden ? 'Hide manual entry' : "Can't find your address? Enter manually";
-
-    // Update required attribute based on visibility
-    if (isHidden) {
-      suburbField.setAttribute('required', '');
-      postcodeField.setAttribute('required', '');
-    } else {
-      suburbField.removeAttribute('required');
-      postcodeField.removeAttribute('required');
-    }
-  });
-}
-
-document.querySelectorAll('input[name="bookNowUrgency"]').forEach(radio => {
-  radio.addEventListener('change', updateSlotVisibility);
-});
-
-// Handle ownership warning (tenant)
-document.querySelectorAll('input[name="bookNowOwnership"]').forEach(radio => {
-  radio.addEventListener('change', function() {
-    const tenantWarning = document.getElementById('tenantWarning');
-    tenantWarning.style.display = this.value === 'tenant' ? 'block' : 'none';
-  });
-});
-
-// Handle appliance warning (existing)
-document.querySelectorAll('input[name="bookNowAppliance"]').forEach(radio => {
-  radio.addEventListener('change', function() {
-    const existingWarning = document.getElementById('existingApplianceWarning');
-    existingWarning.style.display = this.value === 'existing' ? 'block' : 'none';
-  });
-});
-
-function showConfirmation(formData) {
-  const modal = document.getElementById('confirmationModal');
-  const urgency = formData.get('bookNowUrgency');
-  const slot = formData.get('bookNowSlot') ? JSON.parse(formData.get('bookNowSlot')) : null;
-
-  document.getElementById('confirmName').textContent = formData.get('name');
-  document.getElementById('confirmEmail').textContent = formData.get('email');
-  document.getElementById('confirmPhone').textContent = formData.get('phone');
-
-  const suburb = formData.get('suburb');
-  const addressDisplay = suburb
-    ? `${formData.get('address')}, ${suburb} ${formData.get('postcode')}`
-    : `${formData.get('address')} ${formData.get('postcode')}`;
-  document.getElementById('confirmAddress').textContent = addressDisplay;
-
-  document.getElementById('confirmIssue').textContent = formData.get('message');
-  document.getElementById('confirmUrgency').textContent = urgency === 'tonight' ? 'Emergency - $549 call our fee including first 1/2 hour labour' : 'Standard Business Hours';
-  document.getElementById('confirmOwnership').textContent = formData.get('bookNowOwnership');
-  document.getElementById('confirmAppliance').textContent = formData.get('bookNowAppliance');
-
-  const slotRow = document.getElementById('confirmSlotRow');
-  if (slot) {
-    document.getElementById('confirmSlot').textContent = `${slot.day} ${slot.start_time}-${slot.end_time}`;
-    slotRow.style.display = 'block';
-  } else {
-    slotRow.style.display = 'none';
-  }
-
-  modal.style.display = 'flex';
-}
-
-function closeConfirmation() {
-  document.getElementById('confirmationModal').style.display = 'none';
-  goBackToStep1();
-  quoteForm.reset();
-}
-
-// Phone validation function
-function validateAustralianPhone(phone) {
-  const cleaned = phone.replace(/\D/g, '');
-  const withPlus = phone.includes('+');
-
-  // Mobile: 04xx xxx xxx (12 digits) or +614x xxx xxx (13 digits after +)
-  if (phone.startsWith('04') && cleaned.length === 10) return true; // 04xx xxx xxx format
-  if (phone.startsWith('+614') && cleaned.length === 12) return true; // +614x xxx xxx format
-
-  // Landline: (02) xxxx xxxx, 02 xxxx xxxx, etc. (10 digits with area code)
-  if (phone.match(/^\(?0[2-8]\)?[\s-]?\d{4}[\s-]?\d{4}$/)) return true; // Australian landline
-
-  // International landline: +612 xxxx xxxx, +613 xxxx xxxx, etc.
-  if (phone.match(/^\+61[2-8]\d{8}$/)) return true;
-
-  return false;
-}
-
-// Handle quote form submission
-const quoteForm = document.getElementById('quoteFormElement');
-if (quoteForm) {
-  quoteForm.addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    const submitBtn = document.getElementById('submitBtn');
-    const formMessage = document.getElementById('formMessage');
-    const phoneInput = document.querySelector('input[name="phone"]');
-    const addressInput = document.querySelector('input[name="address"]');
-    const suburbInput = document.querySelector('input[name="suburb"]');
-    const postcodeInput = document.querySelector('input[name="postcode"]');
-    const postcode = parseInt(postcodeInput.value);
-    const step1Content = document.getElementById('step1Content');
-    const step2Content = document.getElementById('step2Content');
-    const isStep2 = step2Content.style.display !== 'none';
-
-    // Validate phone format
-    if (!validateAustralianPhone(phoneInput.value)) {
-      formMessage.style.backgroundColor = '#f8d7da';
-      formMessage.style.color = '#721c24';
-      formMessage.textContent = 'Please enter a valid Australian phone number (mobile: 04xx xxx xxx or landline: 0x xxxx xxxx).';
-      formMessage.style.display = 'block';
-      return;
-    }
-
-    // Check that address was selected from Places OR manual entry was toggled
-    if (!suburbInput.value) {
-      formMessage.style.backgroundColor = '#f8d7da';
-      formMessage.style.color = '#721c24';
-      formMessage.textContent = 'Please select your address from the suggestions or click "Can\'t find your address? Enter manually".';
-      formMessage.style.display = 'block';
-      return;
-    }
-
-    // Check postcode validity once
-    if (!SYDNEY_POSTCODES.has(postcode)) {
-      formMessage.style.backgroundColor = '#f8d7da';
-      formMessage.style.color = '#721c24';
-      formMessage.innerHTML = 'Sorry, we do not service that postcode. <a href="service-areas.html" style="color: #721c24; text-decoration: underline;">View our service areas</a>';
-      formMessage.style.display = 'block';
-      return;
-    }
-
-    // STEP 1: Collect details and transition to Step 2 if booking now
-    if (!isStep2) {
-      const requestType = document.querySelector('input[name="requestTypeStep1"]:checked')?.value;
-
-      if (!requestType) {
-        formMessage.style.backgroundColor = '#f8d7da';
-        formMessage.style.color = '#721c24';
-        formMessage.textContent = 'Please select an option.';
-        formMessage.style.display = 'block';
-        return;
-      }
-
-      // If booking now, go to step 2 instead of submitting
-      if (requestType === 'bookNow') {
-        goToStep2();
-        return;
-      }
-
-      // Otherwise, submit immediately
-      submitForm(requestType);
-      return;
-    }
-
-    // STEP 2: Validate and submit booking
-    const urgency = document.querySelector('input[name="bookNowUrgency"]:checked')?.value;
-
-    if (!urgency) {
-      formMessage.style.backgroundColor = '#f8d7da';
-      formMessage.style.color = '#721c24';
-      formMessage.textContent = 'Please select urgency.';
-      formMessage.style.display = 'block';
-      return;
-    }
-
-    if (urgency === 'tonight') {
-      // Emergency booking - just submit with urgency
-      submitForm('bookNow', { urgency });
-      return;
-    }
-
-    // Standard booking - validate all fields
-    const ownership = document.querySelector('input[name="bookNowOwnership"]:checked')?.value;
-    const appliance = document.querySelector('input[name="bookNowAppliance"]:checked')?.value;
-    const slot = document.querySelector('select[name="bookNowSlot"]')?.value;
-
-    if (!ownership || !appliance) {
-      formMessage.style.backgroundColor = '#f8d7da';
-      formMessage.style.color = '#721c24';
-      formMessage.textContent = 'Please complete all booking details.';
-      formMessage.style.display = 'block';
-      return;
-    }
-
-    if (!slot) {
-      formMessage.style.backgroundColor = '#f8d7da';
-      formMessage.style.color = '#721c24';
-      formMessage.textContent = 'Please select a time slot.';
-      formMessage.style.display = 'block';
-      return;
-    }
-
-    submitForm('bookNow', { urgency, ownership, appliance, slot });
-  });
-}
-
-async function submitForm(requestType, bookingData = {}) {
-  const submitBtn = document.getElementById('submitBtn');
-  const formMessage = document.getElementById('formMessage');
-  const originalText = submitBtn.textContent;
-
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Submitting...';
-  formMessage.style.display = 'none';
-
-  try {
-    const formData = new FormData(quoteForm);
-    formData.set('requestType', requestType);
-
-    if (requestType === 'bookNow') {
-      formData.set('bookNowUrgency', bookingData.urgency);
-      formData.set('bookNowOwnership', bookingData.ownership);
-      formData.set('bookNowAppliance', bookingData.appliance);
-      if (bookingData.slot) {
-        formData.set('bookNowSlot', bookingData.slot);
-      }
-    }
-
-    const response = await fetch('/api/quote', {
-      method: 'POST',
-      body: formData
-    });
-
-    const result = await response.json();
-
-    if (response.ok && result.success) {
-      if (requestType === 'bookNow') {
-        // Show confirmation modal with booking details
-        showConfirmation(new FormData(quoteForm));
-      } else {
-        formMessage.style.backgroundColor = '#d4edda';
-        formMessage.style.color = '#155724';
-        if (requestType === 'callback') {
-          formMessage.textContent = 'Thank you! We will call you shortly.';
-        }
-        formMessage.style.display = 'block';
-        quoteForm.reset();
-        goBackToStep1();
-      }
-    } else {
-      formMessage.style.backgroundColor = '#f8d7da';
-      formMessage.style.color = '#721c24';
-      formMessage.textContent = result.error || 'An error occurred. Please try again.';
-      formMessage.style.display = 'block';
-    }
-  } catch (error) {
-    formMessage.style.backgroundColor = '#f8d7da';
-    formMessage.style.color = '#721c24';
-    formMessage.textContent = 'Network error. Please try again.';
-    formMessage.style.display = 'block';
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = originalText;
-  }
-}
-
-// Google Maps Places Autocomplete
-async function initializePlacesAutocomplete() {
-  try {
-    const configResponse = await fetch('/api/config');
-    const config = await configResponse.json();
-    const apiKey = config.googleMapsApiKey;
-
-    if (!apiKey) {
-      console.error('Google Maps API key not available');
-      return;
-    }
-
-    // Load Google Maps library
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => setupPlacesAutocomplete();
-    document.head.appendChild(script);
-  } catch (error) {
-    console.error('Error initializing Places:', error);
-  }
-}
-
-function setupPlacesAutocomplete() {
-  const addressInput = document.querySelector('input[name="address"]');
-  if (!addressInput || !window.google) return;
-
-  // Greater Sydney bounds (rough boundaries)
-  const sydneyBounds = {
-    north: -33.4,   // Gosford
-    south: -34.2,   // Wollongong
-    east: 151.35,   // Coast
-    west: 150.3     // Penrith
-  };
-
-  const options = {
-    componentRestrictions: { country: 'au' },
-    bounds: sydneyBounds,
-    strictBounds: true,
-    fields: ['formatted_address', 'address_components', 'geometry'],
-    types: ['address']
-  };
-
-  const autocomplete = new google.maps.places.Autocomplete(addressInput, options);
-
-  autocomplete.addListener('place_changed', () => {
-    const place = autocomplete.getPlace();
-
-    if (!place.geometry) {
-      console.error('No geometry found');
-      return;
-    }
-
-    // Extract suburb/locality and postcode from address components
-    let suburb = '';
-    let postcode = '';
-    if (place.address_components) {
-      const localityComponent = place.address_components.find(component =>
-        component.types.includes('locality')
-      );
-      suburb = localityComponent?.long_name || '';
-
-      const postalComponent = place.address_components.find(component =>
-        component.types.includes('postal_code')
-      );
-      postcode = postalComponent?.long_name || '';
-    }
-
-    // Auto-fill suburb and postcode fields
-    const suburbInput = document.querySelector('input[name="suburb"]');
-    const postcodeInput = document.querySelector('input[name="postcode"]');
-
-    if (suburbInput && suburb) {
-      suburbInput.value = suburb;
-    }
-    if (postcodeInput && postcode) {
-      postcodeInput.value = postcode;
-    }
-  });
-}
-
-// Initialize Places on DOM ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializePlacesAutocomplete);
-} else {
-  initializePlacesAutocomplete();
-}
 </script>
 
 </body>
