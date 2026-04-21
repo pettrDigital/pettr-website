@@ -830,7 +830,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     };
 
     var variantMap = {
-      'b': { submitText: 'BOOK NOW — WE'RE AVAILABLE' },
+      'b': { submitText: "BOOK NOW — WE'RE AVAILABLE" },
       'c': { submitText: 'CLAIM $50 OFF MY JOB' }
     };
 
@@ -839,7 +839,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
 
     function toTitleCase(str) {
-      return (str || '').toLowerCase().replace(/\w/g, function(c) { return c.toUpperCase(); });
+      return (str || '').toLowerCase().replace(/\b\w/g, function(c) {
+        return c.toUpperCase();
+      });
     }
 
     function setText(id, value) {
