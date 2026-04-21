@@ -160,7 +160,7 @@ ul { list-style: none; }
 }
 
 /* =========================================
-   HERO — BASE (desktop ≥1181px)
+   HERO — BASE (desktop >=1181px)
    ========================================= */
 #hero {
   scroll-margin-top: 110px; position: relative;
@@ -199,11 +199,6 @@ ul { list-style: none; }
   font-size: clamp(22px, 3vw, 40px); font-weight: 900;
   line-height: 0.93; margin-bottom: 22px; letter-spacing: -2px;
   text-transform: uppercase; color: var(--blue);
-}
-.hero-location {
-  display: block;
-  margin-top: 8px;
-  color: var(--red);
 }
 .headline-highlight { position: relative; display: inline-block; color: var(--red); overflow: visible; }
 .animated-headline .headline-red { color: var(--red); overflow: visible; }
@@ -471,7 +466,7 @@ ul { list-style: none; }
 #sticky-bar:hover { background: #aa0000; }
 
 /* =========================================
-   RESPONSIVE — 768px–1180px
+   RESPONSIVE — 768px-1180px
    ========================================= */
 @media (min-width: 768px) and (max-width: 1180px) {
   #header            { padding: 8px 10px; top: 33px; }
@@ -517,7 +512,7 @@ ul { list-style: none; }
 }
 
 /* =========================================
-   RESPONSIVE — 1181px–1440px (laptop)
+   RESPONSIVE — 1181px-1440px (laptop)
    ========================================= */
 @media (min-width: 1181px) and (max-width: 1440px) {
   #hero .wrap        { min-height: 520px; padding: 0 20px; }
@@ -643,7 +638,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- ===================== HERO ===================== -->
 <section id="hero">
 
-  <!-- BANNER IMAGE: shown 768–1180px + mobile -->
+  <!-- BANNER IMAGE: shown 768-1180px + mobile -->
   <div class="hero-top-banner" aria-hidden="true">
     <picture>
       <source media="(max-width: 767px)"
@@ -678,14 +673,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- Left column -->
     <div class="hero-left">
       <h1 class="animated-headline">
-        <span>Same-Day Local Plumber</span>
-        <span class="hero-location" id="hero-location">in Sydney</span>
+        <span id="hero-service">Local, same-day plumbers</span> in&nbsp;<span class="headline-highlight"><span id="hero-suburb">Sydney</span><svg class="underline-svg" viewBox="0 0 500 150" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7.7,145.6C109,125,299.9,116.2,492.3,144.7" fill="none" stroke="#f60404" stroke-width="9" stroke-linecap="round"/></svg></span>
       </h1>
-      <p class="hero-sub">Fast, reliable plumbing help in <span class="js-suburb">Sydney</span>. Call now or book online.</p>
+      <p class="hero-sub">We're Local, Reliable &amp; Trusted. It's What Makes Us <span class="js-suburb-possessive">Sydney's</span> Favourite Plumber. Call or Book Online Now!</p>
       <ul class="hero-checklist">
         <li>
           <svg viewBox="0 0 512 512"><path d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>
-          <span>Under 1 hour arrival in <span class="js-suburb" style="color:var(--red)">Sydney</span> right now!</span>
+          <span>Under 1 hour arrival in <span id="checklist-suburb" style="color:var(--red)">Sydney</span> right now!</span>
         </li>
         <li>
           <svg viewBox="0 0 512 512"><path d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>
@@ -697,19 +691,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </li>
         <li>
           <svg viewBox="0 0 512 512"><path d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>
-          <span>35+ years' experience in <span class="js-suburb">Sydney</span></span>
+          35+ years' experience in <span class="js-suburb">Sydney</span>
         </li>
         <li>
           <svg viewBox="0 0 512 512"><path d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>
-          <span>Award winning plumber</span>
+          Award winning plumber
         </li>
         <li>
           <svg viewBox="0 0 512 512"><path d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>
-          <span>Lifetime guarantee on work</span>
+          Lifetime guarantee on work
         </li>
         <li>
           <svg viewBox="0 0 512 512"><path d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>
-          <span>4.9 star rated plumber in <span class="js-suburb">Sydney</span></span>
+          4.9 star rated plumber in <span class="js-suburb">Sydney</span>
         </li>
       </ul>
     </div>
@@ -721,7 +715,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
       <div class="form-card-body">
         <form class="booking-form" id="lp-form" action="" method="POST">
-          <!-- UTM + tracking hidden fields -->
           <input type="hidden" name="utm_source"   id="f_utm_source">
           <input type="hidden" name="utm_medium"   id="f_utm_medium">
           <input type="hidden" name="utm_campaign" id="f_utm_campaign">
@@ -730,7 +723,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <input type="hidden" name="suburb"       id="f_suburb">
           <input type="hidden" name="service"      id="f_service">
           <input type="hidden" name="variant"      id="f_variant">
-          <!-- Visible fields -->
           <input type="text"   name="name"         placeholder="Name*" required>
           <input type="email"  name="email"        placeholder="Email*" required>
           <input type="tel"    name="phone"        placeholder="Phone*" required pattern="[0-9()#&+*\-=.]+">
@@ -745,44 +737,183 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 
   <script>
-document.addEventListener('DOMContentLoaded', function () {
-  var params = new URLSearchParams(window.location.search);
-  var suburb = params.get('hq') || '';
-  var keyword = params.get('keyword') || '';
-  var variant = params.get('variant') || '';
+  (function() {
+    var PAGE_DEFAULT_KEYWORD = 'plumber near me';
 
-  function titleCase(str) {
-    return (str || '').toLowerCase().replace(/\b\w/g, function(c) {
-      return c.toUpperCase();
-    });
-  }
+    var keywordMap = {
+      'plumber near me': {
+        h1: 'Local, same-day plumbers',
+        formHeadline: 'How Can We <span style="color:var(--yellow)">Help You?</span>',
+        submitText: 'GET FREE QUOTE',
+        service: 'plumbing',
+        meta: 'Local, licensed {{suburb}} plumbers. Free call outs, same day service, 35+ years experience. 4.9 stars. Call 02 8103 4607.'
+      },
+      'plumber': {
+        h1: 'Local plumber',
+        formHeadline: 'Book a <span style="color:var(--yellow)">Local Plumber</span>',
+        submitText: 'BOOK NOW',
+        service: 'plumbing',
+        meta: 'Need a trusted local plumber in {{suburb}}? Free call outs, same day service and licensed plumbers. Call 02 8103 4607.'
+      },
+      'blocked drain plumber': {
+        h1: 'Blocked Drain Plumber',
+        formHeadline: 'Book a <span style="color:var(--yellow)">Drain Plumber</span>',
+        submitText: 'UNBLOCK MY DRAIN',
+        service: 'blocked-drains',
+        meta: 'Need a blocked drain plumber in {{suburb}}? Fast same-day help for blocked drains and toilets. Call 02 8103 4607.'
+      },
+      'blocked drains': {
+        h1: 'Blocked Drain Plumber',
+        formHeadline: 'Book a <span style="color:var(--yellow)">Drain Plumber</span>',
+        submitText: 'UNBLOCK MY DRAIN',
+        service: 'blocked-drains',
+        meta: 'Need a blocked drain plumber in {{suburb}}? Fast same-day help for blocked drains and toilets. Call 02 8103 4607.'
+      },
+      'drain plumber': {
+        h1: 'Blocked Drain Plumber',
+        formHeadline: 'Book a <span style="color:var(--yellow)">Drain Plumber</span>',
+        submitText: 'UNBLOCK MY DRAIN',
+        service: 'blocked-drains',
+        meta: 'Need a blocked drain plumber in {{suburb}}? Fast same-day help for blocked drains and toilets. Call 02 8103 4607.'
+      },
+      'blocked toilet plumber': {
+        h1: 'Blocked Drain Plumber',
+        formHeadline: 'Book a <span style="color:var(--yellow)">Drain Plumber</span>',
+        submitText: 'UNBLOCK MY DRAIN',
+        service: 'blocked-drains',
+        meta: 'Need a blocked drain plumber in {{suburb}}? Fast same-day help for blocked drains and toilets. Call 02 8103 4607.'
+      },
+      'emergency plumber': {
+        h1: 'Emergency Plumber',
+        formHeadline: 'Get <span style="color:var(--yellow)">Emergency Help</span>',
+        submitText: 'GET EMERGENCY HELP',
+        service: 'emergency',
+        meta: 'Need an emergency plumber in {{suburb}}? Fast same-day emergency plumbing help. Call 02 8103 4607.'
+      },
+      'hot water plumber': {
+        h1: 'Hot Water Plumber',
+        formHeadline: 'Fix My <span style="color:var(--yellow)">Hot Water</span>',
+        submitText: 'BOOK HOT WATER REPAIR',
+        service: 'hot-water',
+        meta: 'Need a hot water plumber in {{suburb}}? Fast same-day repairs and replacements. Call 02 8103 4607.'
+      },
+      'electrician': {
+        h1: 'Local Electrician',
+        formHeadline: 'Book an <span style="color:var(--yellow)">Electrician</span>',
+        submitText: 'BOOK AN ELECTRICIAN',
+        service: 'electrical',
+        meta: 'Need a trusted electrician in {{suburb}}? Same-day electrical help is available. Call 02 8103 4607.'
+      },
+      'electrician near me': {
+        h1: 'Local Electrician',
+        formHeadline: 'Book a <span style="color:var(--yellow)">Local Electrician</span>',
+        submitText: 'GET FREE QUOTE',
+        service: 'electrical',
+        meta: 'Need a local electrician in {{suburb}}? Same-day electrical help is available. Call 02 8103 4607.'
+      },
+      'emergency electrician': {
+        h1: 'Emergency Electrician',
+        formHeadline: 'Get <span style="color:var(--yellow)">Emergency Help</span>',
+        submitText: 'GET EMERGENCY HELP',
+        service: 'electrical-emergency',
+        meta: 'Need an emergency electrician in {{suburb}}? Fast same-day help is available. Call 02 8103 4607.'
+      },
+      'switchboard electrician': {
+        h1: 'Switchboard Electrician',
+        formHeadline: 'Book a <span style="color:var(--yellow)">Switchboard Check</span>',
+        submitText: 'BOOK NOW',
+        service: 'switchboard',
+        meta: 'Need a switchboard electrician in {{suburb}}? Book a same-day switchboard check. Call 02 8103 4607.'
+      }
+    };
 
-  if (suburb) {
-    suburb = titleCase(suburb);
+    var variantMap = {
+      'b': { submitText: "BOOK NOW — WE'RE AVAILABLE" },
+      'c': { submitText: 'CLAIM $50 OFF MY JOB' }
+    };
 
-    var heroLocation = document.getElementById('hero-location');
-    if (heroLocation) heroLocation.textContent = 'in ' + suburb;
+    function normalizeKeyword(raw) {
+      return decodeURIComponent((raw || '').replace(/\+/g, ' ')).toLowerCase().trim().replace(/\s+/g, ' ');
+    }
 
-    document.querySelectorAll('.js-suburb').forEach(function(el) {
-      el.textContent = suburb;
-    });
-  }
+    function toTitleCase(str) {
+      return (str || '').toLowerCase().replace(/\b\w/g, function(c) {
+        return c.toUpperCase();
+      });
+    }
 
-  var setVal = function(id, val) {
-    var el = document.getElementById(id);
-    if (el) el.value = val;
-  };
+    function setText(id, value) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = value;
+    }
 
-  setVal('f_suburb', suburb);
-  setVal('f_service', 'local-plumber');
-  setVal('f_variant', variant);
-  setVal('f_utm_source', params.get('utm_source') || '');
-  setVal('f_utm_medium', params.get('utm_medium') || '');
-  setVal('f_utm_campaign', params.get('utm_campaign') || '');
-  setVal('f_utm_term', params.get('utm_term') || keyword);
-  setVal('f_gclid', params.get('gclid') || '');
-});
-</script>
+    function setHtml(id, value) {
+      var el = document.getElementById(id);
+      if (el) el.innerHTML = value;
+    }
+
+    function setValue(id, value) {
+      var el = document.getElementById(id);
+      if (el) el.value = value;
+    }
+
+    function updateSuburbOnly(suburb) {
+      setText('hero-suburb', suburb);
+      setText('checklist-suburb', suburb);
+      setText('today-suburb', suburb); /* FIX: was missing */
+      document.querySelectorAll('.js-suburb').forEach(function(el) { el.textContent = suburb; });
+      document.querySelectorAll('.js-suburb-possessive').forEach(function(el) { el.textContent = suburb + "'s"; });
+    }
+
+    function applyPersonalization(suburb, keyword, variant, params) {
+      suburb = toTitleCase(suburb || 'Sydney');
+      keyword = normalizeKeyword(keyword);
+      variant = (variant || '').toLowerCase().trim();
+
+      var content = keywordMap[keyword] || keywordMap[PAGE_DEFAULT_KEYWORD];
+      var variantContent = variantMap[variant] || {};
+      var submitText = variantContent.submitText || content.submitText;
+
+      updateSuburbOnly(suburb);
+      setText('hero-service', content.h1);
+      setHtml('form-headline', content.formHeadline);
+
+      var btn = document.querySelector('#lp-form .submit-btn');
+      if (btn) btn.textContent = submitText;
+
+      document.title = content.h1 + ' in ' + suburb + ' | Plumber To The Rescue | 02 8103 4607';
+      var meta = document.getElementById('meta-description');
+      if (meta && content.meta) meta.setAttribute('content', content.meta.replace(/\{\{suburb\}\}/g, suburb));
+
+      setValue('f_utm_source',   params.get('utm_source')   || 'google');
+      setValue('f_utm_medium',   params.get('utm_medium')   || 'cpc');
+      setValue('f_utm_campaign', params.get('utm_campaign') || '');
+      setValue('f_utm_term',     params.get('utm_term')     || keyword || '');
+      setValue('f_gclid',        params.get('gclid')        || '');
+      setValue('f_suburb',       suburb);
+      setValue('f_service',      content.service || '');
+      setValue('f_variant',      variant || '');
+
+      window.__LP_CFG = {
+        hasHq: !!params.get('hq'),
+        keyword: keyword,
+        variant: variant,
+        suburb: suburb,
+        service: content.service || '',
+        h1: content.h1,
+        formHeadline: content.formHeadline,
+        submitText: submitText,
+        meta: content.meta || '',
+        updateSuburbOnly: updateSuburbOnly,
+        applyPersonalization: applyPersonalization
+      };
+    }
+
+    var params = new URLSearchParams(window.location.search);
+    var suburb = params.get('hq') ? decodeURIComponent(params.get('hq')).trim() : 'Sydney';
+    applyPersonalization(suburb, params.get('keyword') || '', params.get('variant') || '', params);
+  })();
+  </script>
 </section>
 
 <!-- ===================== AWARDS ===================== -->
@@ -809,9 +940,9 @@ document.addEventListener('DOMContentLoaded', function () {
         That's what <strong>Plumber To The Rescue</strong> is all about — reliable help when you need it most."
       </blockquote>
       <div class="bio-bullets">
-        <span>👷‍♂️&nbsp; Local &amp; approachable</span>
-        <span>🔧&nbsp; Quality workmanship</span>
-        <span>📞&nbsp; One call, real help</span>
+        <span>&#128119;&#8205;&#9794;&#65039;&nbsp; Local &amp; approachable</span>
+        <span>&#128295;&nbsp; Quality workmanship</span>
+        <span>&#128222;&nbsp; One call, real help</span>
       </div>
     </div>
     <div class="bio-image-panel">
@@ -888,7 +1019,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
         </svg>
         <span class="score">4.9</span>
-        <span class="star">⭐</span>
+        <span class="star">&#11088;</span>
       </div>
       <div class="review-count"><strong>224</strong> Reviews</div>
     </div>
@@ -899,7 +1030,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <div class="avatar">CP</div>
           <div><div class="reviewer-name">Craig Preston</div><div class="reviewer-date">March 24, 2025</div></div>
         </div>
-        <div class="review-stars">★★★★★</div>
+        <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
         <p class="review-body">David did a terrific job and gets double 5 stars from us. He was on time, got to work quickly, found a problem we didn't know we had, fixed that and he also fixed our toilet flushing problems. He was very clean and tidy and explained everything he did clearly and in depth. We'll definitely use you again. You're local, you answered the phone on Saturday evening, came first thing on Sunday morning, did a thoroughly good job and David is a really nice bloke.</p>
       </div>
       <div class="review-card">
@@ -908,7 +1039,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <div class="avatar">AB</div>
           <div><div class="reviewer-name">Anthony Boccanfuso</div><div class="reviewer-date">March 24, 2025</div></div>
         </div>
-        <div class="review-stars">★★★★★</div>
+        <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
         <p class="review-body">These guys were terrific. And Dave is the man!!</p>
       </div>
       <div class="review-card">
@@ -917,7 +1048,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <div class="avatar green">A</div>
           <div><div class="reviewer-name">Anneke Jaspers</div><div class="reviewer-date">March 5, 2025</div></div>
         </div>
-        <div class="review-stars">★★★★★</div>
+        <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
         <p class="review-body">Plumbers Nathan and Christos are exceptionally professional, polite and helpful — highly recommend.</p>
       </div>
     </div>
@@ -1074,7 +1205,7 @@ document.addEventListener('DOMContentLoaded', function () {
       </p>
     </div>
   </div>
-  <div class="footer-bottom">Copyright 2026 © Plumber To The Rescue. All Rights Reserved.</div>
+  <div class="footer-bottom">Copyright 2026 &copy; Plumber To The Rescue. All Rights Reserved.</div>
 </footer>
 
 <!-- ===================== STICKY CALL BAR ===================== -->
@@ -1100,14 +1231,39 @@ document.querySelectorAll('.accordion-btn').forEach(function(btn) {
   });
 });
 
-// --- Footer email ---
+// --- Geo fallback + footer email (both deferred to after load) ---
 (function() {
-  var e = document.getElementById('footer-email');
-  if (e) {
-    var em = 'info@plumbertotherescue.com.au';
-    e.textContent = em;
-    e.href = 'mailto:' + em;
+  var cfg = window.__LP_CFG || {};
+
+  if (cfg.hasHq) {
+    // hq was in URL — no geo needed, just set footer email after load
+    window.addEventListener('load', function() {
+      var e = document.getElementById('footer-email');
+      if (e) { var em = 'info@plumbertotherescue.com.au'; e.href = 'mailto:' + em; e.textContent = em; }
+    });
+    return;
   }
+
+  var SYD = { latMin:-34.17, latMax:-33.40, lngMin:150.50, lngMax:151.35 };
+
+  window.addEventListener('load', function() {
+    // Footer email — FIX: deferred so Cloudflare doesn't inject email-decode.min.js
+    var e = document.getElementById('footer-email');
+    if (e) { var em = 'info@plumbertotherescue.com.au'; e.href = 'mailto:' + em; e.textContent = em; }
+
+    // Geo suburb detection
+    fetch('https://ipapi.co/json/')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        var lat = parseFloat(d.latitude), lng = parseFloat(d.longitude);
+        var inSyd = lat >= SYD.latMin && lat <= SYD.latMax && lng >= SYD.lngMin && lng <= SYD.lngMax;
+        var suburb = inSyd ? (d.city || 'Sydney') : 'Sydney';
+        if (!cfg.applyPersonalization) return;
+        var p = new URLSearchParams(window.location.search);
+        cfg.applyPersonalization(suburb, p.get('keyword') || '', p.get('variant') || '', p);
+      })
+      .catch(function() {});
+  });
 })();
 </script>
 <script>
@@ -1132,19 +1288,17 @@ document.getElementById('lp-form').addEventListener('submit', function(e) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   })
-  .then(function(r) {
-    return r.json();
-  })
+  .then(function(r) { return r.json(); })
   .then(function(res) {
-  if (res.success) {
-    var msg = document.createElement('div');
-    msg.style.cssText = 'text-align:center;padding:32px 16px;color:#fff;';
-    msg.innerHTML = [
-      '<div style="font-size:48px;margin-bottom:16px;">\u2713</div>',
-      '<div style="font-size:20px;font-weight:700;margin-bottom:8px;">Thanks, we will be in touch shortly!</div>',
-      '<div style="font-size:14px;opacity:0.85;">Call us now if urgent: <a href="tel:0281034607" style="color:#FDD42B;font-weight:700;">02 8103 4607</a></div>'
-    ].join('');
-    form.parentNode.replaceChild(msg, form);
+    if (res.success) {
+      var msg = document.createElement('div');
+      msg.style.cssText = 'text-align:center;padding:32px 16px;color:#fff;';
+      msg.innerHTML = [
+        '<div style="font-size:48px;margin-bottom:16px;">&#10003;</div>',
+        '<div style="font-size:20px;font-weight:700;margin-bottom:8px;">Thanks, we will be in touch shortly!</div>',
+        '<div style="font-size:14px;opacity:0.85;">Call us now if urgent: <a href="tel:0281034607" style="color:#FDD42B;font-weight:700;">02 8103 4607</a></div>'
+      ].join('');
+      form.parentNode.replaceChild(msg, form);
     } else {
       btn.textContent = orig;
       btn.disabled = false;
