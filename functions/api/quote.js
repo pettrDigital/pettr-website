@@ -97,13 +97,25 @@ async function setupRetellFunctions(env) {
       },
     ];
 
+    const variables = [
+      { name: 'first_name', description: 'Caller first name' },
+      { name: 'last_name', description: 'Caller last name' },
+      { name: 'phone', description: 'Caller phone number' },
+      { name: 'street_address', description: 'Service address street' },
+      { name: 'suburb', description: 'Service address suburb' },
+      { name: 'postcode', description: 'Service address postcode' },
+      { name: 'description', description: 'Job description/issue' },
+      { name: 'trade', description: 'Type of service: plumbing or electrical' },
+      { name: 'is_existing_customer', description: 'Whether caller is existing customer' },
+    ];
+
     await fetch(`https://api.retellai.com/v2/agents/${outboundAgentId}`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ functions }),
+      body: JSON.stringify({ functions, variables }),
     }).catch(err => console.warn('Retell setup warning:', err.message));
   } catch (err) {
     console.warn('Retell function setup failed:', err.message);
@@ -204,6 +216,29 @@ export async function onRequest(context) {
 
       console.log('Triggering Retell callback for:', data.phone);
       const trade = data.message.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
+
+      // Look up customer in AroFlo to check if they're existing (but use form data as provided)
+      let isExistingCustomer = false;
+
+      try {
+        const lookupUrl = env.AROFLO_LOOKUP_FUNCTION_URL;
+        const lookupResponse = await fetch(lookupUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: data.phone }),
+        });
+
+        if (lookupResponse.ok) {
+          const lookupResult = await lookupResponse.json();
+          if (lookupResult.found && lookupResult.client) {
+            console.log('Found existing customer:', lookupResult.client.clientid);
+            isExistingCustomer = true;
+          }
+        }
+      } catch (err) {
+        console.warn('Customer lookup failed:', err.message);
+      }
+
       await triggerRetellCallback(env, {
         phone: data.phone,
         name: data.name,
@@ -212,6 +247,7 @@ export async function onRequest(context) {
         postcode: data.postcode,
         message: data.message,
         trade: trade,
+        isExistingCustomer,
       });
     } else if (data.requestType === 'bookNow') {
       console.log('=== INSTANT BOOKING INITIATED ===');
@@ -358,7 +394,7 @@ async function sendSMS(env, { phone, name, address, postcode, problem }) {
   return responseText;
 }
 
-async function triggerRetellCallback(env, { phone, name, address, suburb, postcode, message, trade }) {
+async function triggerRetellCallback(env, { phone, name, address, suburb, postcode, message, trade, isExistingCustomer }) {
   console.log('=== RETELL CALLBACK ===');
   console.log('Phone:', phone);
   console.log('Name:', name);
@@ -367,6 +403,7 @@ async function triggerRetellCallback(env, { phone, name, address, suburb, postco
   console.log('Postcode:', postcode);
   console.log('Message:', message);
   console.log('Trade:', trade);
+  console.log('Existing Customer:', isExistingCustomer);
 
   const retellApiKey = env.RETELL_API_KEY;
   const retellAgentId = env.RETELL_AGENT_ID;
@@ -419,6 +456,7 @@ async function triggerRetellCallback(env, { phone, name, address, suburb, postco
       postcode: postcode || '',
       description: message || '',
       trade: trade || '',
+      is_existing_customer: isExistingCustomer ? 'true' : 'false',
     },
   };
   console.log('Payload:', JSON.stringify(payload));
