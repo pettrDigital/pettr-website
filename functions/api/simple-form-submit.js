@@ -67,18 +67,10 @@ GCLID: ${gclid}
         ${row("My problem is", message || "-")}
       </div>
 
-      <div style="background:#f8f8f8; border-bottom:1px solid #ddd; padding:20px 30px;">
-        <div style="font-size:13px; font-weight:bold; color:#777; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">Attribution</div>
-        <table style="font-size:13px; color:#555; border-collapse:collapse; width:100%;">
-          ${attrRow("Suburb",       suburb)}
-          ${attrRow("Service",      service)}
-          ${attrRow("Variant",      variant || "a")}
-          ${attrRow("UTM Source",   utmSource)}
-          ${attrRow("UTM Medium",   utmMedium)}
-          ${attrRow("UTM Campaign", utmCampaign)}
-          ${attrRow("UTM Term",     utmTerm)}
-          ${attrRow("GCLID",        gclid)}
-        </table>
+      <div style="padding:12px 30px; border-top:1px solid #f0f0f0;">
+        <div style="font-size:9px; color:#999999; line-height:1.4;">
+          ${escapeHtml(suburb)} | ${escapeHtml(service)} | ${escapeHtml(variant || 'a')} | ${escapeHtml(utmSource)} | ${escapeHtml(utmMedium)} | ${escapeHtml(utmCampaign)} | ${escapeHtml(utmTerm)} | ${escapeHtml(gclid)}
+        </div>
       </div>
 
       <div style="padding:24px; text-align:right; font-size:12px; color:#777;">
@@ -125,16 +117,6 @@ function row(label, value) {
       <div style="font-size:16px; font-weight:bold; margin-bottom:10px;">${escapeHtml(label)}</div>
       <div style="font-size:16px;">${escapeHtml(value).replace(/\n/g, "<br>")}</div>
     </div>
-  `;
-}
-
-function attrRow(label, value) {
-  if (!value) return "";
-  return `
-    <tr>
-      <td style="padding:4px 12px 4px 0; font-weight:bold; width:140px;">${escapeHtml(label)}</td>
-      <td style="padding:4px 0;">${escapeHtml(value)}</td>
-    </tr>
   `;
 }
 
