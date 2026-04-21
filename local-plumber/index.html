@@ -134,14 +134,14 @@ ul { list-style: none; }
    ========================================= */
 #header {
   background: var(--white); box-shadow: 0 2px 12px rgba(0,0,0,.09);
-  padding: 20px 10px; position: fixed; width: 100%; top: 37px; z-index: 999;
+  padding: 12px 10px; position: fixed; width: 100%; top: 37px; z-index: 999;
 }
 #header .wrap {
   display: grid; grid-template-columns: 1fr auto 1fr;
   align-items: center; justify-items: center; gap: 20px;
 }
 .header-logo { display: flex; align-items: center; justify-self: start; }
-.header-logo img { width: 200px; display: block; }
+.header-logo img { width: 160px; display: block; }
 .header-right { display: flex; align-items: center; justify-content: center; gap: 28px; }
 .header-google { display: flex; justify-content: center; }
 .header-google img { width: 190px; }
@@ -507,6 +507,22 @@ ul { list-style: none; }
 }
 
 /* =========================================
+   RESPONSIVE — 1181px–1440px (laptop)
+   ========================================= */
+@media (min-width: 1181px) and (max-width: 1440px) {
+  #hero .wrap        { min-height: 520px; padding: 0 20px; }
+  .hero-left         { padding: 40px 0 40px 40px; }
+  .form-card-header  { padding: 16px 24px 6px; }
+  .form-card-header h2 { font-size: 22px; }
+  .form-card-body    { padding: 0 24px 14px; }
+  .booking-form      { gap: 7px; }
+  .booking-form input,
+  .booking-form select { padding: 10px 14px; }
+  .booking-form textarea { min-height: 68px; padding: 10px 14px; }
+  .booking-form .submit-btn { padding: 13px; font-size: 15px; }
+}
+
+/* =========================================
    RESPONSIVE — max 767px
    ========================================= */
 @media (max-width: 767px) {
@@ -527,7 +543,7 @@ ul { list-style: none; }
   #hero .wrap {
     display: block !important; background: rgba(255,255,255,0.98) !important;
     border-radius: 16px; box-shadow: 0 10px 28px rgba(0,0,0,.08);
-    margin: 0 8px; padding: 18px 16px 16px; position: relative; z-index: 2; min-height: auto;
+    margin: 0 6px; width: calc(100% - 12px); padding: 18px 16px 16px; position: relative; z-index: 2; min-height: auto;
   }
   .hero-left {
     background: transparent; box-shadow: none; border-radius: 0;
@@ -550,7 +566,7 @@ ul { list-style: none; }
   .booking-form .submit-btn { font-size: 15px; padding: 13px; }
 
   #david-bio .wrap    { grid-template-columns: 1fr; }
-  .bio-image-panel    { height: 280px; margin: 0 20px 20px; border-radius: 12px; }
+  .bio-image-panel    { height: 260px; margin: 0 0 20px; border-radius: 12px; }
   .bio-content        { padding: 28px 24px; }
   .bio-eyebrow        { font-size: 20px; }
 
@@ -1183,13 +1199,15 @@ document.getElementById('lp-form').addEventListener('submit', function(e) {
     return r.json();
   })
   .then(function(res) {
-    if (res.success) {
-      form.innerHTML =
-        '<div style="text-align:center;padding:32px 16px;color:#fff;">' +
-          '<div style="font-size:48px;margin-bottom:16px;">✓</div>' +
-          "<div style=\"font-family:Montserrat,sans-serif;font-size:20px;font-weight:700;margin-bottom:8px;\">Thanks, we'll be in touch shortly!</div>" +
-          "<div style=\"font-size:14px;opacity:0.85;\">Call us now if it's urgent: <a href=\"tel:0281034607\" style=\"color:#FDD42B;font-weight:700;\">02 8103 4607</a></div>" +
-        '</div>';
+  if (res.success) {
+    var msg = document.createElement('div');
+    msg.style.cssText = 'text-align:center;padding:32px 16px;color:#fff;';
+    msg.innerHTML = [
+      '<div style="font-size:48px;margin-bottom:16px;">\u2713</div>',
+      '<div style="font-size:20px;font-weight:700;margin-bottom:8px;">Thanks, we will be in touch shortly!</div>',
+      '<div style="font-size:14px;opacity:0.85;">Call us now if urgent: <a href="tel:0281034607" style="color:#FDD42B;font-weight:700;">02 8103 4607</a></div>'
+    ].join('');
+    form.parentNode.replaceChild(msg, form);
     } else {
       btn.textContent = orig;
       btn.disabled = false;
