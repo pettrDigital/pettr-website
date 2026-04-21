@@ -67,8 +67,8 @@ GCLID: ${gclid}
         ${row("My problem is", message || "-")}
       </div>
 
-      <div style="padding:12px 30px; border-top:1px solid #f0f0f0;">
-        <div style="font-size:9px; color:#999999; line-height:1.4;">
+      <div style="padding:12px 30px; background:#ffffff; border-top:1px solid #f0f0f0;">
+        <div style="font-size:9px; color:#eeeeee; line-height:1.4;">
           ${escapeHtml(suburb)} | ${escapeHtml(service)} | ${escapeHtml(variant || 'a')} | ${escapeHtml(utmSource)} | ${escapeHtml(utmMedium)} | ${escapeHtml(utmCampaign)} | ${escapeHtml(utmTerm)} | ${escapeHtml(gclid)}
         </div>
       </div>
