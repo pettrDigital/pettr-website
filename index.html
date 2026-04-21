@@ -4001,6 +4001,12 @@ async function submitForm(requestType, bookingData = {}) {
       if (bookingData.slot) formData.set('bookNowSlot', bookingData.slot);
     }
 
+    console.log('=== FORM SUBMISSION ===');
+    console.log('Request Type:', requestType);
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+
     const response = await fetch('/api/quote', { method: 'POST', body: formData });
     const result = await response.json();
 
