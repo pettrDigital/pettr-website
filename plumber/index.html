@@ -1616,7 +1616,7 @@ const CONFIG = {
 
   var keywordMap = {
     'emergency plumber': {
-      preheadline:  'Emergency Plumber in {suburb}',
+      preheadline:  'Need an Emergency Plumber in {suburb}',
       headline:     'Stop the Stress.\nWe\'ll fix it today.',
       subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
       eyebrow:      'GET EMERGENCY HELP NOW',
@@ -1626,7 +1626,7 @@ const CONFIG = {
     },
     'plumber near me': {
       preheadline:  'Local, Same-Day Plumber in {suburb}',
-      headline:     'Your Local Plumber.\nAvailable Today.',
+      headline:     'Stop the Stress.\nWe\'ll fix it today.',
       subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
       eyebrow:      'BOOK A LOCAL PLUMBER',
       offer:        'Book Today & Get $50 Off Your Service',
@@ -1635,7 +1635,7 @@ const CONFIG = {
     },
     'plumber': {
       preheadline:  'Local, Same-Day Plumber in {suburb}',
-      headline:     'Your Local Plumber.\nAvailable Today.',
+      headline:     'Stop the Stress.\nWe\'ll fix it today.',
       subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
       eyebrow:      'BOOK A PLUMBER TODAY',
       offer:        'Book Today & Get $50 Off Your Service',
@@ -1643,45 +1643,45 @@ const CONFIG = {
       service:      'plumber',
     },
     'blocked drain plumber': {
-      preheadline:  'Blocked Drain Plumber in {suburb}',
-      headline:     'Blocked Drain?\nWe\'ll Unblock It Today.',
-      subline:      'FAST RESPONSE. FIXED RIGHT. NO MESS. NO SURPRISES.',
-      eyebrow:      'GET YOUR DRAIN CLEARED',
-      offer:        'Same-Day Drain Clearing — $50 Off Your Job',
+      preheadline:  'Blocked Drain in {suburb}?',
+      headline:     'Blocked Drain?\nWe\'ll Fix It Today.',
+      subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
+      eyebrow:      'GET YOUR DRAIN UNBLOCKED',
+      offer:        'Same-Day Drain Unblocking — $50 Off Your Job',
       submit:       'CLEAR MY DRAIN TODAY',
       service:      'blocked drain',
     },
     'blocked drains': {
-      preheadline:  'Blocked Drain Plumber in {suburb}',
-      headline:     'Blocked Drain?\nWe\'ll Unblock It Today.',
-      subline:      'FAST RESPONSE. FIXED RIGHT. NO MESS. NO SURPRISES.',
-      eyebrow:      'GET YOUR DRAIN CLEARED',
+      preheadline:  'Blocked Drain in {suburb}?',
+      headline:     'Stop the Stress.\nWe\'ll fix it today.',
+      subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
+      eyebrow:      'GET YOUR DRAIN UNBLOCKED',
       offer:        'Same-Day Drain Clearing — $50 Off Your Job',
       submit:       'UNBLOCK MY DRAIN TODAY',
       service:      'blocked drain',
     },
     'drain plumber': {
-      preheadline:  'Drain Plumber in {suburb}',
-      headline:     'Drain Problem?\nWe\'ll Fix It Today.',
-      subline:      'FAST RESPONSE. FIXED RIGHT. NO MESS. NO SURPRISES',
+      preheadline:  'Drain Problem in {suburb}?',
+      headline:     'Stop the Stress.\nWe\'ll fix it today.',
+      subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
       eyebrow:      'GET YOUR DRAIN FIXED',
       offer:        'Same-Day Drain Service — $50 Off Your Job',
       submit:       'FIX MY DRAIN TODAY',
       service:      'blocked drain',
     },
     'blocked toilet plumber': {
-      preheadline:  'Blocked Toilet Plumber in {suburb}',
-      headline:     'Blocked Toilet?\nWe\'ll Fix It Fast.',
-      subline:      'FAST RESPONSE. FIXED RIGHT. NO MESS. NO SURPRISES',
+      preheadline:  'Blocked Toilet in {suburb}?',
+      headline:     'Stop the Stress.\nWe\'ll fix it today.',
+      subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
       eyebrow:      'GET YOUR TOILET FIXED',
       offer:        'Same-Day Toilet Repair — $50 Off Your Job',
       submit:       'FIX MY TOILET TODAY',
       service:      'blocked toilet',
     },
     'hot water plumber': {
-      preheadline:  'Hot Water Plumber in {suburb}',
-      headline:     'No Hot Water?\nWe\'ll Fix It Today.',
-      subline:      'SAME-DAY SERVICE. FIXED RIGHT. NO SURPRISES.',
+      preheadline:  'Hot Water Issues in {suburb}?',
+      headline:     'Stop the Stress.\nWe\'ll fix it today.',
+      subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
       eyebrow:      'GET YOUR HOT WATER BACK',
       offer:        'Same-Day Hot Water Repair — $50 Off Your Job',
       submit:       'FIX MY HOT WATER TODAY',
@@ -1692,7 +1692,7 @@ const CONFIG = {
   // Default fallback
   var defaults = {
     preheadline: 'Local, Same-Day Plumber in {suburb}',
-    headline:    'Your Local Plumber.\nAvailable Today.',
+    headline:    'Stop the Stress.\nWe\'ll fix it today.',
     subline:     'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
     eyebrow:     'GET HELP NOW',
     offer:       'Book Today & Get $50 Off Your Service',
@@ -1808,6 +1808,8 @@ const CONFIG = {
       if (t) t.textContent = 'Plumber to the Rescue, ' + loc + ', ' + state;
       var s = document.querySelector('.trust-location-short');
       if (s) s.textContent = loc + ', ' + state;
+      var a = document.getElementById('hero-checklist-arrival');
+      if (a) a.textContent = '60 Minute Arrival in ' + loc + ' — Guaranteed';
       // preheadline is now handled by keywordMap — don't override it here
     }
 
