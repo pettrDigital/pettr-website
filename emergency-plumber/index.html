@@ -1327,7 +1327,7 @@ p  { font-size: 1rem; line-height: 1.7; }
       <p class="form-offer-line form-offer-line-secondary" id="form-offer-line-secondary"></p>
     </div>
     <div class="form-card" id="hero-form">
-      <form class="lp-form" id="lp-form" action="" method="post" netlify name="contact">
+      <form class="lp-form" id="lp-form">
         <input type="hidden" name="form-name" value="contact">
         <div id="form-fields-container"></div>
         <button type="submit" class="btn form-submit" id="form-submit-btn"></button>
@@ -1597,14 +1597,15 @@ const CONFIG = {
     offerLineSecondaryHtml: "",
     submitText: "GET HELP NOW",
     fields: [
-      { name:"name",    label:"Name",              type:"text",     required:true },
-      { name:"phone",   label:"Phone",             type:"tel",      required:true },
-      { name:"email",   label:"Email",             type:"email",    required:true },
-      { name:"suburb",  label:"Suburb / Postcode", type:"text",     required:true },
-      { name:"message", label:"How can we help?",  type:"textarea", required:false },
+      { name:"name",     label:"Name",           type:"text",     required:true },
+      { name:"email",    label:"Email",          type:"email",    required:true },
+      { name:"phone",    label:"Phone",          type:"tel",      required:true },
+      { name:"address",  label:"Address",        type:"text",     required:true },
+      { name:"postcode", label:"Postcode",       type:"number",   required:true },
+      { name:"message",  label:"How can we help?", type:"textarea", required:false },
     ],
-  },
-};
+      },
+  };
 </script>
 
 <!-- ─── RENDER SCRIPT ─────────────────────────────────────── -->
@@ -1708,6 +1709,46 @@ const CONFIG = {
     .catch(function(){});
 })();
 </script>
-
+<script>
+(function() {
+  var p = new URLSearchParams(window.location.search);
+  document.getElementById('lp-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var form = e.target;
+    var btn = document.getElementById('form-submit-btn');
+    var orig = btn.textContent;
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+    var data = {};
+    new FormData(form).forEach(function(val, key) { data[key] = val; });
+    data.utm_source   = p.get('utm_source')   || 'direct';
+    data.utm_medium   = p.get('utm_medium')   || '';
+    data.utm_campaign = p.get('utm_campaign') || '';
+    data.utm_term     = p.get('utm_term')     || '';
+    data.gclid        = p.get('gclid')        || '';
+    data.service      = 'emergency';
+    data.variant      = p.get('variant')      || '';
+    fetch('/api/simple-form-submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res.success) {
+        var card = document.getElementById('hero-form');
+        card.innerHTML = '<div style="text-align:center;padding:32px 16px;color:#fff;"><div style="font-size:48px;margin-bottom:16px;">&#10003;</div><div style="font-size:20px;font-weight:700;margin-bottom:8px;">Thanks, we\'ll be in touch shortly!</div><div style="font-size:14px;opacity:0.85;">Call now if urgent: <a href="tel:+61281034607" style="color:#FFD84D;font-weight:700;">(02) 8103 4607</a></div></div>';
+      } else {
+        btn.textContent = orig; btn.disabled = false;
+        alert('Something went wrong. Please call us on (02) 8103 4607.');
+      }
+    })
+    .catch(function() {
+      btn.textContent = orig; btn.disabled = false;
+      alert('Something went wrong. Please call us on (02) 8103 4607.');
+    });
+  });
+})();
+</script>
 </body>
 </html>
