@@ -1707,7 +1707,7 @@ const CONFIG = {
   }
 
   // Override CONFIG before render script runs
-  CONFIG.hero.guaranteeHeadline      = kw.headline;
+  CONFIG.hero.guaranteeHeadline      = applySuburb(kw.headline);
   CONFIG.hero.guaranteeSubline       = kw.subline;
   CONFIG.form.eyebrow                = kw.eyebrow;
   CONFIG.form.offerLinePrimaryHtml   = applySuburb(kw.offer);
