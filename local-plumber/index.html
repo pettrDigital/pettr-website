@@ -39,6 +39,7 @@
 <!-- Google Tag Manager -->
 <script>
 window.addEventListener('load', function () {
+  document.body.classList.add('animation-ready');
   (function(w,d,s,l,i){
     w[l]=w[l]||[];
     w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
@@ -207,6 +208,8 @@ ul { list-style: none; }
 }
 .underline-svg path {
   stroke-dasharray: 500; stroke-dashoffset: 500;
+}
+.animation-ready .underline-svg path {
   animation: svg-swipe 8s ease-in-out infinite;
 }
 @keyframes svg-swipe {
@@ -1157,22 +1160,24 @@ document.querySelectorAll('.accordion-btn').forEach(function(btn) {
     return;
   }
 
-  // IP fallback
+  // IP fallback — deferred until after load
   var SYD = { latMin:-34.17, latMax:-33.40, lngMin:150.50, lngMax:151.35 };
   applyContent('Sydney', keyword, variant);
-  fetch('https://ipapi.co/json/')
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      var lat = parseFloat(d.latitude), lng = parseFloat(d.longitude);
-      var inSyd = lat >= SYD.latMin && lat <= SYD.latMax &&
-                  lng >= SYD.lngMin && lng <= SYD.lngMax;
-      applyContent(
-        inSyd ? (d.city || 'Sydney') : 'Sydney',
-        keyword,
-        variant
-      );
-    })
-    .catch(function() {});
+  window.addEventListener('load', function() {
+    fetch('https://ipapi.co/json/')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        var lat = parseFloat(d.latitude), lng = parseFloat(d.longitude);
+        var inSyd = lat >= SYD.latMin && lat <= SYD.latMax &&
+                    lng >= SYD.lngMin && lng <= SYD.lngMax;
+        applyContent(
+          inSyd ? (d.city || 'Sydney') : 'Sydney',
+          keyword,
+          variant
+        );
+      })
+      .catch(function() {});
+  });
 })();
 </script>
 <script>
