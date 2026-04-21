@@ -1328,7 +1328,6 @@ p  { font-size: 1rem; line-height: 1.7; }
     </div>
     <div class="form-card" id="hero-form">
       <form class="lp-form" id="lp-form">
-        <input type="hidden" name="form-name" value="contact">
         <div id="form-fields-container"></div>
         <button type="submit" class="btn form-submit" id="form-submit-btn"></button>
         <div class="form-guarantee">
@@ -1432,7 +1431,7 @@ p  { font-size: 1rem; line-height: 1.7; }
     <a href="#get-a-quote" class="btn btn-red promise-cta">Get Help Now</a>
   </div>
   <div class="promise-right">
-    <div class="proof-block"><span class="proof-num">01</span><div class="proof-text"><h3>On Time</h3><p>We show up when we say we will. You get a clear arrival window and we stick to it — or you don't pay for the labour.</p></div></div>
+    <div class="proof-block"><span class="proof-num">01</span><div class="proof-text"><h3>On Time</h3><p>We show up when we say we will. You get a clear arrival window and we stick to it — or you get $50 off your service.</p></div></div>
     <div class="proof-block"><span class="proof-num">02</span><div class="proof-text"><h3>Fixed Right</h3><p>We diagnose the root cause, not just the symptom. That's why our repairs last — backed by a lifetime labour guarantee.</p></div></div>
     <div class="proof-block"><span class="proof-num">03</span><div class="proof-text"><h3>No Mess</h3><p>We respect your home. Drop sheets, clean work areas, and a proper tidy-up before we leave.</p></div></div>
     <div class="proof-block"><span class="proof-num">04</span><div class="proof-text"><h3>No Surprises</h3><p>Clear, upfront pricing before we start. No hidden costs. No last-minute add-ons.</p></div></div>
@@ -1607,6 +1606,118 @@ const CONFIG = {
       },
   };
 </script>
+<!-- ─── KEYWORD + SUBURB PERSONALISATION ──────────────────── -->
+<script>
+(function() {
+  var p = new URLSearchParams(window.location.search);
+  var rawKeyword = (p.get('keyword') || '').toLowerCase().trim();
+  var hq = (p.get('hq') || '').trim();
+  var suburb = hq || 'Sydney';
+
+  var keywordMap = {
+    'emergency plumber': {
+      preheadline:  'Emergency Plumber in {suburb}',
+      headline:     'Stop the Stress.\nWe\'ll fix it today.',
+      subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
+      eyebrow:      'GET EMERGENCY HELP NOW',
+      offer:        'Same-Day Emergency Plumbing — $50 Off Your Job',
+      submit:       'GET EMERGENCY HELP',
+      service:      'emergency plumber',
+    },
+    'plumber near me': {
+      preheadline:  'Local Plumber in {suburb}',
+      headline:     'Your Local Plumber.\nAvailable Today.',
+      subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
+      eyebrow:      'BOOK A LOCAL PLUMBER',
+      offer:        'Book Today & Get $50 Off Your Service',
+      submit:       'GET A PLUMBER TODAY',
+      service:      'plumber',
+    },
+    'plumber': {
+      preheadline:  'Plumber in {suburb}',
+      headline:     'Your Local Plumber.\nAvailable Today.',
+      subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
+      eyebrow:      'BOOK A PLUMBER TODAY',
+      offer:        'Book Today & Get $50 Off Your Service',
+      submit:       'GET A PLUMBER TODAY',
+      service:      'plumber',
+    },
+    'blocked drain plumber': {
+      preheadline:  'Blocked Drain Plumber in {suburb}',
+      headline:     'Blocked Drain?\nWe\'ll Clear It Today.',
+      subline:      'FAST RESPONSE. FIXED RIGHT. NO MESS.',
+      eyebrow:      'GET YOUR DRAIN CLEARED',
+      offer:        'Same-Day Drain Clearing — $50 Off Your Job',
+      submit:       'CLEAR MY DRAIN TODAY',
+      service:      'blocked drain',
+    },
+    'blocked drains': {
+      preheadline:  'Blocked Drain Plumber in {suburb}',
+      headline:     'Blocked Drain?\nWe\'ll Clear It Today.',
+      subline:      'FAST RESPONSE. FIXED RIGHT. NO MESS.',
+      eyebrow:      'GET YOUR DRAIN CLEARED',
+      offer:        'Same-Day Drain Clearing — $50 Off Your Job',
+      submit:       'CLEAR MY DRAIN TODAY',
+      service:      'blocked drain',
+    },
+    'drain plumber': {
+      preheadline:  'Drain Plumber in {suburb}',
+      headline:     'Drain Problem?\nWe\'ll Fix It Today.',
+      subline:      'FAST RESPONSE. FIXED RIGHT. NO MESS.',
+      eyebrow:      'GET YOUR DRAIN FIXED',
+      offer:        'Same-Day Drain Service — $50 Off Your Job',
+      submit:       'FIX MY DRAIN TODAY',
+      service:      'blocked drain',
+    },
+    'blocked toilet plumber': {
+      preheadline:  'Blocked Toilet Plumber in {suburb}',
+      headline:     'Blocked Toilet?\nWe\'ll Fix It Fast.',
+      subline:      'FAST RESPONSE. FIXED RIGHT. NO MESS.',
+      eyebrow:      'GET YOUR TOILET FIXED',
+      offer:        'Same-Day Toilet Repair — $50 Off Your Job',
+      submit:       'FIX MY TOILET TODAY',
+      service:      'blocked toilet',
+    },
+    'hot water plumber': {
+      preheadline:  'Hot Water Plumber in {suburb}',
+      headline:     'No Hot Water?\nWe\'ll Fix It Today.',
+      subline:      'SAME-DAY SERVICE. FIXED RIGHT. NO SURPRISES.',
+      eyebrow:      'GET YOUR HOT WATER BACK',
+      offer:        'Same-Day Hot Water Repair — $50 Off Your Job',
+      submit:       'FIX MY HOT WATER TODAY',
+      service:      'hot water',
+    },
+  };
+
+  // Default fallback
+  var defaults = {
+    preheadline: 'Plumber in {suburb}',
+    headline:    'Your Local Plumber.\nAvailable Today.',
+    subline:     'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
+    eyebrow:     'GET HELP NOW',
+    offer:       'Book Today & Get $50 Off Your Service',
+    submit:      'GET HELP NOW',
+    service:     'plumbing',
+  };
+
+  var kw = keywordMap[rawKeyword] || defaults;
+
+  function applySuburb(str) {
+    return str.replace('{suburb}', suburb);
+  }
+
+  // Override CONFIG before render script runs
+  CONFIG.hero.guaranteeHeadline      = kw.headline;
+  CONFIG.hero.guaranteeSubline       = kw.subline;
+  CONFIG.form.eyebrow                = kw.eyebrow;
+  CONFIG.form.offerLinePrimaryHtml   = applySuburb(kw.offer);
+  CONFIG.form.submitText             = kw.submit;
+  CONFIG._service                    = kw.service;
+  CONFIG._preheadline                = applySuburb(kw.preheadline);
+  CONFIG._suburb                     = suburb;
+
+})();
+</script>
 
 <!-- ─── RENDER SCRIPT ─────────────────────────────────────── -->
 <script>
@@ -1633,7 +1744,11 @@ const CONFIG = {
 
   // Everything else — deferred until after first paint
   requestAnimationFrame(function() {
-    document.getElementById('page-title').textContent = 'Emergency Plumber | '+ C.brand.name;
+    document.getElementById('page-title').textContent =
+      (CONFIG._preheadline || 'Plumber Sydney') + ' | Plumber To The Rescue';
+    document.getElementById('hero-preheadline').textContent =
+      CONFIG._preheadline || 'Plumber in Sydney';
+
     document.getElementById('canonical-link').setAttribute('href', C.urls.canonical);
 
     document.getElementById('header-phone').textContent = C.contact.phone;
@@ -1681,33 +1796,39 @@ const CONFIG = {
 
 <!-- ─── LOCATION FETCH ────────────────────────────────────── -->
 <script>
-(function(){
-  var SYD = { latMin:-34.17, latMax:-33.40, lngMin:150.50, lngMax:151.35 };
-  function apply(loc, state) {
-    loc = (loc || 'Sydney').trim() || 'Sydney';
-    state = (state || 'NSW').trim() || 'NSW';
-    var t = document.querySelector('.trust-location');
-    if (t) t.textContent = 'Plumber to the Rescue, ' + loc + ', ' + state;
-    var s = document.querySelector('.trust-location-short');
-    if (s) s.textContent = loc + ', ' + state;
-    var h = document.getElementById('hero-preheadline');
-    if (h) h.textContent = 'Emergency Plumber in ' + loc;
-    var a = document.getElementById('hero-checklist-arrival');
-    if (a) a.textContent = 'Under 1 Hour Arrival';
-  }
-  apply('Sydney', 'NSW');
-  fetch('https://ipapi.co/json/')
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      var lat = parseFloat(d.latitude), lng = parseFloat(d.longitude);
-      var ok = lat >= SYD.latMin && lat <= SYD.latMax && lng >= SYD.lngMin && lng <= SYD.lngMax;
-      apply(
-        ok ? (d.city || '').trim() || 'Sydney' : 'Sydney',
-        ok ? (d.region_code || '').trim() || 'NSW' : 'NSW'
-      );
-    })
-    .catch(function(){});
-})();
+  (function(){
+    var p = new URLSearchParams(window.location.search);
+    var hq = (p.get('hq') || '').trim();
+    var SYD = { latMin:-34.17, latMax:-33.40, lngMin:150.50, lngMax:151.35 };
+
+    function apply(loc, state) {
+      loc = (loc || 'Sydney').trim() || 'Sydney';
+      state = (state || 'NSW').trim() || 'NSW';
+      var t = document.querySelector('.trust-location');
+      if (t) t.textContent = 'Plumber to the Rescue, ' + loc + ', ' + state;
+      var s = document.querySelector('.trust-location-short');
+      if (s) s.textContent = loc + ', ' + state;
+      // preheadline is now handled by keywordMap — don't override it here
+    }
+
+    if (hq) {
+      apply(hq, 'NSW');
+      return; // skip ipapi fetch
+    }
+
+    apply('Sydney', 'NSW');
+    fetch('https://ipapi.co/json/')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        var lat = parseFloat(d.latitude), lng = parseFloat(d.longitude);
+        var ok = lat >= SYD.latMin && lat <= SYD.latMax && lng >= SYD.lngMin && lng <= SYD.lngMax;
+        apply(
+          ok ? (d.city || '').trim() || 'Sydney' : 'Sydney',
+          ok ? (d.region_code || '').trim() || 'NSW' : 'NSW'
+        );
+      })
+      .catch(function(){});
+  })();
 </script>
 <script>
 (function() {
@@ -1726,7 +1847,8 @@ const CONFIG = {
     data.utm_campaign = p.get('utm_campaign') || '';
     data.utm_term     = p.get('utm_term')     || '';
     data.gclid        = p.get('gclid')        || '';
-    data.service      = 'emergency';
+    data.service      = CONFIG._service       || 'plumbing';
+    data.suburb       = CONFIG._suburb        || 'Sydney';
     data.variant      = p.get('variant')      || '';
     fetch('/api/simple-form-submit', {
       method: 'POST',
