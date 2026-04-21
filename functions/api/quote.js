@@ -447,7 +447,7 @@ async function triggerRetellCallback(env, { phone, name, address, suburb, postco
     agent_id: retellAgentId,
     from_number: fromNumber,
     to_number: toNumber,
-    variables: {
+    retell_llm_dynamic_variables: {
       first_name: name ? name.split(' ')[0] : '',
       last_name: name ? name.split(' ').slice(1).join(' ') : '',
       phone: phone,
