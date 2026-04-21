@@ -200,6 +200,11 @@ ul { list-style: none; }
   line-height: 0.93; margin-bottom: 22px; letter-spacing: -2px;
   text-transform: uppercase; color: var(--blue);
 }
+.hero-location {
+  display: block;
+  margin-top: 8px;
+  color: var(--red);
+}
 .headline-highlight { position: relative; display: inline-block; color: var(--red); overflow: visible; }
 .animated-headline .headline-red { color: var(--red); overflow: visible; }
 .underline-svg {
@@ -673,13 +678,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- Left column -->
     <div class="hero-left">
       <h1 class="animated-headline">
-        <span id="hero-service">Local, same-day plumbers</span> in&nbsp;<span class="headline-highlight"><span id="hero-suburb">Sydney</span><svg class="underline-svg" viewBox="0 0 500 150" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7.7,145.6C109,125,299.9,116.2,492.3,144.7" fill="none" stroke="#f60404" stroke-width="9" stroke-linecap="round"/></svg></span>
+        <span>Same-Day Local Plumber</span>
+        <span class="hero-location" id="hero-location">in Sydney</span>
       </h1>
-      <p class="hero-sub">We're Local, Reliable &amp; Trusted. It's What Makes Us <span class="js-suburb-possessive">Sydney's</span> Favourite Plumber. Call or Book Online Now!</p>
+      <p class="hero-sub">Fast, reliable plumbing help in <span class="js-suburb">Sydney</span>. Call now or book online.</p>
       <ul class="hero-checklist">
         <li>
           <svg viewBox="0 0 512 512"><path d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>
-          <span>Under 1 hour arrival in <span id="checklist-suburb" style="color:var(--red)">Sydney</span> right now!</span>
+          <span>Under 1 hour arrival in <span class="js-suburb" style="color:var(--red)">Sydney</span> right now!</span>
         </li>
         <li>
           <svg viewBox="0 0 512 512"><path d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>
@@ -691,19 +697,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </li>
         <li>
           <svg viewBox="0 0 512 512"><path d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>
-          35+ years' experience in <span class="js-suburb">Sydney</span>
+          <span>35+ years' experience in <span class="js-suburb">Sydney</span></span>
         </li>
         <li>
           <svg viewBox="0 0 512 512"><path d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>
-          Award winning plumber
+          <span>Award winning plumber</span>
         </li>
         <li>
           <svg viewBox="0 0 512 512"><path d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>
-          Lifetime guarantee on work
+          <span>Lifetime guarantee on work</span>
         </li>
         <li>
           <svg viewBox="0 0 512 512"><path d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>
-          4.9 star rated plumber in <span class="js-suburb">Sydney</span>
+          <span>4.9 star rated plumber in <span class="js-suburb">Sydney</span></span>
         </li>
       </ul>
     </div>
@@ -739,182 +745,44 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 
   <script>
-  (function() {
-    var PAGE_DEFAULT_KEYWORD = 'plumber near me';
+document.addEventListener('DOMContentLoaded', function () {
+  var params = new URLSearchParams(window.location.search);
+  var suburb = params.get('hq') || '';
+  var keyword = params.get('keyword') || '';
+  var variant = params.get('variant') || '';
 
-    var keywordMap = {
-      'plumber near me': {
-        h1: 'Local, same-day plumbers',
-        formHeadline: 'How Can We <span style="color:var(--yellow)">Help You?</span>',
-        submitText: 'GET FREE QUOTE',
-        service: 'plumbing',
-        meta: 'Local, licensed {{suburb}} plumbers. Free call outs, same day service, 35+ years experience. 4.9 stars. Call 02 8103 4607.'
-      },
-      'plumber': {
-        h1: 'Local plumber',
-        formHeadline: 'Book a <span style="color:var(--yellow)">Local Plumber</span>',
-        submitText: 'BOOK NOW',
-        service: 'plumbing',
-        meta: 'Need a trusted local plumber in {{suburb}}? Free call outs, same day service and licensed plumbers. Call 02 8103 4607.'
-      },
-      'blocked drain plumber': {
-        h1: 'Blocked Drain Plumber',
-        formHeadline: 'Book a <span style="color:var(--yellow)">Drain Plumber</span>',
-        submitText: 'UNBLOCK MY DRAIN',
-        service: 'blocked-drains',
-        meta: 'Need a blocked drain plumber in {{suburb}}? Fast same-day help for blocked drains and toilets. Call 02 8103 4607.'
-      },
-      'blocked drains': {
-        h1: 'Blocked Drain Plumber',
-        formHeadline: 'Book a <span style="color:var(--yellow)">Drain Plumber</span>',
-        submitText: 'UNBLOCK MY DRAIN',
-        service: 'blocked-drains',
-        meta: 'Need a blocked drain plumber in {{suburb}}? Fast same-day help for blocked drains and toilets. Call 02 8103 4607.'
-      },
-      'drain plumber': {
-        h1: 'Blocked Drain Plumber',
-        formHeadline: 'Book a <span style="color:var(--yellow)">Drain Plumber</span>',
-        submitText: 'UNBLOCK MY DRAIN',
-        service: 'blocked-drains',
-        meta: 'Need a blocked drain plumber in {{suburb}}? Fast same-day help for blocked drains and toilets. Call 02 8103 4607.'
-      },
-      'blocked toilet plumber': {
-        h1: 'Blocked Drain Plumber',
-        formHeadline: 'Book a <span style="color:var(--yellow)">Drain Plumber</span>',
-        submitText: 'UNBLOCK MY DRAIN',
-        service: 'blocked-drains',
-        meta: 'Need a blocked drain plumber in {{suburb}}? Fast same-day help for blocked drains and toilets. Call 02 8103 4607.'
-      },
-      'emergency plumber': {
-        h1: 'Emergency Plumber',
-        formHeadline: 'Get <span style="color:var(--yellow)">Emergency Help</span>',
-        submitText: 'GET EMERGENCY HELP',
-        service: 'emergency',
-        meta: 'Need an emergency plumber in {{suburb}}? Fast same-day emergency plumbing help. Call 02 8103 4607.'
-      },
-      'hot water plumber': {
-        h1: 'Hot Water Plumber',
-        formHeadline: 'Fix My <span style="color:var(--yellow)">Hot Water</span>',
-        submitText: 'BOOK HOT WATER REPAIR',
-        service: 'hot-water',
-        meta: 'Need a hot water plumber in {{suburb}}? Fast same-day repairs and replacements. Call 02 8103 4607.'
-      },
-      'electrician': {
-        h1: 'Local Electrician',
-        formHeadline: 'Book an <span style="color:var(--yellow)">Electrician</span>',
-        submitText: 'BOOK AN ELECTRICIAN',
-        service: 'electrical',
-        meta: 'Need a trusted electrician in {{suburb}}? Same-day electrical help is available. Call 02 8103 4607.'
-      },
-      'electrician near me': {
-        h1: 'Local Electrician',
-        formHeadline: 'Book a <span style="color:var(--yellow)">Local Electrician</span>',
-        submitText: 'GET FREE QUOTE',
-        service: 'electrical',
-        meta: 'Need a local electrician in {{suburb}}? Same-day electrical help is available. Call 02 8103 4607.'
-      },
-      'emergency electrician': {
-        h1: 'Emergency Electrician',
-        formHeadline: 'Get <span style="color:var(--yellow)">Emergency Help</span>',
-        submitText: 'GET EMERGENCY HELP',
-        service: 'electrical-emergency',
-        meta: 'Need an emergency electrician in {{suburb}}? Fast same-day help is available. Call 02 8103 4607.'
-      },
-      'switchboard electrician': {
-        h1: 'Switchboard Electrician',
-        formHeadline: 'Book a <span style="color:var(--yellow)">Switchboard Check</span>',
-        submitText: 'BOOK NOW',
-        service: 'switchboard',
-        meta: 'Need a switchboard electrician in {{suburb}}? Book a same-day switchboard check. Call 02 8103 4607.'
-      }
-    };
+  function titleCase(str) {
+    return (str || '').toLowerCase().replace(/\b\w/g, function(c) {
+      return c.toUpperCase();
+    });
+  }
 
-    var variantMap = {
-      'b': { submitText: "BOOK NOW — WE'RE AVAILABLE" },
-      'c': { submitText: 'CLAIM $50 OFF MY JOB' }
-    };
+  if (suburb) {
+    suburb = titleCase(suburb);
 
-    function normalizeKeyword(raw) {
-      return decodeURIComponent((raw || '').replace(/\+/g, ' ')).toLowerCase().trim().replace(/\s+/g, ' ');
-    }
+    var heroLocation = document.getElementById('hero-location');
+    if (heroLocation) heroLocation.textContent = 'in ' + suburb;
 
-    function toTitleCase(str) {
-      return (str || '').toLowerCase().replace(/\b\w/g, function(c) {
-        return c.toUpperCase();
-      });
-    }
+    document.querySelectorAll('.js-suburb').forEach(function(el) {
+      el.textContent = suburb;
+    });
+  }
 
-    function setText(id, value) {
-      var el = document.getElementById(id);
-      if (el) el.textContent = value;
-    }
+  var setVal = function(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.value = val;
+  };
 
-    function setHtml(id, value) {
-      var el = document.getElementById(id);
-      if (el) el.innerHTML = value;
-    }
-
-    function setValue(id, value) {
-      var el = document.getElementById(id);
-      if (el) el.value = value;
-    }
-
-    function updateSuburbOnly(suburb) {
-      setText('hero-suburb', suburb);
-      setText('checklist-suburb', suburb);
-      document.querySelectorAll('.js-suburb').forEach(function(el) { el.textContent = suburb; });
-      document.querySelectorAll('.js-suburb-possessive').forEach(function(el) { el.textContent = suburb + "'s"; });
-    }
-
-    function applyPersonalization(suburb, keyword, variant, params) {
-      suburb = toTitleCase(suburb || 'Sydney');
-      keyword = normalizeKeyword(keyword);
-      variant = (variant || '').toLowerCase().trim();
-
-      var content = keywordMap[keyword] || keywordMap[PAGE_DEFAULT_KEYWORD];
-      var variantContent = variantMap[variant] || {};
-      var submitText = variantContent.submitText || content.submitText;
-
-      updateSuburbOnly(suburb);
-      setText('hero-service', content.h1);
-      setHtml('form-headline', content.formHeadline);
-
-      var btn = document.querySelector('#lp-form .submit-btn');
-      if (btn) btn.textContent = submitText;
-
-      document.title = content.h1 + ' in ' + suburb + ' | Plumber To The Rescue | 02 8103 4607';
-      var meta = document.getElementById('meta-description');
-      if (meta && content.meta) meta.setAttribute('content', content.meta.replace(/\{\{suburb\}\}/g, suburb));
-
-      setValue('f_utm_source',   params.get('utm_source')   || 'google');
-      setValue('f_utm_medium',   params.get('utm_medium')   || 'cpc');
-      setValue('f_utm_campaign', params.get('utm_campaign') || '');
-      setValue('f_utm_term',     params.get('utm_term')     || keyword || '');
-      setValue('f_gclid',        params.get('gclid')        || '');
-      setValue('f_suburb',       suburb);
-      setValue('f_service',      content.service || '');
-      setValue('f_variant',      variant || '');
-
-      window.__LP_CFG = {
-        hasHq: !!params.get('hq'),
-        keyword: keyword,
-        variant: variant,
-        suburb: suburb,
-        service: content.service || '',
-        h1: content.h1,
-        formHeadline: content.formHeadline,
-        submitText: submitText,
-        meta: content.meta || '',
-        updateSuburbOnly: updateSuburbOnly,
-        applyPersonalization: applyPersonalization
-      };
-    }
-
-    var params = new URLSearchParams(window.location.search);
-    var suburb = params.get('hq') ? decodeURIComponent(params.get('hq')).trim() : 'Sydney';
-    applyPersonalization(suburb, params.get('keyword') || '', params.get('variant') || '', params);
-  })();
-  </script>
+  setVal('f_suburb', suburb);
+  setVal('f_service', 'local-plumber');
+  setVal('f_variant', variant);
+  setVal('f_utm_source', params.get('utm_source') || '');
+  setVal('f_utm_medium', params.get('utm_medium') || '');
+  setVal('f_utm_campaign', params.get('utm_campaign') || '');
+  setVal('f_utm_term', params.get('utm_term') || keyword);
+  setVal('f_gclid', params.get('gclid') || '');
+});
+</script>
 </section>
 
 <!-- ===================== AWARDS ===================== -->
@@ -1232,29 +1100,14 @@ document.querySelectorAll('.accordion-btn').forEach(function(btn) {
   });
 });
 
-// --- Dynamic content fallback: geo only when hq is absent ---
+// --- Footer email ---
 (function() {
-  var cfg = window.__LP_CFG || {};
   var e = document.getElementById('footer-email');
-  if (e) { var em = 'info@plumbertotherescue.com.au'; e.href = 'mailto:' + em; e.textContent = em; }
-
-  if (cfg.hasHq) return;
-
-  var SYD = { latMin:-34.17, latMax:-33.40, lngMin:150.50, lngMax:151.35 };
-
-  window.addEventListener('load', function() {
-    fetch('https://ipapi.co/json/')
-      .then(function(r) { return r.json(); })
-      .then(function(d) {
-        var lat = parseFloat(d.latitude), lng = parseFloat(d.longitude);
-        var inSyd = lat >= SYD.latMin && lat <= SYD.latMax && lng >= SYD.lngMin && lng <= SYD.lngMax;
-        var suburb = inSyd ? (d.city || 'Sydney') : 'Sydney';
-        if (!cfg.applyPersonalization) return;
-        var p = new URLSearchParams(window.location.search);
-        cfg.applyPersonalization(suburb, p.get('keyword') || '', p.get('variant') || '', p);
-      })
-      .catch(function() {});
-  });
+  if (e) {
+    var em = 'info@plumbertotherescue.com.au';
+    e.textContent = em;
+    e.href = 'mailto:' + em;
+  }
 })();
 </script>
 <script>
