@@ -616,7 +616,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <header id="header">
   <div class="wrap">
     <div class="header-logo">
-      <a href="#"><img src="https://plumbertotherescue.com.au/wp-content/uploads/2022/09/Plumber-To-The-Rescue.png" alt="Plumber To The Rescue" width="200" height="60"></a>
+      <a href="#"><img src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/Plumber-To-The-Rescue.webp" alt="Plumber To The Rescue" width="200" height="60"></a>
     </div>
     <div class="header-google">
       <img
@@ -992,7 +992,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="wrap">
     <div>
       <img class="footer-logo"
-        src="https://plumbertotherescue.com.au/wp-content/uploads/2022/09/Plumber-To-The-Rescue.png"
+        src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/Plumber-To-The-Rescue.webp"
         alt="Plumber To The Rescue" width="200" height="60" loading="eager" decoding="async">
       <p class="footer-desc">Need a local plumber? Looking for the top rated plumbers in Sydney, trusted since 1984? We're here, ready for your call, 24/7, 365 days a year! Get a trusted plumber near you, on time, with a lifetime labour guarantee!</p>
       <p class="footer-licence">Licence number A3403</p>
@@ -1014,7 +1014,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="footer-contact">
       <h3>Get In Touch</h3>
       <a href="tel:0281034607">02 8103 4607</a>
-      <a href="mailto:info@plumbertotherescue.com.au">info@plumbertotherescue.com.au</a>
+      <a id="footer-email" href="#"></a>
       <a href="https://www.facebook.com/plumbertotherescue/" target="_blank" rel="noopener">@plumbertotherescue</a>
       <h3 style="margin-top:22px">Open Hours</h3>
       <p class="footer-hours">
@@ -1177,6 +1177,8 @@ document.querySelectorAll('.accordion-btn').forEach(function(btn) {
         );
       })
       .catch(function() {});
+    var e = document.getElementById('footer-email');
+    if (e) { var em = 'info@plumbertotherescue.com.au'; e.href = 'mailto:' + em; e.textContent = em; }
   });
 })();
 </script>
