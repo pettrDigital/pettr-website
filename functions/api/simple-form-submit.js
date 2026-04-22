@@ -54,7 +54,7 @@ GCLID: ${gclid}
 
       <div style="padding:20px; font-size:14px; color:#111;">
         <div><strong>From:</strong> PTTR website &lt;jobs@plumbertotherescue.com.au&gt;</div>
-        <div><strong>To:</strong> PTTR Leads &lt;digital.plumbertotherescue@gmail.com&gt;</div>
+        <div><strong>To:</strong> PTTR Leads &lt;jobs@mrwasher.com.au&gt;</div>
         <div><strong>Subject:</strong> ${escapeHtml(subject)}</div>
       </div>
 
@@ -87,8 +87,8 @@ GCLID: ${gclid}
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         api_key:   env.SMTP2GO_API_KEY,
-        sender:    "gordo@mrwasher.com.au",
-        to:        ["digital.plumbertotherescue@gmail.com"],
+        sender:    "jobs@mrwasher.com.au",
+        to:        ["jobs@mrwasher.com.au"],
         subject,
         text_body: textBody,
         html_body: htmlBody,
