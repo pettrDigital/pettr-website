@@ -3,5 +3,5 @@ compatibility_date = "2026-04-09"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "."
 
-vars = { QUOTE_EMAIL = "fergusg@mrwasher.com.au", RETELL_FROM_NUMBER = "+61258393807", AROFLO_LOOKUP_FUNCTION_URL = "https://us-central1-pettrdashboards.cloudfunctions.net/lookupClient" }
+vars = { QUOTE_EMAIL = "fergusg@mrwasher.com.au", RETELL_FROM_NUMBER = "+61258393807" }
 
