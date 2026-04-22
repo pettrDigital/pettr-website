@@ -87,7 +87,7 @@ GCLID: ${gclid}
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         api_key:   env.SMTP2GO_API_KEY,
-        sender:    "jobs@mrwasher.com.au",
+        sender:    "gordo@mrwasher.com.au",
         to:        ["jobs@mrwasher.com.au"],
         subject,
         text_body: textBody,
