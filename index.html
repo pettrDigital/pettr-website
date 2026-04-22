@@ -2712,12 +2712,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <input type="hidden" name="suburb"       value="Sydney">
           <input type="hidden" name="service"      value="general">
           <input type="hidden" name="variant"      value="">
-          <input type="text"   name="name"         placeholder="Name*" required>
-          <input type="email"  name="email"        placeholder="Email*" required>
-          <input type="tel"    name="phone"        placeholder="Phone*" required pattern="[0-9()#&+*\-=.]+">
-          <input type="text"   name="address"      placeholder="Address*" required>
-          <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999">
-          <textarea            name="message"      placeholder="How Can We Help?*" required rows="3"></textarea>
+          <input type="text"   name="name"         placeholder="Name*" required autocomplete="off">
+          <input type="email"  name="email"        placeholder="Email*" required autocomplete="off">
+          <input type="tel"    name="phone"        placeholder="Phone*" required pattern="[0-9()#&+*\-=.]+" autocomplete="off">
+          <input type="text"   name="address"      placeholder="Address*" required autocomplete="off">
+          <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999" autocomplete="off">
+          <textarea            name="message"      placeholder="How Can We Help?*" required rows="3" autocomplete="off"></textarea>
           <button type="submit" class="submit-btn">GET FREE QUOTE</button>
         </form>
         <p class="form-licence">Licence number A3403</p>
