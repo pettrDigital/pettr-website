@@ -2704,11 +2704,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="form-card-body">
         <form class="booking-form" id="hp-form">
-          <input type="hidden" name="utm_source"   id="f_utm_source">
-          <input type="hidden" name="utm_medium"   id="f_utm_medium">
-          <input type="hidden" name="utm_campaign" id="f_utm_campaign">
-          <input type="hidden" name="utm_term"     id="f_utm_term">
-          <input type="hidden" name="gclid"        id="f_gclid">
           <input type="hidden" name="suburb"       value="Sydney">
           <input type="hidden" name="service"      value="general">
           <input type="hidden" name="variant"      value="">
@@ -3406,13 +3401,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- ===================== JAVASCRIPT ===================== -->
 <script>
-// --- Scroll to top of screen ---
-if (history.scrollRestoration) {
-  history.scrollRestoration = 'manual';
-}
+if (history.scrollRestoration) history.scrollRestoration = 'manual';
 window.scrollTo(0, 0);
 
-// --- Hamburger / Nav Drawer ---
 function openDrawer() {
   document.getElementById('navDrawer').classList.add('open');
   document.getElementById('hamburgerBtn').classList.add('open');
@@ -3427,7 +3418,6 @@ function closeDrawer() {
 }
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeDrawer(); });
 
-// --- Toggle Quote Form ---
 function openForm() {
   const form = document.getElementById('quote-form');
   const launcher = document.getElementById('custom-chat-launcher');
@@ -3445,72 +3435,104 @@ function toggleForm() {
     if (launcher) launcher.style.display = '';
   }
 }
-// Show launcher on load since form starts hidden
+
 document.addEventListener('DOMContentLoaded', function() {
   const launcher = document.getElementById('custom-chat-launcher');
   if (launcher) launcher.style.display = '';
 });
-// --- Accordion ---
-document.querySelectorAll('.accordion-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const body = btn.nextElementSibling;
-    const isOpen = btn.classList.contains('open');
-    // Close all
-    document.querySelectorAll('.accordion-btn').forEach(b => {
-      b.classList.remove('open');
-      b.setAttribute('aria-expanded', 'false');
-      b.nextElementSibling.classList.remove('open');
+
+function loadNonCritical() {
+  document.querySelectorAll('.accordion-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var body = btn.nextElementSibling;
+      var isOpen = btn.classList.contains('open');
+      document.querySelectorAll('.accordion-btn').forEach(function(b) {
+        b.classList.remove('open');
+        b.setAttribute('aria-expanded', 'false');
+        b.nextElementSibling.classList.remove('open');
+      });
+      if (!isOpen) {
+        btn.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+        body.classList.add('open');
+      }
     });
-    // Toggle open
-    if (!isOpen) {
-      btn.classList.add('open');
-      btn.setAttribute('aria-expanded', 'true');
-      body.classList.add('open');
+  });
+
+  window.openTeamModal = function(id) {
+    document.getElementById(id).classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+  window.closeTeamModal = function(id) {
+    document.getElementById(id).classList.remove('open');
+    document.body.style.overflow = '';
+  };
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.team-modal-overlay.open').forEach(function(el) {
+        el.classList.remove('open');
+      });
+      document.body.style.overflow = '';
     }
   });
-});
-// --- Capture UTM params and wire form to Cloud Function ---
-  (function() {
-    var p = new URLSearchParams(window.location.search);
-    var setValue = function(id, val) { var el = document.getElementById(id); if (el) el.value = val; };
-    setValue('f_utm_source',   p.get('utm_source')   || 'direct');
-    setValue('f_utm_medium',   p.get('utm_medium')   || '');
-    setValue('f_utm_campaign', p.get('utm_campaign') || '');
-    setValue('f_utm_term',     p.get('utm_term')     || '');
-    setValue('f_gclid',        p.get('gclid')        || '');
-  })();
 
-  document.getElementById('hp-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    var form = e.target;
-    var btn = form.querySelector('.submit-btn');
-    var orig = btn.textContent;
-    btn.textContent = 'Sending...';
-    btn.disabled = true;
-    var data = {};
-    new FormData(form).forEach(function(val, key) { data[key] = val; });
-    fetch('/api/simple-form-submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(res) {
-      if (res.success) {
-        var msg = document.createElement('div');
-        msg.style.cssText = 'text-align:center;padding:32px 16px;color:#fff;';
-        msg.innerHTML = '<div style="font-size:48px;margin-bottom:16px;">&#10003;</div><div style="font-size:20px;font-weight:700;margin-bottom:8px;">Thanks, we will be in touch shortly!</div><div style="font-size:14px;opacity:0.85;">Call us now if urgent: <a href="tel:0281034607" style="color:#FDD42B;font-weight:700;">02 8103 4607</a></div>';
-        form.parentNode.replaceChild(msg, form);
-      } else {
-        btn.textContent = orig; btn.disabled = false;
-        alert('Something went wrong. Please call us on 02 8103 4607.');
-      }
-    })
-    .catch(function() {
+document.getElementById('hp-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var form = e.target;
+  var btn = form.querySelector('.submit-btn');
+  var orig = btn.textContent;
+  btn.textContent = 'Sending...';
+  btn.disabled = true;
+  var data = {};
+  new FormData(form).forEach(function(val, key) { data[key] = val; });
+  fetch('/api/simple-form-submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(res) {
+    if (res.success) {
+      var msg = document.createElement('div');
+      msg.style.cssText = 'text-align:center;padding:32px 16px;color:#fff;';
+      msg.innerHTML = '<div style="font-size:48px;margin-bottom:16px;">&#10003;</div><div style="font-size:20px;font-weight:700;margin-bottom:8px;">Thanks, we will be in touch shortly!</div><div style="font-size:14px;opacity:0.85;">Call us now if urgent: <a href="tel:0281034607" style="color:#FDD42B;font-weight:700;">02 8103 4607</a></div>';
+      form.parentNode.replaceChild(msg, form);
+    } else {
       btn.textContent = orig; btn.disabled = false;
       alert('Something went wrong. Please call us on 02 8103 4607.');
-    });
+    }
+  })
+  .catch(function() {
+    btn.textContent = orig; btn.disabled = false;
+    alert('Something went wrong. Please call us on 02 8103 4607.');
   });
+});
+
+  var tawkLoaded = false;
+  function loadTawkAndOpen() {
+    if (tawkLoaded) { if (window.Tawk_API) window.Tawk_API.maximize(); return; }
+    tawkLoaded = true;
+    var Tawk_API = window.Tawk_API = window.Tawk_API || {};
+    window.Tawk_LoadStart = new Date();
+    Tawk_API.onLoad = function() { Tawk_API.hideWidget(); Tawk_API.maximize(); };
+    var s1 = document.createElement('script');
+    s1.async = true;
+    s1.src = 'https://embed.tawk.to/69c88cb6a553521c36a636b0/1jkrmba1c';
+    s1.charset = 'UTF-8';
+    s1.setAttribute('crossorigin', '*');
+    document.head.appendChild(s1);
+  }
+  var launcher = document.getElementById('custom-chat-launcher');
+  if (launcher) launcher.addEventListener('click', loadTawkAndOpen);
+}
+
+if (document.readyState === 'complete') {
+  setTimeout(loadNonCritical, 0);
+} else {
+  window.addEventListener('load', function() {
+    setTimeout(loadNonCritical, 200);
+  });
+}
 </script>
 
 <!-- ===================== CUSTOM CHAT LAUNCHER ===================== -->
@@ -3518,58 +3540,6 @@ document.querySelectorAll('.accordion-btn').forEach(btn => {
   <span style="font-size: 24px;">💬</span>
   <span class="launcher-text">Quick question? Chat with us</span>
 </button>
-
-
-<script>
-function openTeamModal(id) {
-  document.getElementById(id).classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function closeTeamModal(id) {
-  document.getElementById(id).classList.remove('open');
-  document.body.style.overflow = '';
-}
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    document.querySelectorAll('.team-modal-overlay.open').forEach(function(el) {
-      el.classList.remove('open');
-    });
-    document.body.style.overflow = '';
-  }
-});
-</script>
-
-<script>
-let tawkLoaded = false;
-
-function loadTawkAndOpen() {
-  if (tawkLoaded) {
-    if (window.Tawk_API) window.Tawk_API.maximize();
-    return;
-  }
-  tawkLoaded = true;
-  var Tawk_API = window.Tawk_API = window.Tawk_API || {};
-  window.Tawk_LoadStart = new Date();
-  Tawk_API.onLoad = function () {
-    Tawk_API.hideWidget();
-    Tawk_API.maximize();
-  };
-  var s1 = document.createElement("script");
-  s1.async = true;
-  s1.src = "https://embed.tawk.to/69c88cb6a553521c36a636b0/1jkrmba1c";
-  s1.charset = "UTF-8";
-  s1.setAttribute("crossorigin", "*");
-  document.head.appendChild(s1);
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-  const launcher = document.getElementById("custom-chat-launcher");
-  if (launcher) {
-    launcher.style.display = "";
-    launcher.addEventListener("click", loadTawkAndOpen);
-  }
-});
-</script>
 
 </body>
 </html>
