@@ -23,10 +23,11 @@ export async function onRequestPost(context) {
       return json({ success: false, error: "Name and phone are required" }, 400);
     }
 
-    const subject = `New Lead — ${service || "plumbing"} — ${suburb || "Sydney"}`;
+    const trade = ['electrical', 'electrical-emergency', 'switchboard'].includes((service || '').toLowerCase()) ? 'Electrical' : 'Plumbing';
+    const subject = `PETTR Website - New Lead - ${trade} - ${service || "TBC"} - ${suburb || "TBC"}`;
 
     const textBody = `
-New PTTR Lead
+New PETTR Lead
 
 Name: ${name}
 Email: ${email}
