@@ -28,8 +28,6 @@
   media="(min-width: 1536px)"
   fetchpriority="high">
 
-<link rel="dns-prefetch" href="https://ipapi.co">
-
 <link rel="preload" as="font" type="font/woff2" crossorigin
   href="/fonts/montserrat-variable.woff2">
 
@@ -1795,44 +1793,6 @@ const CONFIG = {
 })();
 </script>
 
-<!-- ─── LOCATION FETCH ────────────────────────────────────── -->
-<script>
-  (function(){
-    var p = new URLSearchParams(window.location.search);
-    var hq = (p.get('hq') || '').trim();
-    var SYD = { latMin:-34.17, latMax:-33.40, lngMin:150.50, lngMax:151.35 };
-
-    function apply(loc, state) {
-      loc = (loc || 'Sydney').trim() || 'Sydney';
-      state = (state || 'NSW').trim() || 'NSW';
-      var t = document.querySelector('.trust-location');
-      if (t) t.textContent = 'Plumber to the Rescue, ' + loc + ', ' + state;
-      var s = document.querySelector('.trust-location-short');
-      if (s) s.textContent = loc + ', ' + state;
-      var a = document.getElementById('hero-checklist-arrival');
-      if (a) a.textContent = '60 Minute Arrival in ' + loc + ' — Guaranteed';
-      // preheadline is now handled by keywordMap — don't override it here
-    }
-
-    if (hq) {
-      apply(hq, 'NSW');
-      return; // skip ipapi fetch
-    }
-
-    apply('Sydney', 'NSW');
-    fetch('https://ipapi.co/json/')
-      .then(function(r) { return r.json(); })
-      .then(function(d) {
-        var lat = parseFloat(d.latitude), lng = parseFloat(d.longitude);
-        var ok = lat >= SYD.latMin && lat <= SYD.latMax && lng >= SYD.lngMin && lng <= SYD.lngMax;
-        apply(
-          ok ? (d.city || '').trim() || 'Sydney' : 'Sydney',
-          ok ? (d.region_code || '').trim() || 'NSW' : 'NSW'
-        );
-      })
-      .catch(function(){});
-  })();
-</script>
 <script>
 (function() {
   var p = new URLSearchParams(window.location.search);
