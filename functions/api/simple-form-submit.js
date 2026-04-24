@@ -82,7 +82,7 @@ GCLID: ${gclid}
     body: JSON.stringify({
       api_key:   env.SMTP2GO_API_KEY,
       sender:    "gordo@mrwasher.com.au",
-      to:        ["digital.plumbertotherescue.com"],
+      to:        ["digital.plumbertotherescue@gmail.com"],
       subject,
       text_body: textBody,
       html_body: htmlBody,
