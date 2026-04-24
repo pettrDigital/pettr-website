@@ -3441,98 +3441,98 @@ document.addEventListener('DOMContentLoaded', function() {
   if (launcher) launcher.style.display = '';
 });
 
-function loadNonCritical() {
-  document.querySelectorAll('.accordion-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var body = btn.nextElementSibling;
-      var isOpen = btn.classList.contains('open');
-      document.querySelectorAll('.accordion-btn').forEach(function(b) {
-        b.classList.remove('open');
-        b.setAttribute('aria-expanded', 'false');
-        b.nextElementSibling.classList.remove('open');
+window.addEventListener('load', function() {
+
+  setTimeout(function() {
+    document.querySelectorAll('.accordion-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var body = btn.nextElementSibling;
+        var isOpen = btn.classList.contains('open');
+        document.querySelectorAll('.accordion-btn').forEach(function(b) {
+          b.classList.remove('open');
+          b.setAttribute('aria-expanded', 'false');
+          b.nextElementSibling.classList.remove('open');
+        });
+        if (!isOpen) {
+          btn.classList.add('open');
+          btn.setAttribute('aria-expanded', 'true');
+          body.classList.add('open');
+        }
       });
-      if (!isOpen) {
-        btn.classList.add('open');
-        btn.setAttribute('aria-expanded', 'true');
-        body.classList.add('open');
+    });
+  }, 100);
+
+  setTimeout(function() {
+    window.openTeamModal = function(id) {
+      document.getElementById(id).classList.add('open');
+      document.body.style.overflow = 'hidden';
+    };
+    window.closeTeamModal = function(id) {
+      document.getElementById(id).classList.remove('open');
+      document.body.style.overflow = '';
+    };
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.team-modal-overlay.open').forEach(function(el) {
+          el.classList.remove('open');
+        });
+        document.body.style.overflow = '';
       }
     });
-  });
+  }, 300);
 
-  window.openTeamModal = function(id) {
-    document.getElementById(id).classList.add('open');
-    document.body.style.overflow = 'hidden';
-  };
-  window.closeTeamModal = function(id) {
-    document.getElementById(id).classList.remove('open');
-    document.body.style.overflow = '';
-  };
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      document.querySelectorAll('.team-modal-overlay.open').forEach(function(el) {
-        el.classList.remove('open');
+  setTimeout(function() {
+    document.getElementById('hp-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var form = e.target;
+      var btn = form.querySelector('.submit-btn');
+      var orig = btn.textContent;
+      btn.textContent = 'Sending...';
+      btn.disabled = true;
+      var data = {};
+      new FormData(form).forEach(function(val, key) { data[key] = val; });
+      fetch('/api/simple-form-submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.success) {
+          var msg = document.createElement('div');
+          msg.style.cssText = 'text-align:center;padding:32px 16px;color:#fff;';
+          msg.innerHTML = '<div style="font-size:48px;margin-bottom:16px;">&#10003;</div><div style="font-size:20px;font-weight:700;margin-bottom:8px;">Thanks, we will be in touch shortly!</div><div style="font-size:14px;opacity:0.85;">Call us now if urgent: <a href="tel:0281034607" style="color:#FDD42B;font-weight:700;">02 8103 4607</a></div>';
+          form.parentNode.replaceChild(msg, form);
+        } else {
+          btn.textContent = orig; btn.disabled = false;
+          alert('Something went wrong. Please call us on 02 8103 4607.');
+        }
+      })
+      .catch(function() {
+        btn.textContent = orig; btn.disabled = false;
+        alert('Something went wrong. Please call us on 02 8103 4607.');
       });
-      document.body.style.overflow = '';
-    }
-  });
+    });
 
-document.getElementById('hp-form').addEventListener('submit', function(e) {
-  e.preventDefault();
-  var form = e.target;
-  var btn = form.querySelector('.submit-btn');
-  var orig = btn.textContent;
-  btn.textContent = 'Sending...';
-  btn.disabled = true;
-  var data = {};
-  new FormData(form).forEach(function(val, key) { data[key] = val; });
-  fetch('/api/simple-form-submit', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(res) {
-    if (res.success) {
-      var msg = document.createElement('div');
-      msg.style.cssText = 'text-align:center;padding:32px 16px;color:#fff;';
-      msg.innerHTML = '<div style="font-size:48px;margin-bottom:16px;">&#10003;</div><div style="font-size:20px;font-weight:700;margin-bottom:8px;">Thanks, we will be in touch shortly!</div><div style="font-size:14px;opacity:0.85;">Call us now if urgent: <a href="tel:0281034607" style="color:#FDD42B;font-weight:700;">02 8103 4607</a></div>';
-      form.parentNode.replaceChild(msg, form);
-    } else {
-      btn.textContent = orig; btn.disabled = false;
-      alert('Something went wrong. Please call us on 02 8103 4607.');
+    var tawkLoaded = false;
+    function loadTawkAndOpen() {
+      if (tawkLoaded) { if (window.Tawk_API) window.Tawk_API.maximize(); return; }
+      tawkLoaded = true;
+      var Tawk_API = window.Tawk_API = window.Tawk_API || {};
+      window.Tawk_LoadStart = new Date();
+      Tawk_API.onLoad = function() { Tawk_API.hideWidget(); Tawk_API.maximize(); };
+      var s1 = document.createElement('script');
+      s1.async = true;
+      s1.src = 'https://embed.tawk.to/69c88cb6a553521c36a636b0/1jkrmba1c';
+      s1.charset = 'UTF-8';
+      s1.setAttribute('crossorigin', '*');
+      document.head.appendChild(s1);
     }
-  })
-  .catch(function() {
-    btn.textContent = orig; btn.disabled = false;
-    alert('Something went wrong. Please call us on 02 8103 4607.');
-  });
+    var launcher = document.getElementById('custom-chat-launcher');
+    if (launcher) launcher.addEventListener('click', loadTawkAndOpen);
+  }, 500);
+
 });
-
-  var tawkLoaded = false;
-  function loadTawkAndOpen() {
-    if (tawkLoaded) { if (window.Tawk_API) window.Tawk_API.maximize(); return; }
-    tawkLoaded = true;
-    var Tawk_API = window.Tawk_API = window.Tawk_API || {};
-    window.Tawk_LoadStart = new Date();
-    Tawk_API.onLoad = function() { Tawk_API.hideWidget(); Tawk_API.maximize(); };
-    var s1 = document.createElement('script');
-    s1.async = true;
-    s1.src = 'https://embed.tawk.to/69c88cb6a553521c36a636b0/1jkrmba1c';
-    s1.charset = 'UTF-8';
-    s1.setAttribute('crossorigin', '*');
-    document.head.appendChild(s1);
-  }
-  var launcher = document.getElementById('custom-chat-launcher');
-  if (launcher) launcher.addEventListener('click', loadTawkAndOpen);
-}
-
-if (document.readyState === 'complete') {
-  setTimeout(loadNonCritical, 0);
-} else {
-  window.addEventListener('load', function() {
-    setTimeout(loadNonCritical, 200);
-  });
-}
 </script>
 
 <!-- ===================== CUSTOM CHAT LAUNCHER ===================== -->
