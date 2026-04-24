@@ -1,0 +1,1710 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="format-detection" content="telephone=no">
+<meta name="robots" content="noindex, nofollow">
+<title id="page-title"></title>
+<link rel="canonical" id="canonical-link">
+
+<link rel="preload" as="image"
+  href="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-team-398.webp"
+  media="(max-width: 767px)"
+  fetchpriority="high">
+<link rel="preload" as="image"
+  href="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-team-960.webp"
+  media="(min-width: 768px) and (max-width: 1219px)"
+  fetchpriority="high">
+<link rel="preload" as="image"
+  href="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-team-1280.webp"
+  media="(min-width: 1220px) and (max-width: 1535px)"
+  fetchpriority="high">
+<link rel="preload" as="image"
+  href="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-team-1920.webp"
+  media="(min-width: 1536px)"
+  fetchpriority="high">
+
+<link rel="dns-prefetch" href="https://ipapi.co">
+
+<link rel="preload" as="font" type="font/woff2" crossorigin
+  href="/fonts/montserrat-variable.woff2">
+
+<style>
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/montserrat-variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+</style>
+
+<style>
+/* ══════════════════════════════════════════════════════════════
+   GLOBAL
+   ══════════════════════════════════════════════════════════════ */
+:root {
+  --color-primary:   #ff0d00;
+  --color-secondary: #077bab;
+  --color-lightgrey: #F3F3F2;
+  --color-darkgrey:  #1f2326;
+  --color-text:      #111111;
+  --color-form-bg:   #077bab;
+  --color-form-text: #FFFFFF;
+  --color-highlight: #FFD84D;
+  --font-heading: 'Montserrat', sans-serif;
+  --font-body:    Arial, Helvetica, sans-serif;
+  --trust-bar-height: 44px;
+  --main-header-height: 72px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background: #fff;
+  font-size: 16px;
+  line-height: 1.6;
+  padding-top: calc(var(--trust-bar-height) + var(--main-header-height));
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: inherit; text-decoration: none; }
+h1, h2, h3, h4, h5 { font-family: var(--font-heading); line-height: 1.2; }
+h2 { font-size: clamp(20px, 2.5vw, 32px); font-weight: 600; letter-spacing: -0.5px; line-height: 1.15; }
+p  { font-size: 1rem; line-height: 1.7; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 46px; padding: 0 32px; transform: translateY(-1px);
+  background: var(--color-primary); color: #fff;
+  font-family: var(--font-heading); font-weight: 700; font-size: 0.95rem;
+  line-height: 1; border: none; cursor: pointer;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  border-radius: 50px; transition: background 0.2s, transform 0.1s;
+}
+.btn:hover  { background: var(--color-secondary); transform: translateY(-1px); }
+.btn:active { transform: translateY(0); border-radius: 50px; }
+.btn-red { background: var(--color-primary); color: #fff; }
+
+/* ══════════════════════════════════════════════════════════════
+   STICKY TOP BAR
+   ══════════════════════════════════════════════════════════════ */
+#sticky-trust-bar { position: fixed; top: 0; left: 0; right: 0; width: 100%; height: var(--trust-bar-height); background: #F3F3F2; border-bottom: 1px solid #E0E0E0; box-shadow: 0 2px 12px rgba(0,0,0,0.08); z-index: 1001; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 4%; column-gap: 16px; }
+
+.trust-left { display: flex; align-items: center; justify-self: start; min-width: 0; }
+.trust-center { display: flex; align-items: center; justify-self: center; min-width: 0; }
+.trust-right { display: flex; align-items: center; justify-self: end; min-width: 0; }
+
+.trust-location-wrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.trust-pin-icon { width: 15px; height: 21px; flex-shrink: 0; }
+.trust-location-short { display: none; font-weight: 400; font-size: 14px; color: #222; white-space: nowrap; }
+.trust-location { display: inline; font-weight: 400; font-size: 14px; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.pttr-review-badge,
+.pttr-review-badge-mobile { display: flex; align-items: center; gap: 8px; background: transparent; padding: 0; border-radius: 0; font-family: var(--font-body); white-space: nowrap; }
+
+.pttr-review-badge-mobile { display: none; }
+
+.google-icon-wrapper { flex-shrink: 0; line-height: 0; }
+.google-logo { width: 18px; height: 18px; display: block; }
+
+.stars-row { display: flex; align-items: center; gap: 5px; font-size: 14px; line-height: 1; white-space: nowrap; }
+.star-rating { font-weight: 700; font-size: 14px; color: #222; }
+.stars-icon { color: #fbbc04; letter-spacing: 0.5px; font-size: 15px; }
+.review-divider { font-weight: 400; font-size: 13px; color: #777; }
+.review-count { color: #222; font-weight: 400; font-size: 13px; }
+
+.trust-available { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; font-size: 14px; color: #222; white-space: nowrap; text-transform: uppercase; }
+.trust-available-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; flex-shrink: 0; animation: trust-pulse 4s ease-in-out infinite; }
+.trust-available-text { white-space: nowrap; }
+
+@keyframes trust-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); } 50% { box-shadow: 0 0 0 7px rgba(34,197,94,0); } }
+
+@media (max-width: 767px) {
+  #sticky-trust-bar { display: flex; align-items: center; justify-content: space-between; padding: 0 12px; }
+  .trust-left { gap: 6px; min-width: 0; flex: 1 1 auto; overflow: hidden; }
+  .trust-center { display: none; }
+  .trust-right { flex: 0 0 auto; margin-left: 10px; }
+  .trust-location-wrap { display: none; }
+  .pttr-review-badge-mobile { display: flex; gap: 5px; min-width: 0; max-width: 100%; overflow: hidden; }
+  .pttr-review-badge-mobile .stars-icon { display: none; }
+  .pttr-review-badge-mobile .star-rating::after { content: "★"; color: #fbbc04; font-size: 12px; }
+  .google-logo { width: 17px; height: 17px; }
+  .stars-row { gap: 4px; font-size: 13px; }
+  .star-rating { font-size: 13px; }
+  .stars-icon { font-size: 12px; letter-spacing: -0.2px; }
+  .review-divider { display: inline; font-size: 12px; }
+  .review-count { display: inline; font-size: 12px; }
+  .trust-available { gap: 6px; font-size: 13px; }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  #sticky-trust-bar { padding: 0 5%; }
+  .trust-location-short { display: inline; font-size: 13px; }
+  .trust-location { display: none; }
+  .pttr-review-badge-mobile { display: none !important; }
+  .trust-center { display: flex; }
+  .trust-available { font-size: 13px; }
+}
+
+@media (min-width: 1280px) {
+  .trust-location-short { display: none; }
+  .trust-location { display: inline; }
+  .pttr-review-badge-mobile { display: none !important; }
+  .trust-center { display: flex; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HEADER
+   ══════════════════════════════════════════════════════════════ */
+#header {
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,.09);
+  position: fixed;
+  width: 100%;
+  top: var(--trust-bar-height);
+  height: var(--main-header-height);
+  padding: 0 22px;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#header .wrap { display: contents; }
+.header-logo { display: flex; align-items: center; }
+.header-logo img { width: 135px; display: block; }
+.header-right { display: flex; align-items: center; justify-content: flex-end; margin-left: auto; margin-right: 30px; }
+.header-phone { display: flex; flex-direction: column; align-items: center; }
+.header-phone a {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 46px; padding: 7px 18px; background: var(--color-primary);
+  border: 2px solid var(--color-primary); border-radius: 999px;
+  font-family: var(--font-heading); font-size: 17px; font-weight: 700;
+  color: #fff; letter-spacing: -0.2px; text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+}
+.header-phone a:hover { background: #e10f09; border-color: var(--color-primary); transform: translateY(-1px); }
+.header-phone a:active { transform: translateY(0); }
+.header-phone a svg { width: 20px; height: 20px; fill: #fff; flex-shrink: 0; }
+.header-phone .phone-text { display: block; font-size: 17px; font-weight: 700; color: #fff; white-space: nowrap; }
+
+@media (max-width: 399px) {
+  .header-logo img { width: 138px; }
+  .header-phone a { min-height: 46px; padding: 8px 16px; }
+  .header-phone .phone-text { font-size: 16px; }
+}
+@media (max-width: 767px) {
+  #header { padding: 0 14px; }
+  .header-logo img { width: 142px; }
+  .header-right { margin-right: 0; }
+  .header-phone a { min-height: 46px; padding: 8px 16px; gap: 7px; font-size: 16px; }
+  .header-phone a svg { width: 17px; height: 17px; }
+  .header-phone .phone-text { font-size: 16px; }
+}
+@media (min-width: 768px) {
+  #header { padding: 8px 22px; }
+  .header-logo img { width: 153px; }
+}
+@media (min-width: 992px) {
+  #header { padding: 12px 22px; }
+  .header-logo img { width: 180px; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HERO — BASE STYLES
+   ══════════════════════════════════════════════════════════════ */
+.lp-hero-wrap {
+  display: grid;
+  grid-template-columns: 1fr;
+  position: relative;
+  overflow: hidden;
+  padding-top: 0;
+  min-height: 480px;
+  background: #033d56;
+}
+
+.hero-bg-media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-bg-media picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-bg-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.hero-top-banner { display: none; }
+.hero-guarantee-bar { display: none; }
+
+.hero-left {
+  position: relative;
+  z-index: 2;
+  color: #fff;
+  padding: 18px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 12px;
+  background: linear-gradient(
+    90deg,
+    rgba(0,0,0,0.74) 0%,
+    rgba(0,0,0,0.58) 34%,
+    rgba(0,0,0,0.24) 60%,
+    rgba(0,0,0,0.00) 82%
+  );
+  row-gap: 10px;
+}
+
+.hero-left ul { margin: 10px 0 12px; }
+
+.hero-left-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-left-content::before {
+  content: "";
+  position: absolute;
+  inset: -18px -14px -18px -14px;
+  background: linear-gradient(
+    90deg,
+    rgba(0,0,0,0.22) 0%,
+    rgba(0,0,0,0.10) 62%,
+    rgba(0,0,0,0.00) 100%
+  );
+  border-radius: 16px;
+  z-index: -1;
+}
+
+.hero-gap { display: none; }
+
+.hero-preheadline {
+  font-size: clamp(13px, 1vw, 18px);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.76);
+  margin-bottom: 8px;
+}
+
+.guarantee-headline {
+  font-size: clamp(22px, 5.6vw, 42px);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.04;
+  color: #fff;
+  margin-bottom: 8px;
+  white-space: pre-line;
+}
+
+.guarantee-subline {
+  font-size: clamp(15px, 2vw + 0.25rem, 24px);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--color-highlight);
+  line-height: 1.16;
+  letter-spacing: 0.03em;
+  white-space: pre-line;
+  margin-bottom: 8px;
+}
+
+.hero-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 0;
+  list-style: none;
+  padding: 0;
+}
+
+.hero-checklist li {
+  position: relative;
+  padding-left: 24px;
+  font-size: clamp(13px, 0.8vw + 9px, 16px);
+  color: rgba(255,255,255,0.88);
+  line-height: 1.35;
+}
+
+.hero-checklist li::before {
+  content: '★';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #FFD84D;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.hero-trust-line {
+  margin-top: 6px;
+  font-size: clamp(12px, 0.6vw + 10px, 15px);
+  line-height: 1.35;
+  color: rgba(255,255,255,0.80);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.hero-left-guarantee { display: none; }
+#hero-call-btn { display: none; }
+
+.hero-right {
+  position: relative;
+  z-index: 2;
+  background: transparent;
+  color: #fff;
+  padding: 14px 14px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.form-header-box {
+  background: rgba(15, 40, 70, 0.90);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  padding: 16px 16px 10px;
+  width: 100%;
+  text-align: center;
+}
+
+.form-header-eyebrow {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.05;
+  text-transform: uppercase;
+  margin: 0 0 6px 0;
+  letter-spacing: 0.3px;
+}
+
+.form-offer-line {
+  display: block;
+  max-width: 290px;
+  margin: 0 auto;
+  color: var(--color-highlight);
+  font-size: 0.86rem;
+  line-height: 1.25;
+  font-weight: 600;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.form-offer-line-secondary {
+  margin-top: 3px;
+  display: block;
+  color: rgba(255,255,255,0.92);
+  font-size: 0.82rem;
+  line-height: 1.2;
+  font-weight: 500;
+}
+
+.form-card {
+  background: rgba(15, 40, 70, 0.90);
+  padding: 4px 16px 12px;
+  width: 100%;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.lp-form { display: flex; flex-direction: column; }
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 9px;
+}
+
+.form-field label { display: none; }
+
+.form-field input,
+.form-field textarea {
+  padding: 10px 12px;
+  border: 1px solid #e2e5e9;
+  border-radius: 6px;
+  background: #fff;
+  color: #111111;
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+  width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-field textarea { min-height: 58px; resize: vertical; }
+
+.form-field input::placeholder,
+.form-field textarea::placeholder { color: #999; font-weight: 400; }
+
+.form-field input:focus,
+.form-field textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(230,51,18,0.15);
+  border-color: #E63312;
+  background: #fff;
+}
+
+.form-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  width: fit-content;
+  min-width: 200px;
+  margin: 9px auto 0;
+  padding: 11px 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.form-submit:hover {
+  background: #e10f09;
+  box-shadow: 0 6px 20px rgba(229,57,28,0.4);
+}
+
+.form-guarantee {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 6px;
+}
+
+.form-guarantee-shield {
+  width: 70px;
+  height: auto;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.18));
+}
+
+.form-guarantee-copy { text-align: center; max-width: 250px; }
+
+.form-guarantee-headline {
+  font-family: var(--font-heading);
+  font-size: clamp(15px, 1.5vw, 20px);
+  font-weight: 700;
+  line-height: 1.25;
+  color: #fff;
+  margin: 0 0 2px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid #c8c8c8;
+}
+
+.form-guarantee-subline {
+  font-size: 13px;
+  line-height: 1.25;
+  color: var(--color-highlight);
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE — stacked (max-width 767px)
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .lp-hero-wrap {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: auto;
+  }
+
+  .hero-top-banner {
+    display: block;
+    height: 25vh;
+  }
+
+  .hero-top-banner img {
+    width: 100%;
+    height: 25vh;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  .hero-bg-media { display: none; }
+
+  .hero-left {
+    min-height: auto;
+    max-width: none;
+    padding: 16px 16px 18px;
+    background: #033d56;
+  }
+
+  .hero-left-content::before { content: none; }
+  .hero-checklist { gap: 6px; }
+
+  .hero-left-guarantee {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  #hero-call-btn { display: none; }
+
+  .form-header-box { padding: 16px 14px 12px; }
+  .form-header-eyebrow { font-size: 1.35rem; }
+  .form-offer-line { max-width: 250px; font-size: 0.80rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLET — banner strip + side-by-side (768–1279)
+   ═══════════════════════════════════════════════════════════════ */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .lp-hero-wrap {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 320px auto auto;
+    height: auto;
+    min-height: auto;
+    align-items: start;
+    background: linear-gradient(
+      120deg,
+      #052a35 0%,
+      #062f3c 25%,
+      #0f5f78 60%,
+      #1a8fb3 100%
+    );
+    position: relative;
+    overflow: hidden;
+  }
+  .lp-hero-wrap::after {
+    content: "";
+    position: absolute;
+    right: 0; top: 0;
+    width: 45%; height: 100%;
+    background: radial-gradient(
+      circle at 70% 50%,
+      rgba(255,255,255,0.12),
+      rgba(255,255,255,0.04) 40%,
+      transparent 70%
+    );
+    pointer-events: none;
+  }
+
+  .hero-top-banner {
+    display: block;
+    grid-column: 1 / -1;
+    grid-row: 1;
+    overflow: hidden;
+    height: 100%;
+  }
+
+  .hero-top-banner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  .hero-bg-media { display: none; }
+  .hero-gap { display: none; }
+
+  .hero-left {
+    grid-row: 2;
+    grid-column: 1;
+    min-height: auto;
+    background: transparent;
+    padding: 20px 28px 32px 40px;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero-left-content { max-width: 100%; }
+  .hero-left-content::before { content: none; }
+
+  .guarantee-headline { font-size: clamp(24px, 3vw, 38px); white-space: pre-line; }
+  .guarantee-subline { font-size: clamp(14px, 1.5vw, 20px); white-space: normal; }
+  .hero-checklist li { font-size: clamp(12px, 1.2vw, 15px); white-space: normal; }
+
+  .hero-left-guarantee {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .hero-right {
+    grid-row: 2;
+    grid-column: 2;
+    align-self: start;
+    background: transparent;
+    padding: 16px 24px 0;
+    justify-content: flex-start;
+    align-items: center;
+  }
+
+  .hero-right .form-header-box { width: 100%; max-width: 320px; border-radius: 12px 12px 0 0; padding: 16px 16px 10px; }
+  .hero-right .form-card { width: 100%; max-width: 320px; flex: unset; border-radius: 0 0 12px 12px; padding: 10px 16px 14px; }
+  .hero-right .form-field input, .hero-right .form-field textarea { padding: 8px 12px; font-size: 0.88rem; }
+  .hero-right .form-field textarea { min-height: 46px; }
+  .hero-right .form-field { margin-bottom: 6px; }
+  .hero-right .form-offer-line { font-size: 0.78rem; }
+  .hero-right .form-guarantee { display: none; }
+
+  #hero-call-btn { display: none; }
+
+  .hero-guarantee-bar {
+    display: none;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 14px 20px 20px;
+    background: transparent;
+  }
+
+  .hero-guarantee-bar .form-guarantee-shield { width: 52px; }
+  .hero-guarantee-bar .form-guarantee-headline { color: #fff; border-bottom-color: rgba(255,255,255,0.3); font-size: 14px; }
+  .hero-guarantee-bar .form-guarantee-subline { color: var(--color-highlight); font-size: 12px; }
+
+  .trust-location { font-size: 13px; }
+  .trust-available { font-size: 13px; }
+  .trust-arrival-suffix { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DESKTOP — 3-column full bleed (1280–1535)
+   ═══════════════════════════════════════════════════════════════ */
+@media (min-width: 1280px) and (max-width: 1535px) {
+  .lp-hero-wrap {
+    grid-template-columns: 400px minmax(0, 1fr) 420px;
+    /* base clamp() handles height — no min-height here */
+    align-items: stretch;
+  }
+
+  .hero-gap { display: block; position: relative; z-index: 2; }
+  .hero-bg-media img { object-position: center top; }
+
+  .hero-left {
+    width: 100%;
+    max-width: none;
+    min-height: 540px;
+    height: 100%;
+    padding: 30px 34px 34px 34px;
+    gap: 14px;
+    background: linear-gradient(
+      90deg,
+      rgba(0,0,0,0.75) 0%,
+      rgba(0,0,0,0.65) 50%,
+      rgba(0,0,0,0.55) 80%,
+      rgba(0,0,0,0.30) 90%,
+      rgba(0,0,0,0.00) 95%
+    );
+  }
+
+  .hero-left-content { max-width: 310px; }
+  .hero-left-content::before { content: none; }
+
+  .hero-preheadline { margin-top: 20px; }
+  .guarantee-headline { font-size: clamp(34px, 2.4vw, 45px); line-height: 1.02; white-space: pre-line; }
+  .guarantee-subline { font-size: clamp(21px, 1.15vw, 28px); line-height: 1.14; white-space: pre-line; margin-bottom: 12px; }
+  .hero-checklist li { font-size: clamp(15px, 0.45vw + 9px, 18px); line-height: 1.32; white-space: nowrap; }
+
+  .hero-right {
+    justify-content: center;
+    width: 100%;
+    padding: 36px 18px 30px;
+    align-self: stretch;
+    align-items: center;
+  }
+
+  .hero-right .form-header-box,
+  .hero-right .form-card { width: 100%; max-width: 350px; margin-top: -10px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LARGE MONITOR (1536+)
+   ═══════════════════════════════════════════════════════════════ */
+@media (min-width: 1536px) {
+  .lp-hero-wrap {
+    grid-template-columns: minmax(500px, 37%) minmax(240px, 1fr) minmax(430px, 29%);
+  }
+
+  .hero-left {
+    max-width: none;
+    padding: 42px 52px 46px 44px;
+    gap: 18px;
+    background: linear-gradient(90deg,
+      rgba(0,0,0,0.88) 0%,
+      rgba(0,0,0,0.85) 50%,
+      rgba(0,0,0,0.50) 70%,
+      rgba(0,0,0,0.00) 85%);
+  }
+
+  .hero-left-content { max-width: 610px; }
+  .hero-preheadline { margin-top: 24px; }
+
+  .guarantee-headline {
+    font-size: clamp(40px, 2.8vw, 60px);
+    line-height: 1.04;
+    white-space: pre-line;
+    margin-bottom: 15px;
+  }
+
+  .guarantee-subline {
+    font-size: clamp(24px, 1.55vw, 34px);
+    line-height: 1.14;
+    white-space: pre-line;
+    margin-bottom: 18px;
+  }
+
+  .hero-checklist { gap: 12px; margin-top: 8px; }
+
+  .hero-checklist li {
+    font-size: clamp(17px, 0.75vw + 8px, 21px);
+    line-height: 1.42;
+    white-space: normal;
+  }
+
+  .hero-trust-line {
+    margin-top: 25px;
+    margin-bottom: 10px;
+    font-size: clamp(15px, 0.45vw + 10px, 16px);
+    line-height: 1.45;
+  }
+
+  .hero-gap { display: block; position: relative; z-index: 2; }
+
+  .hero-right {
+    display: flex;
+    width: 100%;
+    padding: 44px 28px 40px;
+    justify-content: center;
+    align-items: center;
+    align-self: stretch;
+  }
+
+  .hero-right .form-header-box,
+  .hero-right .form-card { width: 100%; max-width: 430px; margin-top: -20px; }
+
+  .hero-right .form-header-box { padding: 20px 24px 14px; }
+  .hero-right .form-header-eyebrow { font-size: 1.7rem; }
+  .hero-right .form-offer-line { max-width: 360px; font-size: 1.02rem; }
+  .hero-right .form-card { padding: 18px 24px 18px; }
+  .hero-right .form-field { margin-bottom: 12px; }
+  .hero-right .form-field input, .hero-right .form-field textarea { padding: 12px 14px; }
+  .hero-right .form-submit { min-width: 230px; margin-top: 12px; }
+  .hero-right .form-guarantee { margin-top: 0; padding-top: 10px; }
+
+  .form-guarantee-shield { width: 90px; height: auto; flex-shrink: 0; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.18)); }
+
+  .form-guarantee-headline {
+    font-family: var(--font-heading);
+    font-size: clamp(18px, 1.5vw, 24px);
+    font-weight: 700;
+    line-height: 1.25;
+    color: #fff;
+    margin: 0 0 2px;
+    padding-bottom: 2px;
+    border-bottom: 1px solid #c8c8c8;
+  }
+
+  .form-guarantee-subline { font-size: 15px; line-height: 1.25; color: var(--color-highlight); margin: 0; }
+}
+
+/* ─── DAVID BIO ────────────────────────────────────────────── */
+#david-bio { background-color: var(--color-lightgrey); padding: 32px 20px; }
+#david-bio .wrap {
+  display: grid;
+  grid-template-columns: 1fr minmax(380px, 420px);
+  gap: 0;
+  align-items: start;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  overflow: visible;
+  max-width: 860px;
+  margin: 0 auto;
+  position: relative;
+}
+.bio-content {
+  background: #fff;
+  border-radius: 12px;
+  border: none;
+  padding: 20px 55px 30px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative;
+  z-index: 1;
+  margin-right: -20px;
+  min-height: 100%;
+}
+.bio-section-eyebrow { display: block; font-family: var(--font-heading); font-size: clamp(12px, 1.4vw, 16px); text-transform: uppercase; letter-spacing: 1px; color: var(--color-secondary); margin-bottom: 12px; }
+.bio-eyebrow { font-size: 24px; font-weight: 800; color: var(--color-text); margin-bottom: 16px; line-height: 1.3; text-align: left; }
+.bio-quote { font-style: italic; font-size: 16px; line-height: 1.4; color: var(--color-darkgrey); margin-bottom: 22px; }
+.bio-bullets { display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: var(--color-darkgrey); font-weight: 600; }
+.bio-image-panel { border-radius: 12px; overflow: hidden; margin: 0; align-self: stretch; min-height: 0; min-width: 380px; z-index: 2; }
+.bio-image-panel img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; border-radius: 12px; }
+.bio-image-mobile { display: none; }
+
+@media (max-width: 767px) {
+  #david-bio { padding: 18px 16px 28px; }
+  #david-bio .wrap { display: block; max-width: 100%; }
+  .bio-image-panel { display: none; }
+  .bio-content { margin-right: 0; padding: 18px 18px 20px; border-radius: 12px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+  .bio-image-mobile { display: block; width: 100%; height: 190px; border-radius: 10px; overflow: hidden; margin: 0 0 14px; }
+  .bio-image-mobile img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+  .bio-eyebrow { font-size: 18px; line-height: 1.2; margin-bottom: 12px; }
+  .bio-quote { font-size: 15px; line-height: 1.45; margin-bottom: 16px; }
+  .bio-bullets { gap: 6px; font-size: 13px; }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  #david-bio { padding: 32px 20px; }
+  #david-bio .wrap { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: center; max-width: 760px; margin: 0 auto; background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); overflow: hidden; }
+  .bio-content { background: transparent; border-radius: 0; box-shadow: none; padding: 6px 6px 6px 8px; margin-right: 0; min-height: 0; }
+  .bio-image-panel { min-width: 0; width: 100%; max-width: 300px; height: 360px; margin: 0; border-radius: 12px; overflow: hidden; align-self: center; justify-self: end; }
+  .bio-image-panel img { width: 100%; height: 100%; object-fit: cover; object-position: center top; border-radius: 12px; }
+  .bio-section-eyebrow { margin-bottom: 10px; }
+  .bio-eyebrow { font-size: 18px; line-height: 1.2; margin-bottom: 12px; }
+  .bio-quote { font-size: 15px; line-height: 1.5; margin-bottom: 16px; }
+  .bio-bullets { gap: 6px; font-size: 13px; }
+}
+
+/* ─── TRUST BAR ─────────────────────────────────────────────── */
+#trust-bar { background: #ffffff; padding: 20px 32px 56px; border-top: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.trust-bar-wrap { max-width: 1100px; margin: 0 auto; }
+.trust-badges { display: flex; justify-content: center; align-items: flex-end; gap: 48px; margin-bottom: 48px; flex-wrap: wrap; }
+.trust-badge-item { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.trust-badge-item img { height: 80px; width: auto; object-fit: contain; }
+.trust-badge-label { font-family: var(--font-heading); font-size: 13px; font-weight: 700; color: #111; margin: 0; letter-spacing: 0.01em; }
+.trust-reviews-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+
+@media (max-width: 767px) {
+  #trust-bar { padding: 36px 16px 40px; }
+  .trust-badges { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 12px; align-items: start; justify-items: center; margin-bottom: 32px; }
+  .trust-badge-item { gap: 10px; width: 100%; max-width: 110px; }
+  .trust-badge-item img { height: 46px; width: auto; max-width: 100%; object-fit: contain; }
+  .trust-badge-label { font-size: 11px; line-height: 1.3; text-align: center; letter-spacing: 0; text-wrap: balance; }
+}
+
+@media (min-width: 768px) { .trust-reviews-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.trust-review-card { background: #f9fafb; border-radius: 12px; padding: 32px 28px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); border: 1px solid #eaeaea; }
+.trust-review-quote { font-size: 14px; line-height: 1.65; color: #333; margin: 0; flex: 1; }
+.trust-review-stars { color: #f4a200; font-size: 18px; letter-spacing: 2px; }
+.trust-review-author { font-family: var(--font-heading); font-size: 13px; font-weight: 700; color: #111; margin: 0; }
+
+/* ══════════════════════════════════════════════════════════════
+   PROMISE PROOF
+   ══════════════════════════════════════════════════════════════ */
+#promise-proof { display: grid; grid-template-columns: 1fr; }
+.promise-left { background: #033d56; color: #fff; padding: 56px 16px; display: flex; flex-direction: column; justify-content: flex-start; gap: 0; }
+.promise-left h2 { font-family: 'Montserrat', sans-serif; font-size: clamp(22px, 2.5vw, 36px); font-weight: 600; line-height: 1.1; color: #fff; margin: 0 0 16px; letter-spacing: -0.5px; }
+.promise-tagline { font-family: 'Montserrat', sans-serif; font-size: clamp(15px, 1.5vw, 20px); text-transform: uppercase; font-weight: 700; color: #FDD42B; margin: 0 0 14px; line-height: 1.3; }
+.promise-sub { font-size: clamp(12px, 1.0vw, 20px); color: #fff; line-height: 1.7; margin: 0 0 24px; }
+.guarantee-block { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; }
+.g-title { font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 700; color: #fff; margin: 0; line-height: 1.4; }
+.g-body { font-size: 13px; color: #fff; margin: 0; line-height: 1.7; }
+.promise-cta { align-self: flex-start; padding: 14px 26px; font-size: 15px; }
+.promise-right { background: #fff; padding: 56px 16px; display: flex; flex-direction: column; justify-content: flex-start; gap: 32px; }
+.proof-block { display: flex; gap: 18px; align-items: flex-start; }
+.proof-num { flex-shrink: 0; width: 52px; height: 52px; border-radius: 50%; background: #077bab; color: #fff; font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.proof-text { padding-top: 2px; }
+.proof-text h3 { font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 800; text-transform: uppercase; color: #222; margin: 0 0 4px; line-height: 1.2; }
+.proof-text p { font-size: 14px; color: #3f3f3f; margin: 0; line-height: 1.6; }
+
+@media (max-width: 767px) {
+  #promise-proof { display: none; }
+  #promise-proof-stacked { display: block; background: #033d56; padding: 32px 16px 36px; color: #fff; }
+  .promise-stacked-header { margin-bottom: 20px; text-align: center; }
+  .promise-stacked-header h2 { font-size: clamp(22px, 6vw, 28px); margin: 0 0 10px; }
+  .promise-stacked-sub { font-size: 14px; line-height: 1.55; margin: 10px auto 0; text-align: center; }
+  .promise-stacked-points { background: #fff; border-radius: 12px; padding: 20px 16px; display: flex; flex-direction: column; gap: 18px; margin-bottom: 20px; }
+  .promise-stacked-points .proof-block { gap: 12px; align-items: flex-start; }
+  .promise-stacked-points .proof-num { width: 40px; height: 40px; font-size: 12px; }
+  .promise-stacked-points .proof-block h3 { font-size: 15px; margin: 0 0 4px; }
+  .promise-stacked-points .proof-block p { font-size: 13px; line-height: 1.5; }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  #promise-proof { display: none; }
+  #promise-proof-stacked { display: block; background: #033d56; padding: 36px 20px 40px; color: #fff; }
+  .promise-stacked-header { margin-bottom: 24px; text-align: center; }
+  .promise-stacked-header h2 { font-size: clamp(24px, 3.2vw, 32px); margin: 0 0 10px; }
+  .promise-stacked-sub { font-size: 15px; line-height: 1.6; max-width: 560px; margin: 12px auto 0; text-align: center; }
+  .promise-stacked-points { background: #fff; border-radius: 12px; padding: 24px 22px; display: flex; flex-direction: column; gap: 22px; margin-bottom: 24px; }
+  .promise-stacked-points .proof-block { gap: 16px; align-items: flex-start; }
+  .promise-stacked-points .proof-num { width: 46px; height: 46px; font-size: 14px; }
+  .promise-stacked-points .proof-block h3 { font-size: 16px; margin: 0 0 4px; }
+  .promise-stacked-points .proof-block p { font-size: 14px; line-height: 1.55; }
+}
+
+@media (min-width: 1280px) {
+  #promise-proof-stacked { display: none; }
+  #promise-proof { grid-template-columns: 1fr 1fr; }
+  .promise-left { padding: 44px 32px 44px; }
+  .promise-right { padding: 44px 32px 44px; gap: 24px; }
+  .promise-left h2 { margin-bottom: 14px; }
+  .promise-tagline { margin-bottom: 12px; }
+  .promise-sub { margin-bottom: 20px; }
+  .guarantee-block { margin-bottom: 22px; }
+  .proof-block { gap: 16px; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   EMERGENCY SERVICES GRID
+   ══════════════════════════════════════════════════════════════ */
+#emergency-services { background: var(--color-lightgrey); padding: 56px 0 72px; }
+.emergency-services-wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+.emergency-services-header { text-align: center; margin-bottom: 36px; }
+.emergency-eyebrow { display: block; font-family: var(--font-heading); font-size: clamp(12px, 1.4vw, 16px); text-transform: uppercase; letter-spacing: 1px; color: var(--color-secondary); margin-bottom: 12px; }
+#reviews .emergency-eyebrow { color: var(--color-highlight); }
+.emergency-services-header h2 { font-family: var(--font-heading); font-size: clamp(24px, 2.8vw, 38px); font-weight: 700; color: #222; margin: 0 0 12px; letter-spacing: -0.5px; line-height: 1.15; }
+.emergency-subhead { max-width: 720px; margin: 0 auto; font-size: 16px; line-height: 1.7; color: #4b5563; }
+.emergency-services-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 32px; }
+.emergency-card { background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid rgba(0,0,0,0.08); box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; flex-direction: column; min-height: 100%; transition: transform 0.18s ease, box-shadow 0.18s ease; }
+.emergency-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.1); }
+.emergency-card-image { width: 100%; aspect-ratio: 16/9; object-fit: cover; object-position: center; display: block; background: #d9e2e8; }
+.emergency-card-body { padding: 18px 18px 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.emergency-card h3 { font-family: var(--font-heading); font-size: clamp(15px, 1.2vw, 18px); font-weight: 800; color: #222; line-height: 1.2; margin: 0; }
+.emergency-card p { font-size: 14px; line-height: 1.65; color: #4b5563; margin: 0; }
+.emergency-services-footer { text-align: center; }
+.emergency-services-footer p { font-size: 15px; line-height: 1.7; color: #4b5563; margin: 0 0 18px; }
+.emergency-cta-row { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.emergency-cta-row .btn { min-width: 180px; height: 48px; padding: 0 34px; border-radius: 999px; font-size: 14px; }
+.emergency-cta-row .btn:first-child { background: #ff0d00; color: #fff; }
+.emergency-cta-row .btn:last-child { background: #fff; color: #0b84bd; border: 4px solid #0b84bd; }
+.emergency-cta-row .btn:last-child:hover { background: rgba(11,132,189,0.06); color: #0b84bd; }
+
+@media (min-width: 768px) and (max-width: 991px) { .emergency-services-grid { grid-template-columns: repeat(2, 1fr); gap: 18px; } }
+@media (min-width: 992px) { .emergency-services-grid { grid-template-columns: repeat(4, 1fr); gap: 18px; } }
+@media (max-width: 991px) { #emergency-services { padding: 44px 0 56px; } .emergency-services-wrap { padding: 0 16px; } .emergency-services-header { margin-bottom: 28px; } .emergency-services-grid { margin-bottom: 28px; } }
+
+/* ══════════════════════════════════════════════════════════════
+   WHY CHOOSE US
+   ══════════════════════════════════════════════════════════════ */
+#why-choose-pttr { background: #033d56; padding: 60px 0 28px; }
+.why-choose-wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+.why-choose-header { text-align: center; margin-bottom: 22px; }
+.why-choose-eyebrow { display: block; font-family: var(--font-heading); font-size: clamp(12px, 1.4vw, 16px); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #fdd42b; margin-bottom: 12px; white-space: normal; }
+.why-choose-header h2 { font-family: var(--font-heading); font-size: clamp(24px, 2.8vw, 38px); font-weight: 700; color: #fff; margin: 0 0 10px; line-height: 1.15; letter-spacing: -0.5px; }
+.why-choose-subhead { max-width: 720px; margin: 0 auto 8px; font-size: 15px; line-height: 1.6; color: rgba(255,255,255,0.86); }
+.why-choose-proofline { font-size: 14px; line-height: 1.5; color: rgba(255,255,255,0.68); }
+.why-choose-table { position: relative; max-width: 900px; margin: 22px auto 0; overflow: visible; }
+.why-choose-table-inner { border-radius: 12px; overflow: hidden; border: 1px solid rgba(0,0,0,0.08); box-shadow: 0 8px 22px rgba(0,0,0,0.06); }
+.why-proof-badge { position: absolute; top: -28px; right: -18px; width: 98px; height: 98px; border-radius: 50%; background: var(--color-primary); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; z-index: 2; }
+.why-proof-badge .badge-top { font-family: Arial, Helvetica, sans-serif; font-size: 20px; font-weight: 800; line-height: 1; }
+.why-proof-badge .badge-bottom { margin-top: 6px; font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: 700; line-height: 1.15; letter-spacing: 0.04em; }
+.why-row { display: grid; grid-template-columns: 220px 1fr; gap: 0; align-items: stretch; background: #fff; }
+.why-row:first-of-type .why-copy { padding-right: 28px; }
+.why-row + .why-row { border-top: 1px solid rgba(148,163,184,0.24); }
+.why-row + .why-row .why-label { border-top: 1px solid rgba(255,255,255,0.96); }
+.why-label, .why-copy { padding: 13px 18px; }
+.why-label { background: #dde2e8; font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 800; line-height: 1.3; color: #222; letter-spacing: 0.02em; text-align: left; }
+.why-copy { background: transparent; font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: 700; line-height: 1.55; color: #4b5563; display: flex; align-items: center; justify-content: center; text-align: center; height: 100%; }
+
+@media (min-width: 768px) { .why-label { min-height: 100%; } }
+@media (max-width: 991px) {
+  #why-choose-pttr { padding: 48px 0 56px; }
+  .why-choose-wrap { padding: 0 16px; }
+  .why-choose-table { margin-top: 18px; }
+  .why-row { grid-template-columns: 170px 1fr; }
+  .why-label, .why-copy { padding: 13px 16px; }
+  .why-proof-badge { width: 84px; height: 84px; top: -18px; right: -10px; }
+  .why-proof-badge .badge-top { font-size: 17px; }
+  .why-proof-badge .badge-bottom { font-size: 10px; margin-top: 5px; }
+  .why-row:first-of-type .why-copy { padding-right: 20px; }
+}
+@media (max-width: 767px) {
+  .why-row { grid-template-columns: 1fr; gap: 8px; }
+  .why-choose-table { margin-top: 16px; }
+  .why-label, .why-copy { padding: 14px 16px; }
+  .why-proof-badge { width: 72px; height: 72px; top: 8px; right: 8px; }
+  .why-proof-badge .badge-top { font-size: 15px; }
+  .why-proof-badge .badge-bottom { font-size: 9px; margin-top: 4px; }
+  .why-row:first-of-type .why-label, .why-row:first-of-type .why-copy { padding-right: 88px; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   OUR PROCESS
+   ══════════════════════════════════════════════════════════════ */
+#our-process { background: #f7f8fa; padding: 0; }
+.process-wrap { max-width: 1080px; margin: 0 auto; padding: 0 32px; }
+.process-shell { background: #fff; border-radius: 14px; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 10px 28px rgba(0,0,0,0.045); padding: 40px 42px 44px; }
+.process-header { text-align: center; max-width: 760px; margin: 0 auto 42px; }
+.process-eyebrow { display: block; font-family: var(--font-heading); font-size: clamp(12px, 1.4vw, 16px); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #0b84bd; margin-bottom: 12px; }
+.process-header h2 { margin: 0 0 14px; font-family: var(--font-heading); font-size: clamp(26px, 3vw, 40px); font-weight: 700; line-height: 1.1; letter-spacing: -0.5px; color: #222; }
+.process-subhead { margin: 0; font-size: 16px; line-height: 1.65; color: #4b5563; }
+.process-timeline { position: relative; padding: 28px 28px 28px 94px; }
+.process-timeline::before { content: ""; position: absolute; left: 25px; top: 10px; bottom: 10px; width: 4px; background: rgba(11,132,189,0.34); border-radius: 999px; }
+#our-process.process-animate-enabled .process-timeline::before { opacity: 0; transition: opacity 480ms ease; }
+#our-process.process-animate-enabled.is-visible .process-timeline::before { opacity: 1; }
+.process-phase { margin: 0 0 38px; }
+.process-phase:last-child { margin-bottom: 0; }
+.process-phase-label { margin: 0; font-family: var(--font-heading); font-size: clamp(22px, 2.1vw, 24px); font-weight: 700; line-height: 1.2; letter-spacing: 0.02em; color: #ffffff; }
+.process-step { position: relative; margin-bottom: 34px; }
+.process-step:last-child { margin-bottom: 0; }
+.process-step-num { position: absolute; left: -94px; top: 0; width: 50px; height: 50px; border-radius: 50%; background: #ffffff; border: 3px solid #0b84bd; color: #0b84bd; box-shadow: 0 10px 22px rgba(11,132,189,0.16); display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: 13px; font-weight: 800; z-index: 1; }
+.process-step h3 { margin: 0 0 10px; font-family: var(--font-heading); font-size: 24px; font-weight: 700; line-height: 1.2; color: #222; }
+.process-step p { margin: 0; max-width: 620px; font-size: 16px; line-height: 1.65; color: #4b5563; }
+.process-step p strong { font-weight: 700; color: #222; }
+#our-process.process-animate-enabled .process-step { opacity: 0; transform: translateY(18px); transition: opacity 460ms ease, transform 460ms ease; will-change: opacity, transform; }
+#our-process.process-animate-enabled.is-visible .process-step { opacity: 1; transform: translateY(0); }
+.process-phase-band { margin: 0 0 18px -94px; padding: 10px 20px; position: relative; z-index: 2; text-align: center; background: #0d4f67; border-radius: 14px; box-shadow: 0 8px 18px rgba(13,79,103,0.16); }
+#our-process .process-wrap { max-width: none; padding: 0; }
+#our-process .process-shell { border: none; border-radius: 0; box-shadow: none; padding: 0; background: #ffffff; }
+#our-process .process-header { text-align: center; max-width: none; margin: 0 0 36px; padding-top: 28px; }
+.process-body { display: flex; gap: 0; align-items: stretch; }
+.process-photo-col { flex: 0 0 42%; align-self: stretch; }
+.process-photo-col img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center center; }
+.process-content-col { flex: 1; min-width: 0; padding: 52px 52px 12px 48px; }
+
+@media (max-width: 767px) {
+  #our-process { padding: 32px 0 40px; }
+  .process-wrap { padding: 0 16px; }
+  .process-shell { padding: 24px 18px 28px; }
+  .process-header { padding: 0 16px; text-align: center; max-width: 720px; margin: 0 auto 28px; }
+  .process-body { flex-direction: column; }
+  .process-photo-col { flex: none; width: 100%; height: auto; }
+  .process-photo-col img { height: 25vh; object-fit: cover; object-position: center 25%; }
+  .process-content-col { padding: 26px 18px 32px; }
+  .process-timeline { padding: 18px 14px 18px 56px; }
+  .process-timeline::before { left: 16px; }
+  .process-phase { margin-bottom: 24px; }
+  .process-phase-label { font-size: 15px; }
+  .process-step { margin-bottom: 24px; }
+  .process-step-num { left: -56px; width: 32px; height: 32px; font-size: 10px; }
+  .process-step h3 { font-size: 18px; }
+  .process-step p { font-size: 14px; line-height: 1.55; }
+  .process-phase-band { margin: 0 0 12px -56px; padding: 7px 12px; }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  #our-process { padding: 40px 0 48px; }
+  .process-wrap { padding: 0 20px; }
+  .process-shell { padding: 30px 22px 34px; }
+  .process-header { padding: 0 16px; text-align: center; max-width: 720px; margin: 0 auto 28px; }
+  .process-body { flex-direction: column; }
+  .process-photo-col { flex: none; width: 100%; height: auto; }
+  .process-photo-col img { height: 25vh; object-fit: cover; object-position: center 25%; }
+  .process-content-col { padding: 30px 22px 36px; }
+  .process-timeline { padding: 22px 18px 22px 74px; }
+  .process-timeline::before { left: 20px; }
+  .process-phase { margin-bottom: 30px; }
+  .process-phase-label { font-size: 17px; }
+  .process-step { margin-bottom: 28px; }
+  .process-step-num { left: -74px; width: 40px; height: 40px; font-size: 12px; }
+  .process-step h3 { font-size: 21px; }
+  .process-step p { font-size: 15px; line-height: 1.6; }
+  .process-phase-band { margin: 0 0 16px -74px; padding: 8px 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #our-process.process-animate-enabled .process-timeline::before,
+  #our-process.process-animate-enabled .process-step,
+  #our-process.process-animate-enabled.is-visible .process-timeline::before,
+  #our-process.process-animate-enabled.is-visible .process-step { opacity: 1; transform: none; transition: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   REVIEWS
+   ══════════════════════════════════════════════════════════════ */
+#reviews { background: #033d56; padding: 56px 32px 64px; text-align: center; }
+.reviews-top { margin-bottom: 32px; }
+.reviews-jobs-headline { font-family: var(--font-heading); font-size: clamp(22px, 2.5vw, 32px); font-weight: 600; color: var(--color-form-text); margin: 0; letter-spacing: -0.5px; line-height: 1.15; }
+.reviews-body-row { display: grid; grid-template-columns: 180px 1fr; gap: 24px; max-width: 1100px; margin: 0 auto 36px; align-items: start; text-align: left; }
+@media (max-width: 767px) { .reviews-body-row { grid-template-columns: 1fr; } .reviews-google-panel { display: none; } }
+.reviews-google-panel { background: #fff; border-radius: 16px; padding: 20px 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.reviews-google-logo-wrap { width: 56px; height: 56px; border-radius: 50%; background: var(--color-secondary); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+.reviews-google-logo-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.reviews-panel-name { font-family: var(--font-heading); font-size: 13px; font-weight: 700; color: var(--color-highlight); margin: 0; }
+.reviews-panel-score { font-size: 13px; font-weight: 700; color: #f4a200; margin: 0; }
+.reviews-panel-stars { color: #f4a200; font-size: 14px; letter-spacing: 1px; line-height: 1; }
+.reviews-panel-count { font-size: 12px; color: #666; margin: 0; }
+.reviews-panel-powered { font-size: 11px; color: #888; margin: 0; }
+.reviews-panel-powered span { font-weight: 700; }
+.reviews-panel-powered .g-blue { color: #4285F4; }
+.reviews-panel-powered .g-red { color: #EA4335; }
+.reviews-panel-powered .g-yellow { color: #FBBC05; }
+.reviews-panel-powered .g-green { color: #34A853; }
+.reviews-panel-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--color-secondary); color: #fff; font-family: var(--font-heading); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 999px; text-decoration: none; margin-top: 4px; }
+.review-grid { display: grid; grid-template-columns: 1fr; gap: 16px; text-align: left; }
+.review-card { background: #fff; border-radius: 14px; padding: 22px 22px 20px; box-shadow: 0 2px 14px rgba(0,0,0,0.07); border: 1px solid rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 12px; }
+.review-card-header { display: flex; align-items: center; gap: 12px; }
+.review-card-meta { flex: 1; min-width: 0; }
+.review-card-g { flex-shrink: 0; width: 18px; height: 18px; }
+.avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--color-secondary); color: #fff; font-weight: 800; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+.avatar.green { background: #2e7d32; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.reviewer-name { font-size: 14px; font-weight: 700; }
+.reviewer-date { font-size: 12px; color: #999; }
+.review-stars { color: #f4b400; font-size: 20px; margin-bottom: 4px; letter-spacing: 1px; }
+.review-quote { font-size: 14px; color: #444; line-height: 1.7; margin: 0; font-style: italic; }
+.reviews-all-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--color-secondary); color: #fff; font-family: var(--font-heading); font-size: 15px; font-weight: 700; padding: 14px 32px; border-radius: 999px; text-decoration: none; box-shadow: 0 4px 16px rgba(7,123,171,0.3); transition: background 0.2s; }
+.reviews-all-btn:hover { background: #066992; }
+.reviews-grs-pill { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #ddd; border-radius: 999px; padding: 10px 20px; margin-top: 16px; }
+.grs-logo { width: 18px; height: 18px; flex-shrink: 0; }
+.grs-label { font-size: 13px; font-weight: 600; color: #555; }
+.grs-divider { color: #ddd; font-size: 13px; }
+.grs-score { font-size: 16px; font-weight: 900; color: var(--color-text); line-height: 1; }
+.grs-stars { color: #f4b400; font-size: 14px; letter-spacing: 1px; line-height: 1; }
+.grs-count { font-size: 12px; color: #999; }
+
+@media (max-width: 767px) { #reviews { padding: 40px 16px 48px; } .review-grid { padding: 0; } .reviews-grs-pill { flex-wrap: wrap; justify-content: center; padding: 10px 16px; } }
+@media (min-width: 768px) { .review-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; } }
+
+/* ══════════════════════════════════════════════════════════════
+   FOOTER
+   ══════════════════════════════════════════════════════════════ */
+#footer { background: #fff; color: #0d2d4a; font-family: var(--font-body); border-top: 1px solid #eaeaea; }
+.footer-main { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 18px 32px; }
+.footer-logo-wrap { display: flex; align-items: center; }
+.footer-logo { width: 160px; height: auto; display: block; }
+.footer-legal { font-size: 11px; line-height: 1.5; color: #a0aab4; text-align: center; white-space: nowrap; }
+.footer-phone { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 8px 16px; background: transparent; border: 1.5px solid var(--color-secondary); border-radius: 999px; font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--color-secondary); text-decoration: none; white-space: nowrap; transition: background 0.2s ease, color 0.2s ease; }
+.footer-phone:hover { background: var(--color-secondary); color: #fff; }
+.footer-phone svg { width: 15px; height: 15px; flex-shrink: 0; fill: currentColor; stroke: none; }
+.footer-bottom { background: #033d56; padding: 12px 16px; text-align: center; font-family: var(--font-body); font-size: 12px; line-height: 1.5; color: #fff; }
+.footer-bottom a { color: rgba(255,255,255,0.75); }
+.footer-bottom a:hover { text-decoration: underline; color: #fff; }
+
+@media (max-width: 767px) { .footer-main { flex-direction: column; text-align: center; gap: 12px; padding: 16px; } .footer-legal { white-space: normal; } }
+</style>
+</head>
+<body>
+
+<!-- ─── STICKY TRUST BAR ─────────────────────────────────── -->
+<div id="sticky-trust-bar">
+  <div class="trust-left">
+    <div class="trust-location-wrap">
+      <svg class="trust-pin-icon" width="15" height="21" viewBox="0 0 17 23" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M0.5 9.011C0.5 9.96756 0.80766 11.0629 1.26844 12.1792C1.73243 13.3032 2.3682 14.487 3.06061 15.6317C4.44559 17.9211 6.08025 20.0911 7.08894 21.3696C7.75209 22.2101 9.02414 22.2101 9.68729 21.3696C10.6952 20.0921 12.3395 17.9223 13.7341 15.633C14.4313 14.4885 15.0721 13.3046 15.5398 12.1805C16.0043 11.0643 16.3148 9.96837 16.3148 9.011C16.3148 4.59473 12.7796 1 8.40741 1C3.99497 1 0.5 4.59644 0.5 9.011ZM10.3765 9.011C10.3765 10.1446 9.48012 11.0147 8.40741 11.0147C7.30119 11.0147 6.43827 10.1497 6.43827 9.011C6.43827 7.90624 7.30623 7.00733 8.40741 7.00733C9.47505 7.00733 10.3765 7.91138 10.3765 9.011Z" fill="#f60404" stroke="white"/>
+      </svg>
+      <span class="trust-location-short">Sydney, NSW</span>
+      <span class="trust-location">Plumber To The Rescue, Sydney, NSW</span>
+    </div>
+    <div class="pttr-review-badge-mobile">
+      <div class="google-icon-wrapper">
+        <img class="google-logo" src="https://www.gstatic.com/images/branding/product/1x/googleg_32dp.png" alt="Google" width="18" height="18">
+      </div>
+      <div class="stars-row">
+        <span class="star-rating">4.8</span>
+        <span class="stars-icon">★★★★★</span>
+        <span class="review-divider">|</span>
+        <span class="review-count">224 Reviews</span>
+      </div>
+    </div>
+  </div>
+  <div class="trust-center">
+    <div class="pttr-review-badge">
+      <div class="google-icon-wrapper">
+        <img class="google-logo" src="https://www.gstatic.com/images/branding/product/1x/googleg_32dp.png" alt="Google" width="18" height="18">
+      </div>
+      <div class="stars-row">
+        <span class="star-rating">4.8</span>
+        <span class="stars-icon">★★★★★</span>
+        <span class="review-divider">|</span>
+        <span class="review-count">224 Reviews</span>
+      </div>
+    </div>
+  </div>
+  <div class="trust-right">
+    <div class="trust-available">
+      <span class="trust-available-dot"></span>
+      <span class="trust-available-text">AVAILABLE NOW</span>
+    </div>
+  </div>
+</div>
+
+<!-- ─── HEADER ──────────────────────────────────────────────── -->
+<header id="header">
+  <div class="wrap">
+    <div class="header-logo">
+      <img id="header-logo"
+        src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/Plumber-To-The-Rescue.webp"
+        alt="Plumber To The Rescue logo"
+        width="200" height="60" loading="eager" decoding="async">
+    </div>
+    <div class="header-right">
+      <div class="header-phone">
+        <a id="header-phone-link" href="#">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+          <span class="phone-text" id="header-phone"></span>
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ─── HERO ──────────────────────────────────────────────────── -->
+<section class="lp-hero-wrap" id="get-a-quote">
+  <!-- FIX: simplified picture element — dead breakpoint sources removed -->
+  <div class="hero-bg-media" aria-hidden="true">
+    <picture>
+      <source media="(min-width: 1536px)"
+        srcset="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-team-1920.webp">
+      <source media="(min-width: 1280px)"
+        srcset="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-team-1280.webp">
+      <img
+        src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-team-1920.webp"
+        alt=""
+        width="1920"
+        height="1080"
+        fetchpriority="high"
+        decoding="async">
+    </picture>
+  </div>
+
+  <div class="hero-top-banner" aria-hidden="true">
+    <picture>
+      <source media="(max-width: 767px)"
+        srcset="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-team-398.webp">
+      <source media="(min-width: 768px) and (max-width: 1219px)"
+        srcset="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-team-960.webp">
+      <img
+        src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-team-960.webp"
+        alt=""
+        width="960"
+        height="480"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async">
+    </picture>
+  </div>
+
+  <div class="hero-left">
+    <div class="hero-left-content">
+      <div class="hero-preheadline" id="hero-preheadline">Emergency Plumbing Across Sydney</div>
+      <h2 class="guarantee-headline" id="guarantee-headline"></h2>
+      <p class="guarantee-subline" id="guarantee-subline"></p>
+      <ul class="hero-checklist">
+        <li id="hero-checklist-arrival">60 minute arrival in Sydney - Guaranteed</li>
+        <li>No Call Out Fee</li>
+        <li>100,000+ Jobs Completed</li>
+        <li>Lifetime Labour Guarantee</li>
+      </ul>
+      <p class="hero-trust-line">Proudly Serving Sydney Since 1988</p>
+      <a id="hero-call-btn" href="#" class="btn btn-red" style="margin-top:20px;align-self:flex-start;">Call Now</a>
+    </div>
+    <div class="hero-left-guarantee">
+      <img src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/satisfaction-guarantee-transparent.webp"
+        alt="100% Satisfaction Guaranteed"
+        width="60" height="60"
+        style="width:60px;height:auto;flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3));"
+        loading="lazy">
+      <div>
+        <div style="font-family:var(--font-heading);font-size:14px;font-weight:700;color:#fff;border-bottom:1px solid rgba(255,255,255,0.3);padding-bottom:3px;margin-bottom:3px;">100% Satisfaction Guarantee</div>
+        <div style="font-size:12px;color:var(--color-highlight);">If it's not right, we'll make it right.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-gap" aria-hidden="true"></div>
+
+  <div class="hero-right">
+    <div class="form-header-box">
+      <p class="form-header-eyebrow" id="form-eyebrow"></p>
+      <p class="form-offer-line" id="form-offer-line-primary"></p>
+      <p class="form-offer-line form-offer-line-secondary" id="form-offer-line-secondary"></p>
+    </div>
+    <div class="form-card" id="hero-form">
+      <form class="lp-form" id="lp-form" action="" method="post" netlify name="contact">
+        <input type="hidden" name="form-name" value="contact">
+        <div id="form-fields-container"></div>
+        <button type="submit" class="btn form-submit" id="form-submit-btn"></button>
+        <div class="form-guarantee">
+          <img class="form-guarantee-shield"
+            src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/satisfaction-guarantee-transparent.webp"
+            alt="100% Satisfaction Guaranteed"
+            width="70" height="70"
+            loading="lazy" decoding="async">
+          <div class="form-guarantee-copy">
+            <div class="form-guarantee-headline">100% Satisfaction Guarantee</div>
+            <div class="form-guarantee-subline">If it's not right, we'll make it right.</div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="hero-guarantee-bar">
+    <img class="form-guarantee-shield"
+      src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/satisfaction-guarantee-transparent.webp"
+      alt="100% Satisfaction Guaranteed" width="52" height="52" loading="lazy">
+    <div class="form-guarantee-copy">
+      <div class="form-guarantee-headline">100% Satisfaction Guarantee</div>
+      <div class="form-guarantee-subline">If it's not right, we'll make it right.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── TRUST BAR ────────────────────────────────────────────── -->
+<section id="trust-bar">
+  <div class="trust-bar-wrap">
+    <div style="text-align:center;margin-bottom:36px;">
+      <span class="emergency-eyebrow">Trusted by Sydney Homeowners across 100,000+ jobs</span>
+    </div>
+    <div class="trust-badges">
+      <div class="trust-badge-item">
+        <img src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/Master-Plumbers-NSW.webp" alt="Master Plumbers NSW" width="120" height="80" loading="lazy" decoding="async">
+        <p class="trust-badge-label">35 Year Industry Veteran</p>
+      </div>
+      <div class="trust-badge-item">
+        <img src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/NSW_Government.webp" alt="NSW Government Licensed" width="120" height="80" loading="lazy" decoding="async">
+        <p class="trust-badge-label">Verified NSW Licensed</p>
+      </div>
+      <div class="trust-badge-item">
+        <img src="https://plumbertotherescue.com.au/wp-content/uploads/2026/03/2024-Local-Business-Awards-1.webp" alt="Local Business Awards" width="120" height="80" loading="lazy" decoding="async">
+        <p class="trust-badge-label">Outstanding Service &amp; Trade</p>
+      </div>
+    </div>
+    <div class="trust-reviews-grid">
+      <div class="trust-review-card">
+        <p class="trust-review-quote">"I had a burst pipe and the front desk did everything they could to slot me in that very afternoon. Rohan arrived and did a fantastic job. Give them a go, you will not be sorry."</p>
+        <div class="trust-review-stars">★★★★★</div>
+        <p class="trust-review-author">Dave A.</p>
+      </div>
+      <div class="trust-review-card">
+        <p class="trust-review-quote">"Super quick response to a toilet cistern that was behaving like Warragamba Dam!! Rohan had it fixed and flushing in no time. Wouldn't hesitate to recommend."</p>
+        <div class="trust-review-stars">★★★★★</div>
+        <p class="trust-review-author">Cheryl</p>
+      </div>
+      <div class="trust-review-card">
+        <p class="trust-review-quote">"Nick was prompt, tidy and efficient. He was friendly and happy to explain the steps. He insisted on tidying up afterwards. I would highly recommend him."</p>
+        <div class="trust-review-stars">★★★★★</div>
+        <p class="trust-review-author">Robyn M., Lane Cove</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── DAVID BIO ────────────────────────────────────────────── -->
+<section id="david-bio">
+  <div class="wrap">
+    <div class="bio-content">
+      <span class="bio-section-eyebrow">MEET YOUR LOCAL PLUMBER</span>
+      <div class="bio-image-mobile">
+        <img src="https://plumbertotherescue.com.au/wp-content/uploads/2026/03/Plumber-Intro.webp" alt="Dave from Plumber To The Rescue" width="600" height="400" loading="lazy" decoding="async">
+      </div>
+      <h2 class="bio-eyebrow">Hi, I'm Dave - the plumber</h2>
+      <p class="bio-quote">"I'm a local, fully licensed plumber who believes good service still matters. Whether it's a blocked drain, gas installation, or a job that just needs to be done properly, I'll turn up on time, talk you through the issue, and fix it with care and precision.<br><br>That's what Plumber To The Rescue is all about — reliable help when you need it most."</p>
+      <div class="bio-bullets">
+        <div>👷‍♂️&nbsp; Local &amp; approachable</div>
+        <div>🔧&nbsp; Quality workmanship</div>
+        <div>📞&nbsp; One call, real help</div>
+      </div>
+    </div>
+    <div class="bio-image-panel">
+      <img src="https://plumbertotherescue.com.au/wp-content/uploads/2026/03/Plumber-Intro.webp" alt="Dave from Plumber To The Rescue" width="420" height="560" loading="lazy" decoding="async">
+    </div>
+  </div>
+</section>
+
+<!-- ─── PROMISE PROOF ──────────────────────────────────────── -->
+<section id="promise-proof">
+  <div class="promise-left">
+    <h2>Our Promise To You</h2>
+    <p class="promise-tagline">On time. Fixed right. No mess. No surprises.</p>
+    <p class="promise-sub">When you call us, this is what you can expect — every time.</p>
+    <div class="guarantee-block">
+      <p class="g-title">100% Satisfaction Guarantee. If it's not right, we'll make it right.</p>
+      <p class="g-body">If something isn't right, you call us and we fix it. No arguments. No drama.<br>All workmanship is backed by our lifetime labour guarantee.</p>
+    </div>
+    <a href="#get-a-quote" class="btn btn-red promise-cta">Get Help Now</a>
+  </div>
+  <div class="promise-right">
+    <div class="proof-block"><span class="proof-num">01</span><div class="proof-text"><h3>On Time</h3><p>We show up when we say we will. You get a clear arrival window and we stick to it — or you don't pay for the labour.</p></div></div>
+    <div class="proof-block"><span class="proof-num">02</span><div class="proof-text"><h3>Fixed Right</h3><p>We diagnose the root cause, not just the symptom. That's why our repairs last — backed by a lifetime labour guarantee.</p></div></div>
+    <div class="proof-block"><span class="proof-num">03</span><div class="proof-text"><h3>No Mess</h3><p>We respect your home. Drop sheets, clean work areas, and a proper tidy-up before we leave.</p></div></div>
+    <div class="proof-block"><span class="proof-num">04</span><div class="proof-text"><h3>No Surprises</h3><p>Clear, upfront pricing before we start. No hidden costs. No last-minute add-ons.</p></div></div>
+  </div>
+</section>
+
+<section id="promise-proof-stacked">
+  <div class="promise-stacked-header">
+    <p class="promise-tagline" style="text-align:center;">On Time. Fixed Right. No Mess. No Surprises.</p>
+    <h2 style="text-align:center;">Every Job 100% Satisfied.<br>It's Our Promise.</h2>
+    <p class="promise-stacked-sub">Not 100% satisfied? Just call us — we'll make it right. <br>No arguments, no drama.</p>
+  </div>
+  <div class="promise-stacked-points">
+    <div class="proof-block"><span class="proof-num">01</span><div class="proof-text"><h3>On Time</h3><p>We show up when we say we will. You get a clear arrival window and we stick to it — or you don't pay for the labour.</p></div></div>
+    <div class="proof-block"><span class="proof-num">02</span><div class="proof-text"><h3>Fixed Right</h3><p>We diagnose the root cause, not just the symptom. That's why our repairs last — backed by a lifetime labour guarantee.</p></div></div>
+    <div class="proof-block"><span class="proof-num">03</span><div class="proof-text"><h3>No Mess</h3><p>We respect your home. Drop sheets, clean work areas, and a proper tidy-up before we leave.</p></div></div>
+    <div class="proof-block"><span class="proof-num">04</span><div class="proof-text"><h3>No Surprises</h3><p>Clear, upfront pricing before we start. No hidden costs. No last-minute add-ons.</p></div></div>
+  </div>
+  <a href="#get-a-quote" class="btn btn-red promise-cta">Get Help Now</a>
+</section>
+
+<!-- ─── EMERGENCY SERVICES ─────────────────────────────────── -->
+<section id="emergency-services">
+  <div class="emergency-services-wrap">
+    <div class="emergency-services-header">
+      <span class="emergency-eyebrow">Emergency Services</span>
+      <h2>The Plumbing Emergencies We Fix Every Day</h2>
+      <p class="emergency-subhead">From burst pipes to blocked drains, we handle urgent plumbing problems across Sydney.</p>
+    </div>
+    <div class="emergency-services-grid">
+      <article class="emergency-card"><img class="emergency-card-image" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/burst-pipe-repair-sydney-1.webp" width="600" height="338" loading="lazy" decoding="async" alt="Burst Pipes"><div class="emergency-card-body"><h3>Burst Pipes</h3><p>Fast isolation and repair before water damage spreads through your home.</p></div></article>
+      <article class="emergency-card"><img class="emergency-card-image" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/service-blocked-drain-400.webp" srcset="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/service-blocked-drain-300.webp 300w, https://plumbertotherescue.com.au/wp-content/uploads/2026/04/service-blocked-drain-400.webp 400w, https://plumbertotherescue.com.au/wp-content/uploads/2026/04/service-blocked-drain-600.webp 600w" sizes="(max-width:767px) calc(100vw - 32px),(max-width:991px) calc((100vw - 50px)/2),calc((min(1200px,100vw) - 150px)/4)" width="600" height="338" loading="lazy" decoding="async" alt="Blocked drain emergency service"><div class="emergency-card-body"><h3>Blocked Drains</h3><p>Slow, backing up, or fully blocked, we clear the line and restore flow fast.</p></div></article>
+      <article class="emergency-card"><img class="emergency-card-image" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/service-hot-water-400.webp" srcset="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/service-hot-water-300.webp 300w, https://plumbertotherescue.com.au/wp-content/uploads/2026/04/service-hot-water-400.webp 400w, https://plumbertotherescue.com.au/wp-content/uploads/2026/04/service-hot-water-600.webp 600w" sizes="(max-width:767px) calc(100vw - 32px),(max-width:991px) calc((100vw - 50px)/2),calc((min(1200px,100vw) - 150px)/4)" width="600" height="338" loading="lazy" decoding="async" alt="No hot water plumbing service"><div class="emergency-card-body"><h3>No Hot Water</h3><p>We diagnose the fault quickly and get your hot water back on today.</p></div></article>
+      <article class="emergency-card"><img class="emergency-card-image" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/service-leak-detection-400.webp" srcset="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/service-leak-detection-300.webp 300w, https://plumbertotherescue.com.au/wp-content/uploads/2026/04/service-leak-detection-400.webp 400w, https://plumbertotherescue.com.au/wp-content/uploads/2026/04/service-leak-detection-600.webp 600w" sizes="(max-width:767px) calc(100vw - 32px),(max-width:991px) calc((100vw - 50px)/2),calc((min(1200px,100vw) - 150px)/4)" width="600" height="338" loading="lazy" decoding="async" alt="Emergency leak and flooding service"><div class="emergency-card-body"><h3>Leaks &amp; Flooding</h3><p>From hidden leaks to active flooding, we stop the source and limit damage.</p></div></article>
+      <article class="emergency-card"><img class="emergency-card-image" src="https://plumbertotherescue.com.au/wp-content/uploads/2023/08/blocked-drains-plumbing.jpg" width="600" height="338" loading="lazy" decoding="async" alt="Overflowing Toilets"><div class="emergency-card-body"><h3>Overflowing Toilets</h3><p>Backed-up or overflowing toilets fixed urgently before they become a bigger mess.</p></div></article>
+      <article class="emergency-card"><img class="emergency-card-image" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/service-gas-400.webp" srcset="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/service-gas-300.webp 300w, https://plumbertotherescue.com.au/wp-content/uploads/2026/04/service-gas-400.webp 400w, https://plumbertotherescue.com.au/wp-content/uploads/2026/04/service-gas-600.webp 600w" sizes="(max-width:767px) calc(100vw - 32px),(max-width:991px) calc((100vw - 50px)/2),calc((min(1200px,100vw) - 150px)/4)" width="600" height="338" loading="lazy" decoding="async" alt="Gas leak emergency plumbing service"><div class="emergency-card-body"><h3>Gas Leaks</h3><p>Suspect a gas issue? We respond fast, test properly, and make it safe.</p></div></article>
+      <article class="emergency-card"><img class="emergency-card-image" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/low-water-pressure-sydney.webp" width="600" height="338" loading="lazy" decoding="async" alt="Low Water Pressure"><div class="emergency-card-body"><h3>Low Water Pressure</h3><p>Weak flow, sudden pressure drops, or inconsistent water? We track down the cause fast.</p></div></article>
+      <article class="emergency-card"><img class="emergency-card-image" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/sewer-smell-plumber-sydney.webp" width="600" height="338" loading="lazy" decoding="async" alt="Sewer Smells / Drain Issues"><div class="emergency-card-body"><h3>Sewer Smells / Drain Issues</h3><p>Bad smells, gurgling drains, or warning signs underground? We find and fix the issue quickly.</p></div></article>
+    </div>
+  </div>
+</section>
+
+<!-- ─── REVIEWS ────────────────────────────────────────────── -->
+<section id="reviews">
+  <div class="reviews-top">
+    <span class="emergency-eyebrow">Take it from our customers</span>
+    <h2 class="reviews-jobs-headline">Real reviews from Sydney homeowners</h2>
+    <div class="reviews-grs-pill">
+      <svg class="grs-logo" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      <span class="grs-label">Google Rating</span>
+      <span class="grs-divider">|</span>
+      <span class="grs-score">4.8</span>
+      <span class="grs-stars">★★★★★</span>
+      <span class="grs-divider">|</span>
+      <span class="grs-count">200+ Sydney customers</span>
+    </div>
+  </div>
+  <div class="review-grid" style="max-width:1100px;margin:0 auto;">
+    <div class="review-card">
+      <div class="review-card-header"><div class="avatar">E</div><div class="review-card-meta"><div class="reviewer-name">Enza C</div><div class="reviewer-date">Five Dock &bull; January 2026</div></div><svg class="review-card-g" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg></div>
+      <div class="review-stars">★★★★★</div>
+      <p class="review-quote">Nick was very helpful on the day and how he quoted the work on the spot. Very happy with the service that Nick provided.</p>
+    </div>
+    <div class="review-card">
+      <div class="review-card-header"><div class="avatar">K</div><div class="review-card-meta"><div class="reviewer-name">Kate S.</div><div class="reviewer-date">Alexandria &bull; February 2026</div></div><svg class="review-card-g" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg></div>
+      <div class="review-stars">★★★★★</div>
+      <p class="review-quote">Rohan was brilliant. Calm, professional, courteous — a good problem solver and did an excellent job.</p>
+    </div>
+    <div class="review-card">
+      <div class="review-card-header"><div class="avatar">A</div><div class="review-card-meta"><div class="reviewer-name">Anthony B</div><div class="reviewer-date">Hunters Hill &bull; 2 months ago</div></div><svg class="review-card-g" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg></div>
+      <div class="review-stars">★★★★★</div>
+      <p class="review-quote">These guys were terrific. And Dave is the man!!</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── OUR PROCESS ────────────────────────────────────────── -->
+<section id="our-process">
+  <div class="process-wrap">
+    <div class="process-shell">
+      <div class="process-header">
+        <span class="process-eyebrow">What To Expect When We Arrive</span>
+        <h2>A premium, professional service, from start to finish</h2>
+        <p class="process-subhead">No guesswork. No hidden fees. Just expert Sydney plumbers who respect your home and your time.</p>
+      </div>
+      <div class="process-body">
+        <div class="process-photo-col">
+          <img src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/sydney-plumber-service.webp" alt="Plumber To The Rescue technician working in a Sydney home" width="390" height="520" loading="lazy" decoding="async">
+        </div>
+        <div class="process-content-col">
+          <div class="process-timeline">
+            <div class="process-phase">
+              <div class="process-phase-band"><p class="process-phase-label">Before We Start</p></div>
+              <div class="process-step"><div class="process-step-num">01</div><h3>You get a clear diagnosis</h3><p>We find the root cause, not just the symptom. No guesswork, no repeat visits.</p></div>
+              <div class="process-step"><div class="process-step-num">02</div><h3>You're in control</h3><p>We explain exactly what's wrong and what it costs to fix — <strong>before we touch anything.</strong></p></div>
+            </div>
+            <div class="process-phase">
+              <div class="process-phase-band"><p class="process-phase-label">During The Job</p></div>
+              <div class="process-step"><div class="process-step-num">03</div><h3>No surprises on price</h3><p>You approve the quote upfront. Fixed price. If it takes longer, that's on us.</p></div>
+              <div class="process-step"><div class="process-step-num">04</div><h3>Fixed right, first time</h3><p>We protect your home, do the job properly, and don't leave until it's 100% sorted.</p></div>
+            </div>
+            <div class="process-phase">
+              <div class="process-phase-band"><p class="process-phase-label">Before We Leave</p></div>
+              <div class="process-step"><div class="process-step-num">05</div><h3>Clean home, clear warranty</h3><p>We clean up, test the work, and hand you our Lifetime Labour Warranty in writing.</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─────────────────────────────────────────────── -->
+<footer id="footer">
+  <div class="footer-main">
+    <div class="footer-logo-wrap"><img id="footer-logo" class="footer-logo" src="" alt="" width="200" height="60" loading="lazy" decoding="async"></div>
+    <div class="footer-legal">Licence No. 3A403 | ABN 53 658 854 553</div>
+    <a id="footer-phone-link" class="footer-phone" href="#">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24 11.47 11.47 0 0 0 3.58.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/></svg>
+      <span id="footer-phone-text"></span>
+    </a>
+  </div>
+  <div class="footer-bottom">
+    &copy; 2026 Plumber To The Rescue Pty Ltd. All Rights Reserved. |
+    <a href="#" target="_blank" rel="noopener">Privacy Policy</a> |
+    <a href="#" target="_blank" rel="noopener">Terms &amp; Conditions</a>
+  </div>
+</footer>
+
+<!-- ─── CONFIG ───────────────────────────────────────────────── -->
+<script>
+const CONFIG = {
+  brand: {
+    name:      "Plumber To The Rescue",
+    logoUrl:   "https://plumbertotherescue.com.au/wp-content/uploads/2026/04/Plumber-To-The-Rescue.webp",
+    logoWidth: 200, logoHeight: 60,
+    logoAlt:   "Plumber To The Rescue logo",
+  },
+  colors: {
+    primary:   "#FF0D00", secondary: "#077bab", lightGrey: "#F3F3F2",
+    darkGrey:  "#2C2C2C", text: "#111111", formBg: "#077bab",
+    formText:  "#FFFFFF", highlight: "#FFD84D",
+  },
+  fonts: {
+    heading: "'Montserrat', sans-serif",
+    body:    "Arial, Helvetica, sans-serif",
+  },
+  contact: { phone: "(02) 8103 4607", phoneTel: "+61281034607" },
+  urls: {
+    canonical:  "https://www.plumbertotherescue.com.au/emergency-plumber-lp/",
+    formAction: "",
+  },
+  hero: {
+    badgeImageUrl: "https://plumbertotherescue.com.au/wp-content/uploads/2026/03/2024-Local-Business-Awards-1.webp",
+    badgeWidth: 123, badgeHeight: 210,
+    guaranteeHeadline: "Stop the Stress.\nWe'll fix it today.",
+    guaranteeSubline:  "ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.",
+  },
+  form: {
+    eyebrow: "GET HELP NOW",
+    offerLinePrimaryHtml: "Contact Us Today And Get $50 Off Your Service",
+    offerLineSecondaryHtml: "",
+    submitText: "GET HELP NOW",
+    fields: [
+      { name:"name",    label:"Name",              type:"text",     required:true },
+      { name:"phone",   label:"Phone",             type:"tel",      required:true },
+      { name:"email",   label:"Email",             type:"email",    required:true },
+      { name:"suburb",  label:"Suburb / Postcode", type:"text",     required:true },
+      { name:"message", label:"How can we help?",  type:"textarea", required:false },
+    ],
+  },
+};
+</script>
+
+<!-- ─── RENDER SCRIPT ─────────────────────────────────────── -->
+<script>
+(function(){
+  const C = CONFIG;
+
+  // CSS vars + headlines — sync, needed before first paint
+  const r = document.documentElement.style;
+  r.setProperty('--color-primary',   C.colors.primary);
+  r.setProperty('--color-secondary', C.colors.secondary);
+  r.setProperty('--color-lightgrey', C.colors.lightGrey);
+  r.setProperty('--color-darkgrey',  C.colors.darkGrey);
+  r.setProperty('--color-text',      C.colors.text);
+  r.setProperty('--color-form-bg',   C.colors.formBg);
+  r.setProperty('--color-form-text', C.colors.formText);
+  r.setProperty('--font-heading',    C.fonts.heading);
+  r.setProperty('--font-body',       C.fonts.body);
+  r.setProperty('--color-highlight', C.colors.highlight);
+
+  document.getElementById('guarantee-headline').innerHTML =
+    C.hero.guaranteeHeadline.replace(/\n/g, '<br>');
+  document.getElementById('guarantee-subline').innerHTML =
+    C.hero.guaranteeSubline.replace("FIXED RIGHT.", "FIXED RIGHT.<br class='usp-break'>");
+
+  // Everything else — deferred until after first paint
+  requestAnimationFrame(function() {
+    document.getElementById('page-title').textContent = C.brand.name + ' | Sydney Emergency Plumber';
+    document.getElementById('canonical-link').setAttribute('href', C.urls.canonical);
+
+    document.getElementById('header-phone').textContent = C.contact.phone;
+    document.getElementById('header-phone-link').href = 'tel:' + C.contact.phoneTel;
+    document.getElementById('hero-call-btn').href = 'tel:' + C.contact.phoneTel;
+
+    const fLogo = document.getElementById('footer-logo');
+    if (fLogo) { fLogo.src = C.brand.logoUrl; fLogo.alt = C.brand.logoAlt; }
+    const fPhone = document.getElementById('footer-phone-text');
+    if (fPhone) fPhone.textContent = C.contact.phone;
+    const fLink = document.getElementById('footer-phone-link');
+    if (fLink) fLink.href = 'tel:' + C.contact.phoneTel;
+
+    document.getElementById('form-eyebrow').textContent = C.form.eyebrow;
+    document.getElementById('form-offer-line-primary').innerHTML = C.form.offerLinePrimaryHtml;
+    document.getElementById('form-offer-line-secondary').innerHTML = C.form.offerLineSecondaryHtml;
+    document.getElementById('lp-form').action = C.urls.formAction;
+    document.getElementById('form-submit-btn').textContent = C.form.submitText;
+
+    const fc = document.getElementById('form-fields-container');
+    C.form.fields.forEach(function(f) {
+      const wrap = document.createElement('div'); wrap.className = 'form-field';
+      const field = f.type === 'textarea'
+        ? `<textarea id="field-${f.name}" name="${f.name}" placeholder="${f.label}" rows="3" ${f.required ? 'required' : ''}></textarea>`
+        : `<input id="field-${f.name}" name="${f.name}" type="${f.type}" placeholder="${f.label}" ${f.required ? 'required' : ''}>`;
+      wrap.innerHTML = `<label for="field-${f.name}">${f.label}${f.required ? ' *' : ''}</label>${field}`;
+      fc.appendChild(wrap);
+    });
+
+    var ps = document.getElementById('our-process');
+    if (ps && 'IntersectionObserver' in window &&
+        !window.matchMedia('(prefers-reduced-motion:reduce)').matches) {
+      var steps = ps.querySelectorAll('.process-step');
+      if (steps.length) {
+        ps.classList.add('process-animate-enabled');
+        steps.forEach(function(s, i) { s.style.transitionDelay = (i * 90) + 'ms'; });
+        new IntersectionObserver(function(entries) {
+          entries.forEach(function(e) { if (e.isIntersecting) ps.classList.add('is-visible'); });
+        }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' }).observe(ps);
+      }
+    }
+  });
+})();
+</script>
+
+<!-- ─── LOCATION FETCH ────────────────────────────────────── -->
+<script>
+(function(){
+  var SYD = { latMin:-34.17, latMax:-33.40, lngMin:150.50, lngMax:151.35 };
+  function apply(loc, state) {
+    loc = (loc || 'Sydney').trim() || 'Sydney';
+    state = (state || 'NSW').trim() || 'NSW';
+    var t = document.querySelector('.trust-location');
+    if (t) t.textContent = 'Plumber to the Rescue, ' + loc + ', ' + state;
+    var s = document.querySelector('.trust-location-short');
+    if (s) s.textContent = loc + ', ' + state;
+    var h = document.getElementById('hero-preheadline');
+    if (h) h.textContent = 'Emergency Plumber in ' + loc;
+    var a = document.getElementById('hero-checklist-arrival');
+    if (a) a.textContent = 'Under 1 Hour Arrival';
+  }
+  apply('Sydney', 'NSW');
+  fetch('https://ipapi.co/json/')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var lat = parseFloat(d.latitude), lng = parseFloat(d.longitude);
+      var ok = lat >= SYD.latMin && lat <= SYD.latMax && lng >= SYD.lngMin && lng <= SYD.lngMax;
+      apply(
+        ok ? (d.city || '').trim() || 'Sydney' : 'Sydney',
+        ok ? (d.region_code || '').trim() || 'NSW' : 'NSW'
+      );
+    })
+    .catch(function(){});
+})();
+</script>
+
+</body>
+</html>
