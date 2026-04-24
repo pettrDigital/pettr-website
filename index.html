@@ -3406,6 +3406,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- ===================== JAVASCRIPT ===================== -->
 <script>
+// --- Scroll to top of screen ---
+if (history.scrollRestoration) {
+  history.scrollRestoration = 'manual';
+}
+window.scrollTo(0, 0);
+
 // --- Hamburger / Nav Drawer ---
 function openDrawer() {
   document.getElementById('navDrawer').classList.add('open');

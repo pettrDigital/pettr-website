@@ -25,16 +25,17 @@ export async function onRequestPost(context) {
 
     const trade = ['electrical', 'electrical-emergency', 'switchboard'].includes((service || '').toLowerCase()) ? 'Electrical' : 'Plumbing';
     const subject = `PETTR Website - New Lead - ${trade} - ${service || "TBC"} - ${suburb || "TBC"}`;
+    const pageUrl = request.headers.get('referer') || request.headers.get('origin') || '';
 
     const textBody = `
 New PETTR Lead
 
-Name: ${name}
-Email: ${email}
-Phone: ${phone}
-Address: ${address}
-Postcode: ${postcode}
-Message: ${message}
+My name is ${name}
+My Probem is ${message}
+My phone number is ${phone}
+My email is ${email}
+My address is ${address}
+My postcode is ${postcode}
 
 --- Attribution ---
 Suburb: ${suburb}
@@ -58,18 +59,23 @@ GCLID: ${gclid}
         </div>
 
         <div style="background:#ffffff;">
-          ${row("Name", name)}
-          ${row("Email", email || "-")}
-          ${row("Phone", phone)}
-          ${row("Address", address || "-")}
-          ${row("Postcode", postcode || "-")}
-          ${row("Message", message || "-")}
+          ${row("My name is", name)}
+          ${row("My problem is", message || "-")}
+          ${row("My phone number is", phone)}
+          ${row("My email is", email || "-")}
+          ${row("My address is", address || "-")}
+          ${row("My postcode is", postcode || "-")}
+          
         </div>
 
         <div style="padding:12px 24px; background:#f9f9f9; border-top:1px solid #eee;">
           <div style="font-size:11px; color:#999; line-height:1.6;">
             ${escapeHtml(suburb)} | ${escapeHtml(service)} | ${escapeHtml(variant || 'a')} | ${escapeHtml(utmSource)} | ${escapeHtml(utmMedium)} | ${escapeHtml(utmCampaign)} | ${escapeHtml(utmTerm)}
           </div>
+        </div>
+
+        <div style="padding:12px 24px; text-align:right; font-size:11px; color:#999;">
+          Sent from <a href="${escapeHtml(pageUrl)}" style="color:#077bab;">${escapeHtml(pageUrl) || 'Plumber and Electrician to the Rescue'}</a>
         </div>
 
       </div>
@@ -109,7 +115,7 @@ GCLID: ${gclid}
 function row(label, value) {
   return `
     <div style="padding:14px 24px; border-bottom:1px solid #e8e8e8; background:#ffffff;">
-      <div style="font-size:11px; font-weight:bold; text-transform:uppercase; letter-spacing:0.5px; color:#888; margin-bottom:4px;">${escapeHtml(label)}</div>
+      <div style="font-size:11px; font-weight:bold; text-transform:uppercase; letter-spacing:0.5px; color:#000; margin-bottom:4px;">${escapeHtml(label)}</div>
       <div style="font-size:15px; color:#111; min-height:20px;">${escapeHtml(value).replace(/\n/g, "<br>")}</div>
     </div>
   `;
