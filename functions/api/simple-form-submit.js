@@ -46,64 +46,58 @@ UTM Term: ${utmTerm}
 GCLID: ${gclid}
 `;
 
-    const htmlBody = `
-<!doctype html>
-<html>
-  <body style="margin:0; padding:0; background:#efefef; font-family:Arial, Helvetica, sans-serif;">
-    <div style="max-width:1000px; margin:0 auto;">
+  const htmlBody = `
+  <!doctype html>
+  <html>
+    <body style="margin:0; padding:0; background:#f5f5f5; font-family:Arial, Helvetica, sans-serif;">
+      <div style="max-width:600px; margin:0 auto; background:#ffffff;">
 
-      <div style="padding:20px; font-size:14px; color:#111;">
-        <div><strong>From:</strong> PTTR website &lt;jobs@plumbertotherescue.com.au&gt;</div>
-        <div><strong>To:</strong> PTTR Leads &lt;jobs@mrwasher.com.au&gt;</div>
-        <div><strong>Subject:</strong> ${escapeHtml(subject)}</div>
-      </div>
-
-      <div style="background:#ffffff; border-top:1px solid #ddd; border-bottom:1px solid #ddd;">
-        ${row("My name is", name)}
-        ${row("My email is", email || "-")}
-        ${row("My phone number is", phone)}
-        ${row("My address is", address || "-")}
-        ${row("My postcode is", postcode || "-")}
-        ${row("My problem is", message || "-")}
-      </div>
-
-      <div style="padding:12px 30px; background:#ffffff; border-top:1px solid #f0f0f0;">
-        <div style="font-size:9px; color:#eeeeee; line-height:1.4;">
-          ${escapeHtml(suburb)} | ${escapeHtml(service)} | ${escapeHtml(variant || 'a')} | ${escapeHtml(utmSource)} | ${escapeHtml(utmMedium)} | ${escapeHtml(utmCampaign)} | ${escapeHtml(utmTerm)} | ${escapeHtml(gclid)}
+        <div style="padding:16px 24px; background:#ffffff; border-bottom:2px solid #077bab;">
+          <div style="font-size:18px; font-weight:bold; color:#033d56;">${escapeHtml(subject)}</div>
         </div>
+
+        <div style="background:#ffffff;">
+          ${row("Name", name)}
+          ${row("Email", email || "-")}
+          ${row("Phone", phone)}
+          ${row("Address", address || "-")}
+          ${row("Postcode", postcode || "-")}
+          ${row("Message", message || "-")}
+        </div>
+
+        <div style="padding:12px 24px; background:#f9f9f9; border-top:1px solid #eee;">
+          <div style="font-size:11px; color:#999; line-height:1.6;">
+            ${escapeHtml(suburb)} | ${escapeHtml(service)} | ${escapeHtml(variant || 'a')} | ${escapeHtml(utmSource)} | ${escapeHtml(utmMedium)} | ${escapeHtml(utmCampaign)} | ${escapeHtml(utmTerm)}
+          </div>
+        </div>
+
       </div>
+    </body>
+  </html>
+  `;
 
-      <div style="padding:24px; text-align:right; font-size:12px; color:#777;">
-        Sent from <a href="https://plumbertotherescue.com.au" style="color:#666;">Plumber To The Rescue</a>
-      </div>
+  const res = await fetch("https://api.smtp2go.com/v3/email/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      api_key:   env.SMTP2GO_API_KEY,
+      sender:    "gordo@mrwasher.com.au",
+      to:        ["digital.plumbertotherescue.com"],
+      subject,
+      text_body: textBody,
+      html_body: htmlBody,
+      reply_to:  email || "jobs@plumbertotherescue.com.au"
+    })
+  });
 
-    </div>
-  </body>
-</html>
-`;
+  const data = await res.json();
 
-    const res = await fetch("https://api.smtp2go.com/v3/email/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        api_key:   env.SMTP2GO_API_KEY,
-        sender:    "gordo@mrwasher.com.au",
-        to:        ["jobs@mrwasher.com.au"],
-        subject,
-        text_body: textBody,
-        html_body: htmlBody,
-        reply_to:  email || "jobs@plumbertotherescue.com.au"
-      })
-    });
+  if (!res.ok) {
+    console.error("SMTP2GO error:", data);
+    return json({ success: false, error: "Email failed" }, 500);
+  }
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.error("SMTP2GO error:", data);
-      return json({ success: false, error: "Email failed" }, 500);
-    }
-
-    return json({ success: true });
+  return json({ success: true });
 
   } catch (err) {
     console.error(err);
@@ -113,9 +107,9 @@ GCLID: ${gclid}
 
 function row(label, value) {
   return `
-    <div style="padding:26px 30px; border-bottom:1px solid #eee;">
-      <div style="font-size:16px; font-weight:bold; margin-bottom:10px;">${escapeHtml(label)}</div>
-      <div style="font-size:16px;">${escapeHtml(value).replace(/\n/g, "<br>")}</div>
+    <div style="padding:14px 24px; border-bottom:1px solid #e8e8e8; background:#ffffff;">
+      <div style="font-size:11px; font-weight:bold; text-transform:uppercase; letter-spacing:0.5px; color:#888; margin-bottom:4px;">${escapeHtml(label)}</div>
+      <div style="font-size:15px; color:#111; min-height:20px;">${escapeHtml(value).replace(/\n/g, "<br>")}</div>
     </div>
   `;
 }
