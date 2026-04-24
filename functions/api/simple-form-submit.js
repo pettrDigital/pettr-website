@@ -72,7 +72,7 @@ GCLID: ${gclid}
           Sent from <a href="${escapeHtml(pageUrl)}" style="color:#999; text-decoration:underline;">Plumber and Electrician to the Rescue</a>
         </div>
 
-        <div style="padding:12px 24px; background:#ffffff; border-top:1px solid #e8e8e8;
+        <div style="padding:12px 24px; background:#ffffff; border-top:1px solid #e8e8e8;">
           <div style="font-size:6px; color:#f9f9f9;">
             ${escapeHtml(suburb)} | ${escapeHtml(service)} | ${escapeHtml(variant || 'a')} | ${escapeHtml(utmSource)} | ${escapeHtml(utmMedium)} | ${escapeHtml(utmCampaign)} | ${escapeHtml(utmTerm)}
           </div>
