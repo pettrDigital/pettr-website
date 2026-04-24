@@ -69,7 +69,7 @@ GCLID: ${gclid}
         </div>
 
         <div style="padding:12px 24px; text-align:left; font-size:11px; color:#999;">
-          Sent from <a href="${escapeHtml(pageUrl)}" style="color:#999; text-decoration:underline;">Plumber and Electrician to the Rescue</a>
+          Sent from <a href="${escapeHtml(pageUrl)}" style="color:#999; text-decoration:underline;">Sent from Plumber and Electrician to the Rescue</a>
         </div>
 
         <div style="padding:12px 24px; background:#ffffff; border-top:1px solid #e8e8e8;">
@@ -115,8 +115,8 @@ GCLID: ${gclid}
 function row(label, value) {
   return `
     <div style="padding:14px 24px; border-bottom:1px solid #e8e8e8; background:#ffffff;">
-      <div style="font-size:11px; font-weight:bold; text-transform:uppercase; letter-spacing:0.5px; color:#000; margin-bottom:4px;">${escapeHtml(label)}</div>
-      <div style="font-size:15px; color:#111; min-height:20px;">${escapeHtml(value).replace(/\n/g, "<br>")}</div>
+      <div style="font-size:13px; font-weight:boldletter-spacing:0.5px; color:#000; margin-bottom:4px;">${escapeHtml(label)}</div>
+      <div style="font-size:12px; color:#111; min-height:20px;">${escapeHtml(value).replace(/\n/g, "<br>")}</div>
     </div>
   `;
 }
