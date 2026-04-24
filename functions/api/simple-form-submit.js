@@ -68,12 +68,12 @@ GCLID: ${gclid}
           
         </div>
 
-        <div style="padding:12px 24px; text-align:right; font-size:11px; color:#999;">
+        <div style="padding:12px 24px; text-align:left; font-size:11px; color:#999;">
           Sent from <a href="${escapeHtml(pageUrl)}" style="color:#999; text-decoration:underline;">Plumber and Electrician to the Rescue</a>
         </div>
 
-        <div style="padding:12px 24px; background:#ffffff; border-top:1px solid #f9f9f9;">
-          <div style="font-size:11px; color:#999; line-height:1.6;">
+        <div style="padding:12px 24px; background:#ffffff; border-top:1px solid #e8e8e8;
+          <div style="font-size:6px; color:#f9f9f9;">
             ${escapeHtml(suburb)} | ${escapeHtml(service)} | ${escapeHtml(variant || 'a')} | ${escapeHtml(utmSource)} | ${escapeHtml(utmMedium)} | ${escapeHtml(utmCampaign)} | ${escapeHtml(utmTerm)}
           </div>
         </div>
