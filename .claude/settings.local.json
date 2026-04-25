@@ -46,7 +46,9 @@
       "Bash(npm run *)",
       "Bash(git fetch *)",
       "Bash(git pull *)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(git revert *)",
+      "WebFetch(domain:pagespeed.web.dev)"
     ]
   }
 }

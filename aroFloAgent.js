@@ -360,12 +360,33 @@ async function getAvailableSlots(trade) {
       else day = new Date(slotDate + "T12:00:00")
         .toLocaleDateString("en-AU", { timeZone: "Australia/Sydney", weekday: "long" });
 
+      // Convert 24-hour time to 12-hour format
+      const [startHour, startMin] = s.start_sydney.split(" ")[1].slice(0, 5).split(":");
+      const [endHour, endMin] = s.end_sydney.split(" ")[1].slice(0, 5).split(":");
+      const startHourNum = parseInt(startHour, 10);
+      const endHourNum = parseInt(endHour, 10);
+
+      const to12hr = (hour, min) => {
+        const h = parseInt(hour, 10);
+        const ampm = h >= 12 ? "pm" : "am";
+        const display = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+        return `${display}${ampm}`;
+      };
+
+      const start_time_12 = to12hr(startHour, startMin);
+      const end_time_12 = to12hr(endHour, endMin);
+
+      // Determine if morning or afternoon
+      const time_period = startHourNum < 12 ? "morning" : "afternoon";
+
       return {
-        ...s,
+        date: slotDate,
         day,
         start_time: s.start_sydney.split(" ")[1].slice(0, 5),
-        end_time:   s.end_sydney.split(" ")[1].slice(0, 5),
-        date:       slotDate,
+        end_time: s.end_sydney.split(" ")[1].slice(0, 5),
+        start_time_12,
+        end_time_12,
+        time_period,
       };
     });
 
@@ -654,6 +675,33 @@ exports.aroFloAgent = onRequest(
         error:   err.message,
         message: "Something went wrong. The team will follow up shortly.",
       });
+    }
+  }
+);
+
+// ====================== CLIENT LOOKUP ======================
+// Called by quote.js before triggering outbound callback
+// Returns existing customer data if found in Firestore
+
+exports.lookupClient = onRequest(
+  { minInstances: 1, timeoutSeconds: 10, memory: "256MiB" },
+  async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    if (req.method === "OPTIONS") return res.status(204).send("");
+    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+    const phone = req.body?.phone || "";
+    if (!phone) return res.status(400).json({ error: "Phone number required" });
+
+    try {
+      const client = await lookupClientByPhone(phone);
+      return res.json({
+        found: !!client,
+        client: client || null,
+      });
+    } catch (err) {
+      console.error("[lookupClient] Error:", err.message);
+      return res.status(500).json({ error: err.message });
     }
   }
 );
