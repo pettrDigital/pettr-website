@@ -3771,20 +3771,10 @@ async function fetchAvailableSlots() {
       return;
     }
 
-    const seen = new Set();
-    const uniqueSlots = [];
     slots.forEach(slot => {
-      const key = slot.day + '|' + slot.start_time + '|' + slot.end_time;
-      if (!seen.has(key)) {
-        seen.add(key);
-        uniqueSlots.push(slot);
-      }
-    });
-
-    uniqueSlots.forEach(slot => {
       const option = document.createElement('option');
       option.value = JSON.stringify(slot);
-      option.textContent = slot.day + ' (' + slot.date + ') ' + slot.start_time + '-' + slot.end_time;
+      option.textContent = `${slot.day} (${slot.date}) ${slot.start_time}-${slot.end_time}`;
       slotSelect.appendChild(option);
     });
 
