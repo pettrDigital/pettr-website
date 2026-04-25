@@ -1552,7 +1552,7 @@
 
   /* #endregion */
 
-  /* #region TEAM  —  mobile-first: 1 → 2 (768) → 3/2 (992) */
+  /* #region TEAM  —  mobile-first: 1 → 2 (768) → 3 (992) */
   #team {
     background: var(--blue-deep);
     padding: var(--section-py) 16px;
@@ -1586,11 +1586,13 @@
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr;
+    grid-auto-rows: 1fr;
+    align-items: stretch;
     gap: 16px;
     text-align: left;
   }
 
-  /* Tablet: 2 / 2 / 1 */
+  /* Tablet: 2 / 2 / 2 */
   @media (min-width: 768px) and (max-width: 991px) {
     #team {
       padding: 56px 16px;
@@ -1606,16 +1608,9 @@
       max-width: 740px;
     }
 
-    .team-grid .team-card-wrap:nth-child(5) {
-      grid-column: 1 / -1;
-      max-width: 360px;
-      width: 100%;
-      margin: 0 auto;
-    }
-
     .team-card {
       padding: 18px 16px 16px;
-      min-height: 0;
+      min-height: 168px;
     }
 
     .team-card-header {
@@ -1649,20 +1644,13 @@
     }
   }
 
-  /* Desktop: 3 / 2 */
+  /* Desktop: 3 / 3 */
   @media (min-width: 992px) {
     .team-grid {
       grid-template-columns: repeat(3, 1fr);
+      grid-auto-rows: 1fr;
       max-width: 1100px;
       gap: 24px;
-    }
-
-    .team-grid .team-card-wrap:nth-child(4) {
-      grid-column: 1 / 2;
-    }
-
-    .team-grid .team-card-wrap:nth-child(5) {
-      grid-column: 2 / 3;
     }
 
     .team-sub {
@@ -1677,6 +1665,7 @@
     text-decoration: none;
     color: inherit;
     border-radius: 16px;
+    height: 100%;
   }
   .team-card {
     background: #f9fafb;
@@ -1689,6 +1678,8 @@
     align-items: flex-start;
     gap: 0;
     flex: 1;
+    height: 100%;
+    min-height: 184px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
   .team-card-wrap:hover .team-card {
@@ -1746,8 +1737,50 @@
     font-family: inherit;
     transition: color 0.15s ease;
     border-radius: 20px;
+    margin-top: auto;
   }
   .team-link:hover { color: var(--blue-deep); text-decoration: underline; }
+
+  @media (min-width: 768px) and (max-width: 991px) {
+    .team-grid {
+      grid-auto-rows: 1fr;
+    }
+
+    .team-card {
+      padding: 18px 16px 16px;
+      min-height: 168px;
+    }
+
+    .team-card-header {
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .team-photo {
+      width: 56px;
+      height: 56px;
+    }
+
+    .team-name {
+      font-size: 15px;
+      margin: 0 0 2px;
+    }
+
+    .team-role {
+      font-size: 10px;
+      letter-spacing: 0.6px;
+    }
+
+    .team-cred {
+      font-size: 12px;
+      line-height: 1.45;
+      margin: 0 0 10px;
+    }
+
+    .team-link {
+      font-size: 12px;
+    }
+  }
 
   /* Team modals */
   .team-modal-overlay {
@@ -3038,7 +3071,7 @@
   <section id="team">
     <p class="team-eyebrow">Your Local Team</p>
     <h2 class="team-headline">The Same Team Trusted in 100,000+ Sydney Homes</h2>
-    <p class="team-sub">Licensed, experienced, and respectful — every time.</p>
+    <p class="team-sub">Long-tenured, accountable in-house technicians — not rotating subcontractors.</p>
 
   <div class="team-grid">
     <a href="#" class="team-card-wrap" onclick="openTeamModal('modal-david'); return false;">
@@ -3050,7 +3083,7 @@
             <p class="team-role">Senior Plumber</p>
           </div>
         </div>
-        <p class="team-cred">15+ years experience. Drain and emergency specialist.</p>
+        <p class="team-cred">20 years with our team. Trusted for emergency plumbing, blocked drains, and complex repairs.</p>
         <button class="team-link" type="button">Meet David</button>
       </div>
     </a>
@@ -3062,10 +3095,10 @@
           <img class="team-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-plumber-peter.webp" alt="Peter" width="240" height="240" loading="lazy" decoding="async">
           <div>
             <h3 class="team-name">Peter</h3>
-            <p class="team-role">Plumber</p>
+            <p class="team-role">Senior Plumber</p>
           </div>
         </div>
-        <p class="team-cred">Licensed electrician with strong fault-finding experience.</p>
+        <p class="team-cred">21 years with our team. Experienced in residential, strata, and maintenance plumbing.</p>
         <button class="team-link" type="button">Meet Peter</button>
       </div>
     </a>
@@ -3076,10 +3109,10 @@
           <img class="team-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-plumber-rohan.webp" alt="Rohan" width="240" height="240" loading="lazy" decoding="async">
           <div>
             <h3 class="team-name">Rohan</h3>
-            <p class="team-role">Plumber</p>
+            <p class="team-role">Senior Plumber</p>
           </div>
         </div>
-        <p class="team-cred">Reliable diagnostics and high-quality repair work.</p>
+        <p class="team-cred">20 years with our team. Known for problem-solving, fault finding, and quality workmanship.</p>
         <button class="team-link" type="button">Meet Rohan</button>
       </div>
     </a>
@@ -3089,12 +3122,12 @@
         <div class="team-card-header">
           <img class="team-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-plumber-chris.webp" alt="Chris" width="240" height="240" loading="lazy" decoding="async">
           <div>
-            <h3 class="team-name">Christos</h3>
+            <h3 class="team-name">Chris</h3>
             <p class="team-role">Plumber</p>
           </div>
         </div>
-        <p class="team-cred">Fast, clean, and detail-focused on every job.</p>
-        <button class="team-link" type="button">Meet Christos</button>
+        <p class="team-cred">5 years with our team. Fast, detail-focused, and trusted in Sydney homes.</p>
+        <button class="team-link" type="button">Meet Chris</button>
       </div>
     </a>
 
@@ -3108,8 +3141,22 @@
             <p class="team-role">Plumber</p>
           </div>
         </div>
-        <p class="team-cred">Maintenance, installs, and general plumbing repairs.</p>
+        <p class="team-cred">7 years with our team. Experienced in maintenance plumbing, installs, and residential repairs.</p>
         <button class="team-link" type="button">Meet Nathan</button>
+      </div>
+    </a>
+
+    <a href="#" class="team-card-wrap" onclick="openTeamModal('modal-kent'); return false;">
+      <div class="team-card">
+        <div class="team-card-header">
+          <img class="team-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-electrician-kent.webp" alt="Kent" width="240" height="240" loading="lazy" decoding="async" onerror="this.onerror=null;this.style.background='#d0dde6';this.removeAttribute('src')">
+          <div>
+            <h3 class="team-name">Kent</h3>
+            <p class="team-role">Senior Electrician</p>
+          </div>
+        </div>
+        <p class="team-cred">11 years with our team. 26 years across residential and strata electrical work.</p>
+        <button class="team-link" type="button">Meet Kent</button>
       </div>
     </a>
   </div>
@@ -3128,11 +3175,13 @@
         </div>
       </div>
       <hr class="team-modal-divider">
-      <p class="team-modal-bio">David has over 15 years of plumbing experience and is trusted across emergency callouts, blocked drains, and general repairs.</p>
+      <p class="team-modal-bio">David has been part of our team for 20 years and is trusted across emergency plumbing, blocked drains, fault finding, and complex residential repairs.</p>
+      <p class="team-modal-bio">He is known for his calm, methodical approach and for getting difficult plumbing problems fixed properly — not patched over.</p>
       <ul class="team-modal-bullets">
-        <li>15+ years experience</li>
-        <li>Specialises in blocked drains and emergency plumbing</li>
-        <li>Known for clean, efficient work</li>
+        <li>20 years with our team</li>
+        <li>Emergency plumbing and blocked drain specialist</li>
+        <li>Experienced in fault finding and complex repairs</li>
+        <li>Known for clean, professional workmanship</li>
       </ul>
     </div>
   </div>
@@ -3143,16 +3192,18 @@
       <div class="team-modal-header">
         <img class="team-modal-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-plumber-chris.webp" alt="Chris" loading="lazy" decoding="async" width="240" height="240" onerror="this.style.background='#d0dde6'">
         <div>
-          <p class="team-modal-name">Christos</p>
+          <p class="team-modal-name">Chris</p>
           <p class="team-modal-role">Plumber</p>
         </div>
       </div>
       <hr class="team-modal-divider">
-      <p class="team-modal-bio">Christos is known for being fast, tidy, and reliable, with a strong focus on doing the job properly and treating the home with respect.</p>
+      <p class="team-modal-bio">Chris has been part of our team for 5 years and is known for his fast, clean, and detail-focused approach on every job.</p>
+      <p class="team-modal-bio">He works across a wide range of residential plumbing repairs and takes pride in leaving each home tidy, professional, and properly fixed.</p>
       <ul class="team-modal-bullets">
-        <li>Detail-focused and efficient</li>
-        <li>Strong general plumbing experience</li>
-        <li>Clean and respectful on site</li>
+        <li>5 years with our team</li>
+        <li>Residential plumbing repairs and maintenance</li>
+        <li>Fast, clean, and detail-focused</li>
+        <li>Known for a professional customer experience</li>
       </ul>
     </div>
   </div>
@@ -3164,15 +3215,17 @@
         <img class="team-modal-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-plumber-rohan.webp" alt="Rohan" loading="lazy" decoding="async" width="240" height="240" onerror="this.style.background='#d0dde6'">
         <div>
           <p class="team-modal-name">Rohan</p>
-          <p class="team-modal-role">Plumber</p>
+          <p class="team-modal-role">Senior Plumber</p>
         </div>
       </div>
       <hr class="team-modal-divider">
-      <p class="team-modal-bio">Rohan brings strong diagnostic ability and practical repair experience, helping customers get problems solved properly the first time.</p>
+      <p class="team-modal-bio">Rohan has been part of our team for 20 years and is known for strong technical knowledge, practical problem-solving, and high-quality repair work.</p>
+      <p class="team-modal-bio">Customers value his honest advice, attention to detail, and focus on getting the job done properly.</p>
       <ul class="team-modal-bullets">
-        <li>Strong fault diagnosis</li>
-        <li>Reliable repair work</li>
-        <li>Calm and professional on site</li>
+        <li>20 years with our team</li>
+        <li>Strong fault-finding and diagnostic experience</li>
+        <li>Experienced across residential and strata plumbing</li>
+        <li>Known for quality workmanship</li>
       </ul>
     </div>
   </div>
@@ -3184,15 +3237,17 @@
         <img class="team-modal-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-plumber-peter.webp" alt="Peter" loading="lazy" decoding="async" width="240" height="240" onerror="this.style.background='#d0dde6'">
         <div>
           <p class="team-modal-name">Peter</p>
-          <p class="team-modal-role">Electrician</p>
+          <p class="team-modal-role">Senior Plumber</p>
         </div>
       </div>
       <hr class="team-modal-divider">
-      <p class="team-modal-bio">Peter is a licensed electrician with strong experience in fault finding, repairs, and electrical service work in homes across Sydney.</p>
+      <p class="team-modal-bio">Peter has been part of our team for 21 years and brings deep experience across residential, strata, and maintenance plumbing.</p>
+      <p class="team-modal-bio">As a senior plumber, he helps set the standard for reliable service, clear communication, and quality workmanship across the team.</p>
       <ul class="team-modal-bullets">
-        <li>Licensed electrician</li>
-        <li>Fast fault finding and repairs</li>
-        <li>Safe, professional workmanship</li>
+        <li>21 years with our team</li>
+        <li>Residential, strata, and maintenance plumbing</li>
+        <li>Strong diagnostic and repair experience</li>
+        <li>Known for reliable, professional service</li>
       </ul>
     </div>
   </div>
@@ -3208,11 +3263,35 @@
         </div>
       </div>
       <hr class="team-modal-divider">
-      <p class="team-modal-bio">Nathan handles a wide mix of maintenance, installations, and everyday plumbing work with a practical, solutions-focused approach.</p>
+      <p class="team-modal-bio">Nathan has been part of our team for 7 years and works across maintenance plumbing, installs, and general residential repairs.</p>
+      <p class="team-modal-bio">He is known for being reliable, professional, and clear with customers throughout the job.</p>
       <ul class="team-modal-bullets">
-        <li>Maintenance and install work</li>
-        <li>General plumbing repairs</li>
-        <li>Practical and reliable</li>
+        <li>7 years with our team</li>
+        <li>Maintenance plumbing, installs, and general repairs</li>
+        <li>Reliable and detail-focused</li>
+        <li>Known for clear customer communication</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="modal-kent" class="team-modal-overlay" onclick="if(event.target===this)closeTeamModal('modal-kent')">
+    <div class="team-modal">
+      <button class="team-modal-close" onclick="closeTeamModal('modal-kent')" aria-label="Close">&times;</button>
+      <div class="team-modal-header">
+        <img class="team-modal-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-electrician-kent.webp" alt="Kent" loading="lazy" decoding="async" width="240" height="240" onerror="this.onerror=null;this.style.background='#d0dde6';this.removeAttribute('src')">
+        <div>
+          <p class="team-modal-name">Kent</p>
+          <p class="team-modal-role">Senior Electrician</p>
+        </div>
+      </div>
+      <hr class="team-modal-divider">
+      <p class="team-modal-bio">Kent leads our electrical team and has been part of our business for 11 years, with 26 years of total industry experience.</p>
+      <p class="team-modal-bio">He works across residential and strata electrical repairs, fault finding, upgrades, and safety work, with a strong focus on safe, reliable outcomes.</p>
+      <ul class="team-modal-bullets">
+        <li>11 years with our team</li>
+        <li>26 years total industry experience</li>
+        <li>Residential and strata electrical work</li>
+        <li>Fault finding, repairs, upgrades, and safety work</li>
       </ul>
     </div>
   </div>
