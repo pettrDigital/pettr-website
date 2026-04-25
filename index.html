@@ -1716,6 +1716,14 @@
     text-transform: uppercase;
     letter-spacing: 0.8px;
     color: var(--body);
+    margin: 0 0 3px;
+  }
+  .team-years {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--blue);
     margin: 0;
   }
   .team-cred {
@@ -1767,6 +1775,11 @@
     }
 
     .team-role {
+      font-size: 10px;
+      letter-spacing: 0.6px;
+    }
+
+    .team-years {
       font-size: 10px;
       letter-spacing: 0.6px;
     }
@@ -3074,21 +3087,6 @@
     <p class="team-sub">Long-tenured, accountable in-house technicians — not rotating subcontractors.</p>
 
   <div class="team-grid">
-    <a href="#" class="team-card-wrap" onclick="openTeamModal('modal-david'); return false;">
-      <div class="team-card">
-        <div class="team-card-header">
-          <img class="team-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-plumber-dave.webp" alt="David" width="240" height="240" loading="lazy" decoding="async">
-          <div>
-            <h3 class="team-name">David</h3>
-            <p class="team-role">Senior Plumber</p>
-          </div>
-        </div>
-        <p class="team-cred">20 years with our team. Trusted for emergency plumbing, blocked drains, and complex repairs.</p>
-        <button class="team-link" type="button">Meet David</button>
-      </div>
-    </a>
-
-
     <a href="#" class="team-card-wrap" onclick="openTeamModal('modal-peter'); return false;">
       <div class="team-card">
         <div class="team-card-header">
@@ -3096,10 +3094,26 @@
           <div>
             <h3 class="team-name">Peter</h3>
             <p class="team-role">Senior Plumber</p>
+            <p class="team-years">21 years with our team</p>
           </div>
         </div>
-        <p class="team-cred">21 years with our team. Experienced in residential, strata, and maintenance plumbing.</p>
+        <p class="team-cred">Experienced in residential, strata, and maintenance plumbing.</p>
         <button class="team-link" type="button">Meet Peter</button>
+      </div>
+    </a>
+
+    <a href="#" class="team-card-wrap" onclick="openTeamModal('modal-david'); return false;">
+      <div class="team-card">
+        <div class="team-card-header">
+          <img class="team-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-plumber-dave.webp" alt="David" width="240" height="240" loading="lazy" decoding="async">
+          <div>
+            <h3 class="team-name">David</h3>
+            <p class="team-role">Senior Plumber</p>
+            <p class="team-years">20 years with our team</p>
+          </div>
+        </div>
+        <p class="team-cred">Trusted for emergency plumbing, blocked drains, and complex repairs.</p>
+        <button class="team-link" type="button">Meet David</button>
       </div>
     </a>
 
@@ -3110,39 +3124,11 @@
           <div>
             <h3 class="team-name">Rohan</h3>
             <p class="team-role">Senior Plumber</p>
+            <p class="team-years">20 years with our team</p>
           </div>
         </div>
-        <p class="team-cred">20 years with our team. Known for problem-solving, fault finding, and quality workmanship.</p>
+        <p class="team-cred">Known for problem-solving, fault finding, and quality workmanship.</p>
         <button class="team-link" type="button">Meet Rohan</button>
-      </div>
-    </a>
-
-  <a href="#" class="team-card-wrap" onclick="openTeamModal('modal-christos'); return false;">
-      <div class="team-card">
-        <div class="team-card-header">
-          <img class="team-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-plumber-chris.webp" alt="Chris" width="240" height="240" loading="lazy" decoding="async">
-          <div>
-            <h3 class="team-name">Chris</h3>
-            <p class="team-role">Plumber</p>
-          </div>
-        </div>
-        <p class="team-cred">5 years with our team. Fast, detail-focused, and trusted in Sydney homes.</p>
-        <button class="team-link" type="button">Meet Chris</button>
-      </div>
-    </a>
-
-
-    <a href="#" class="team-card-wrap" onclick="openTeamModal('modal-nathan'); return false;">
-      <div class="team-card">
-        <div class="team-card-header">
-          <img class="team-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-plumber-nathan.webp" alt="Nathan" width="240" height="240" loading="lazy" decoding="async">
-          <div>
-            <h3 class="team-name">Nathan</h3>
-            <p class="team-role">Plumber</p>
-          </div>
-        </div>
-        <p class="team-cred">7 years with our team. Experienced in maintenance plumbing, installs, and residential repairs.</p>
-        <button class="team-link" type="button">Meet Nathan</button>
       </div>
     </a>
 
@@ -3153,10 +3139,41 @@
           <div>
             <h3 class="team-name">Kent</h3>
             <p class="team-role">Senior Electrician</p>
+            <p class="team-years">11 years with our team</p>
           </div>
         </div>
-        <p class="team-cred">11 years with our team. 26 years industry experience across residential and strata electrical work.</p>
+        <p class="team-cred">26 years industry experience across residential and strata electrical work.</p>
         <button class="team-link" type="button">Meet Kent</button>
+      </div>
+    </a>
+
+    <a href="#" class="team-card-wrap" onclick="openTeamModal('modal-nathan'); return false;">
+      <div class="team-card">
+        <div class="team-card-header">
+          <img class="team-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-plumber-nathan.webp" alt="Nathan" width="240" height="240" loading="lazy" decoding="async">
+          <div>
+            <h3 class="team-name">Nathan</h3>
+            <p class="team-role">Plumber</p>
+            <p class="team-years">7 years with our team</p>
+          </div>
+        </div>
+        <p class="team-cred">Experienced in maintenance plumbing, installs, and residential repairs.</p>
+        <button class="team-link" type="button">Meet Nathan</button>
+      </div>
+    </a>
+
+    <a href="#" class="team-card-wrap" onclick="openTeamModal('modal-christos'); return false;">
+      <div class="team-card">
+        <div class="team-card-header">
+          <img class="team-photo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/team-plumber-chris.webp" alt="Chris" width="240" height="240" loading="lazy" decoding="async">
+          <div>
+            <h3 class="team-name">Chris</h3>
+            <p class="team-role">Plumber</p>
+            <p class="team-years">5 years with our team</p>
+          </div>
+        </div>
+        <p class="team-cred">Fast, detail-focused, and trusted in Sydney homes.</p>
+        <button class="team-link" type="button">Meet Chris</button>
       </div>
     </a>
   </div>
