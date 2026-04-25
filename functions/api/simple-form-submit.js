@@ -31,7 +31,7 @@ export async function onRequestPost(context) {
 New PETTR Lead
 
 My name is ${name}
-My Probem is ${message}
+My Problem is ${message}
 My phone number is ${phone}
 My email is ${email}
 My address is ${address}
@@ -48,63 +48,79 @@ UTM Term: ${utmTerm}
 GCLID: ${gclid}
 `;
 
-  const htmlBody = `
-  <!doctype html>
-  <html>
-    <body style="margin:0; padding:0; background:#f5f5f5; font-family:Arial, Helvetica, sans-serif;">
-      <div style="max-width:600px; margin:0 auto; background:#ffffff;">
+    const htmlBody = `
+<!doctype html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0; padding:0; background:#f5f5f5; font-family:Arial, Helvetica, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f5;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; background:#ffffff;">
 
-        <div style="padding:16px 24px; background:#ffffff; border-bottom:2px solid #077bab;">
-          <div style="font-size:18px; font-weight:bold; color:#033d56;">${escapeHtml(subject)}</div>
-        </div>
+          <!-- Header -->
+          <tr>
+            <td style="padding:24px 32px; border-bottom:3px solid #077bab;">
+              <p style="margin:0; font-size:20px; font-weight:bold; color:#033d56; font-family:Arial, Helvetica, sans-serif;">${escapeHtml(subject)}</p>
+            </td>
+          </tr>
 
-        <div style="background:#ffffff;">
-          ${row("My name is", name)}
-          ${row("My problem is", message || "-")}
-          ${row("My phone number is", phone)}
-          ${row("My email is", email || "-")}
-          ${row("My address is", address || "-")}
-          ${row("My postcode is", postcode || "-")}
-          
-        </div>
+          <!-- Fields -->
+          <tr><td>${row("My name is", name)}</td></tr>
+          <tr><td>${row("My problem is", message || "-")}</td></tr>
+          <tr><td>${row("My phone number is", phone)}</td></tr>
+          <tr><td>${row("My email is", email || "-")}</td></tr>
+          <tr><td>${row("My address is", address || "-")}</td></tr>
+          <tr><td>${row("My postcode is", postcode || "-")}</td></tr>
 
-        <div style="padding:12px 24px; text-align:left; font-size:11px; color:#999;">
-          <a href="${escapeHtml(pageUrl)}" style="color:#999; text-decoration:underline;">Sent from Plumber and Electrician to the Rescue</a>
-        </div>
+          <!-- Footer -->
+          <tr>
+            <td style="padding:16px 32px; border-top:1px solid #e8e8e8;">
+              <p style="margin:0; font-size:11px; color:#999; font-family:Arial, Helvetica, sans-serif;">
+                <a href="${escapeHtml(pageUrl)}" style="color:#999;">Sent from Plumber and Electrician to the Rescue</a>
+              </p>
+            </td>
+          </tr>
 
-        <div style="padding:12px 24px; background:#ffffff; border-top:1px solid #e8e8e8;">
-          <div style="font-size:6px; color:#f9f9f9;">
-            ${escapeHtml(suburb)} | ${escapeHtml(service)} | ${escapeHtml(variant || 'a')} | ${escapeHtml(utmSource)} | ${escapeHtml(utmMedium)} | ${escapeHtml(utmCampaign)} | ${escapeHtml(utmTerm)}
-          </div>
-        </div>
+          <!-- Attribution (hidden) -->
+          <tr>
+            <td style="padding:0 32px 12px 32px;">
+              <p style="margin:0; font-size:6px; color:#f9f9f9; font-family:Arial, Helvetica, sans-serif;">
+                ${escapeHtml(suburb)} | ${escapeHtml(service)} | ${escapeHtml(variant || 'a')} | ${escapeHtml(utmSource)} | ${escapeHtml(utmMedium)} | ${escapeHtml(utmCampaign)} | ${escapeHtml(utmTerm)}
+              </p>
+            </td>
+          </tr>
 
-      </div>
-    </body>
-  </html>
-  `;
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
 
-  const res = await fetch("https://api.smtp2go.com/v3/email/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      api_key:   env.SMTP2GO_API_KEY,
-      sender:    "service@plumberandelectrician.com.au",
-      to:        ["jobs@mrwasher.com.au"],
-      subject,
-      text_body: textBody,
-      html_body: htmlBody,
-      reply_to:  email || "jobs@plumbertotherescue.com.au"
-    })
-  });
+    const res = await fetch("https://api.smtp2go.com/v3/email/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        api_key:   env.SMTP2GO_API_KEY,
+        sender:    "service@plumberandelectrician.com.au",
+        to:        ["jobs@mrwasher.com.au"],
+        subject,
+        text_body: textBody,
+        html_body: htmlBody,
+        reply_to:  email || "jobs@plumbertotherescue.com.au"
+      })
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (!res.ok) {
-    console.error("SMTP2GO error:", data);
-    return json({ success: false, error: "Email failed" }, 500);
-  }
+    if (!res.ok) {
+      console.error("SMTP2GO error:", data);
+      return json({ success: false, error: "Email failed" }, 500);
+    }
 
-  return json({ success: true });
+    return json({ success: true });
 
   } catch (err) {
     console.error(err);
@@ -114,10 +130,14 @@ GCLID: ${gclid}
 
 function row(label, value) {
   return `
-    <div style="padding:14px 24px; border-bottom:1px solid #e8e8e8; background:#ffffff;">
-      <div style="font-size:13px; font-weight:bold; letter-spacing:0.5px; color:#000; margin-bottom:4px;">${escapeHtml(label)}</div>
-      <div style="font-size:12px; color:#111; min-he  ight:20px;">${escapeHtml(value).replace(/\n/g, "<br>")}</div>
-    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom:1px solid #e8e8e8;">
+      <tr>
+        <td style="padding:20px 32px; background:#ffffff;">
+          <p style="margin:0 0 6px 0; font-size:15px; font-weight:bold; color:#000; font-family:Arial, Helvetica, sans-serif;">${escapeHtml(label)}</p>
+          <p style="margin:0; font-size:15px; color:#222; font-family:Arial, Helvetica, sans-serif;">${escapeHtml(value).replace(/\n/g, "<br>")}</p>
+        </td>
+      </tr>
+    </table>
   `;
 }
 
