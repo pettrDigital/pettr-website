@@ -3745,11 +3745,16 @@ async function fetchAvailableSlots() {
       return;
     }
 
+    const seen = {};
     slots.forEach(slot => {
-      const option = document.createElement('option');
-      option.value = JSON.stringify(slot);
-      option.textContent = `${slot.day} (${slot.date}) ${slot.start_time}-${slot.end_time}`;
-      slotSelect.appendChild(option);
+      const key = slot.day + '|' + slot.start_time + '|' + slot.end_time;
+      if (!seen[key]) {
+        seen[key] = true;
+        const option = document.createElement('option');
+        option.value = JSON.stringify(slot);
+        option.textContent = slot.day + ' (' + slot.date + ') ' + slot.start_time + '-' + slot.end_time;
+        slotSelect.appendChild(option);
+      }
     });
 
     slotsLoading.style.display = 'none';
