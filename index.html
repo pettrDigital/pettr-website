@@ -3762,7 +3762,7 @@ async function fetchAvailableSlots() {
     if (!response.ok) throw new Error(`API returned ${response.status}`);
 
     const data = await response.json();
-    const slots = data.slots || [];
+    let slots = data.slots || [];
 
     slotSelect.innerHTML = '';
     if (slots.length === 0) {
@@ -3771,7 +3771,16 @@ async function fetchAvailableSlots() {
       return;
     }
 
+    const uniqueSlots = new Map();
     slots.forEach(slot => {
+      const key = `${slot.day}|${slot.date}|${slot.start_time}|${slot.end_time}`;
+      if (!uniqueSlots.has(key) || slot.tech_name?.toLowerCase().includes('best') || !slot.tech_name) {
+        uniqueSlots.set(key, slot);
+      }
+    });
+
+    const deduplicatedSlots = Array.from(uniqueSlots.values());
+    deduplicatedSlots.forEach(slot => {
       const option = document.createElement('option');
       option.value = JSON.stringify(slot);
       option.textContent = `${slot.day} (${slot.date}) ${slot.start_time}-${slot.end_time}`;
