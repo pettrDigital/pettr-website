@@ -50,7 +50,9 @@
 <!-- Google Tag Manager -->
 <script>
 window.addEventListener('load', function () {
-  document.body.classList.add('animation-ready');
+  setTimeout(function () {
+    document.body.classList.add('animation-ready');
+  }, 3500);
 
   setTimeout(function () {
     (function(w,d,s,l,i){
@@ -525,6 +527,17 @@ ul { list-style: none; }
   .hero-checklist li svg { width: 18px; height: 18px; margin-top: 2px; }
 }
 
+/* ===== Min Desktop Size ===== */
+
+@media (min-width: 1181px) {
+  #hero {
+    background-image: url("https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-large-2.webp");
+    background-size: cover;
+    background-position: center 40%;
+    background-repeat: no-repeat;
+  }
+}
+
 /* =========================================
    RESPONSIVE — 1181px-1440px (laptop)
    ========================================= */
@@ -610,6 +623,21 @@ ul { list-style: none; }
   #footer      { padding: 36px 20px 28px; }
   #footer .wrap { grid-template-columns: 1fr; gap: 28px; }
   .footer-logo { width: 150px; margin-bottom: 14px; }
+
+  #awards,
+  #david-bio,
+  #ratings,
+  #reviews,
+  #why-us,
+  #today,
+  #faq,
+  #seniors,
+  #best-rated,
+  #footer {
+    content-visibility: auto;
+    contain-intrinsic-size: 800px;
+  }
+
 }
 </style>
 </head>
@@ -635,7 +663,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="header-google">
       <img
         src="https://plumbertotherescue.com.au/wp-content/uploads/2026/02/highly-rated-on-google.png"
-        alt="Highly Rated on Google" width="190" height="99" decoding="async">
+        alt="Highly Rated on Google"
+        width="190"
+        height="99"
+        decoding="async">
     </div>
     <div class="header-right">
       <div class="header-phone">
@@ -661,23 +692,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         srcset="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-medium-2.webp">
       <img src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-medium-2.webp"
         alt="" width="1180" height="480" loading="eager" fetchpriority="high" decoding="async">
-    </picture>
-  </div>
-
-  <!-- DESKTOP BG IMAGE: shown >1180px -->
-  <div class="hero-bg-media" aria-hidden="true">
-    <picture>
-      <source media="(min-width: 1181px)"
-        srcset="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-large-2.webp">
-      <img
-        src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-large-2.webp"
-        width="1920"
-        height="1080"
-        fetchpriority="high"
-        loading="eager"
-        decoding="async"
-        alt=""
-        class="hero-bg-img">
     </picture>
   </div>
 
@@ -933,7 +947,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="wrap">
     <h2>LOCAL SMALL BUSINESS AWARDS FINALIST 2024 — TRADE SERVICES IN SYDNEY</h2>
     <img src="https://plumbertotherescue.com.au/wp-content/uploads/2026/03/2024-Local-Business-Awards-1.webp"
-      alt="2024 Local Business Awards Finalist" width="110" height="123" loading="lazy">
+      alt="2024 Local Business Awards Finalist" width="110" height="123" loading="lazy" decoding="async">
   </div>
 </section>
 
@@ -959,7 +973,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
     <div class="bio-image-panel">
       <img src="https://plumbertotherescue.com.au/wp-content/uploads/2026/03/Plumber-Intro.webp"
-        alt="Plumber To The Rescue team" loading="lazy">
+        alt="Plumber To The Rescue team" loading="lazy" decoding="async">
     </div>
   </div>
 </section>
@@ -987,18 +1001,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
     <div class="rating-grid">
       <div class="rating-card">
-        <img class="platform-logo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/02/googlelogo-1.png" alt="Google" loading="lazy">
-        <img class="stars-img" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/02/5-Star-Transparent-Emergency-Plumber-Near-Me-Leos-Local-Plumbing.png" alt="5 stars" loading="lazy">
+        <img class="platform-logo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/02/googlelogo-1.png" alt="Google" loading="lazy" decoding="async">
+        <img class="stars-img" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/02/5-Star-Transparent-Emergency-Plumber-Near-Me-Leos-Local-Plumbing.png" alt="5 stars" loading="lazy" decoding="async">
         <div class="score">4.9 stars</div>
       </div>
       <div class="rating-card">
-        <img class="platform-logo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/02/truelocal-logo.png" alt="TrueLocal" loading="lazy">
-        <img class="stars-img" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/02/5-Star-Transparent-Emergency-Plumber-Near-Me-Leos-Local-Plumbing.png" alt="5 stars" loading="lazy">
+        <img class="platform-logo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/02/truelocal-logo.png" alt="TrueLocal" loading="lazy" decoding="async">
+        <img class="stars-img" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/02/5-Star-Transparent-Emergency-Plumber-Near-Me-Leos-Local-Plumbing.png" alt="5 stars" loading="lazy" decoding="async">
         <div class="score">4.9 stars</div>
       </div>
       <div class="rating-card">
-        <img class="platform-logo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/02/word-of-mouth-logo.png" alt="Word of Mouth" loading="lazy">
-        <img class="stars-img" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/02/5-Star-Transparent-Emergency-Plumber-Near-Me-Leos-Local-Plumbing.png" alt="5 stars" loading="lazy">
+        <img class="platform-logo" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/02/word-of-mouth-logo.png" alt="Word of Mouth" loading="lazy" decoding="async">
+        <img class="stars-img" src="https://plumbertotherescue.com.au/wp-content/uploads/2026/02/5-Star-Transparent-Emergency-Plumber-Near-Me-Leos-Local-Plumbing.png" alt="5 stars" loading="lazy" decoding="async">
         <div class="score">4.9 stars</div>
       </div>
     </div>
@@ -1152,7 +1166,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <a href="#hero-form" class="btn btn-yellow btn-lg">Book &amp; Save 15%</a>
     </div>
     <div class="seniors-image">
-      <img src="https://plumbertotherescue.com.au/wp-content/uploads/2026/03/senior-discount-tablet.webp"
+      <img src="https://plumbertotherescue.com.au/wp-content/uploads/2026/03/senior-discount-tablet.webp loading="lazy" decoding="async""
         alt="Seniors discount plumbing service" loading="lazy">
     </div>
   </div>
