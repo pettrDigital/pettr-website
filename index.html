@@ -246,7 +246,7 @@
 
   .top-badge-short { display: none; }
 
-  @media (max-width: 600px) {
+  @media (max-width: 767px) {
     .tagline-full  { display: none; }
     .tagline-short { display: inline !important; }
     .top-centre    { display: none; }
@@ -254,6 +254,13 @@
     .top-badge-short { display: inline; }
   }
 
+  @media (min-width: 768px) and (max-width: 991px)  {
+    .tagline-full  { display: none; }
+    .tagline-short { display: inline !important; }
+    .top-centre    { display: inline; }
+    .top-badge-full  { display: none; }
+    .top-badge-short { display: inline; }
+  }
 
   /* #endregion */
 
@@ -488,7 +495,7 @@
 
   /* --- Mobile base --- */
   #hero {
-    margin-top: 80px; /* topbar (~37px) + compact header (~43px) */
+    margin-top: 102px; /* topbar (~37px) + compact header (~43px) */
     position: relative;
     overflow: hidden;
   }
@@ -497,10 +504,14 @@
     width: 100%;
     height: 200px;
     object-fit: cover;
-    object-position: top center;
+    object-position: center top;
     display: block;
-    position: relative;
     z-index: 0;
+  }
+
+  #hero picture {
+  display: block;
+  width: 100%;
   }
 
   #hero .wrap {
@@ -732,8 +743,8 @@
   }
 
   @media (min-width: 768px) and (max-width: 991px) {
-    #hero { margin-top: 96px; }
-    .hero-bg-img { height: 280px; }
+    #hero { margin-top: 116px; }
+    .hero-bg-img { height: 280px; object-position: 25% top;}
     .hero-left { padding: 40px 40px 48px; }
     .animated-headline { font-size: 32px; }
     .hero-subhead { font-size: 18px; }
@@ -756,16 +767,24 @@
 
     .hero-bg-img {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      max-width: none;
+      inset: 0;
+      width: 100%;
       height: 100%;
+      max-width: none;
       object-fit: cover;
-      object-position: 58% top;
+      object-position: 30% top;
       z-index: 0;
     }
 
+    #hero picture {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+    }
+  
     #hero .wrap {
       display: flex;
       flex-direction: row;
@@ -947,11 +966,10 @@
       position: absolute;
       inset: 0;
       width: 100%;
-      height: 56.25vw; /* 16:9 based on viewport width */
-      min-height: 520px;
-      max-height: 620px;
+      height: 100%;
+      max-width: none;
       object-fit: cover;
-      object-position: center top;
+      object-position: 30% top;
       z-index: 0;
     }
 
@@ -3457,6 +3475,7 @@
             width="220"
             height="63"
             loading="eager"
+            decoding="async"
           >
           <p class="footer-desc">Sydney's trusted plumbing &amp; electrical team.<BR>Since 1988.<BR><br>24/7 service.<br>ON TIME. FIXED RIGHT.<BR>NO MESS. NO SURPRISES.</p>
           <p class="footer-licence">Licence number: A3403</p>
