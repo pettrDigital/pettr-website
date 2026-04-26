@@ -16,15 +16,24 @@
 <link
   rel="preload"
   as="image"
+  href="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-small-2.webp"
+  media="(max-width: 767px)"
+  fetchpriority="high">
+
+<link
+  rel="preload"
+  as="image"
+  href="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-medium-2.webp"
+  media="(min-width: 768px) and (max-width: 1180px)"
+  fetchpriority="high">
+
+<link
+  rel="preload"
+  as="image"
   href="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-large-2.webp"
-  imagesrcset="
-    https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-small-2.webp 767w,
-    https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-medium-2.webp 1180w,
-    https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-large-2.webp 1920w
-  "
-  imagesizes="100vw"
-  fetchpriority="high"
->
+  media="(min-width: 1181px)"
+  fetchpriority="high">
+
 <link rel="preload" as="font" type="font/woff2" crossorigin
   href="/fonts/montserrat-variable.woff2">
 
@@ -42,16 +51,19 @@
 <script>
 window.addEventListener('load', function () {
   document.body.classList.add('animation-ready');
-  (function(w,d,s,l,i){
-    w[l]=w[l]||[];
-    w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
-    var f=d.getElementsByTagName(s)[0],
-        j=d.createElement(s),
-        dl=l!='dataLayer' ? '&l='+l : '';
-    j.async=true;
-    j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
-    f.parentNode.insertBefore(j,f);
-  })(window,document,'script','dataLayer','GTM-T89FPHX');
+
+  setTimeout(function () {
+    (function(w,d,s,l,i){
+      w[l]=w[l]||[];
+      w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
+      var f=d.getElementsByTagName(s)[0],
+          j=d.createElement(s),
+          dl=l!='dataLayer' ? '&l='+l : '';
+      j.async = true;
+      j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+      f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-T89FPHX');
+  }, 2500);
 });
 </script>
 <!-- End Google Tag Manager -->
@@ -655,19 +667,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- DESKTOP BG IMAGE: shown >1180px -->
   <div class="hero-bg-media" aria-hidden="true">
     <picture>
-      <source media="(max-width: 767px)"
-        srcset="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-small-2.webp">
-      <source media="(max-width: 1180px)"
-        srcset="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-medium-2.webp">
+      <source media="(min-width: 1181px)"
+        srcset="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-large-2.webp">
       <img
         src="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-large-2.webp"
-        srcset="
-          https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-small-2.webp 767w,
-          https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-medium-2.webp 1180w,
-          https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-large-2.webp 1920w
-        "
-        sizes="100vw" width="1920" height="1080"
-        fetchpriority="high" loading="eager" decoding="async" alt="" class="hero-bg-img">
+        width="1920"
+        height="1080"
+        fetchpriority="high"
+        loading="eager"
+        decoding="async"
+        alt=""
+        class="hero-bg-img">
     </picture>
   </div>
 
