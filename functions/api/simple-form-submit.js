@@ -27,6 +27,8 @@ export async function onRequestPost(context) {
     const subject = `PETTR Website - New Lead - ${trade} - ${service || "TBC"} - ${suburb || "TBC"}`;
     const pageUrl = request.headers.get('referer') || request.headers.get('origin') || '';
 
+    const smsMessage = `Hi ${name.split(' ')[0]}, thank you for contacting Plumber & Electrician To The Rescue. Someone from our team will be in touch shortly. If it's urgent, call us on 02 8103 4607.`;
+
     const textBody = `
 New PETTR Lead
 
@@ -105,7 +107,7 @@ GCLID: ${gclid}
       body: JSON.stringify({
         api_key:   env.SMTP2GO_API_KEY,
         sender:    "service@plumberandelectrician.com.au",
-        to:        ["jobs@mrwasher.com.au"],
+        to:        ["digital.plumbertotherescue@gmail.com"],
         subject,
         text_body: textBody,
         html_body: htmlBody,
@@ -118,6 +120,11 @@ GCLID: ${gclid}
     if (!res.ok) {
       console.error("SMTP2GO error:", data);
       return json({ success: false, error: "Email failed" }, 500);
+    }
+
+    const phoneE164 = normalisePhone(phone);
+    if (phoneE164 && env.TRANSMITSMS_API_KEY) {
+      context.waitUntil(sendSMS(env, phoneE164, smsMessage));
     }
 
     return json({ success: true });
@@ -155,4 +162,29 @@ function json(data, status = 200) {
     status,
     headers: { "Content-Type": "application/json" }
   });
+}
+
+function normalisePhone(raw) {
+  const digits = String(raw).replace(/\D/g, '');
+  if (digits.startsWith('61') && digits.length === 11) return '+' + digits;
+  if (digits.startsWith('0') && digits.length === 10) return '+61' + digits.slice(1);
+  return null;
+}
+
+async function sendSMS(env, to, message) {
+  const credentials = btoa(`${env.TRANSMITSMS_API_KEY}:${env.TRANSMITSMS_API_SECRET}`);
+  const body = new URLSearchParams();
+  body.append('message', message);
+  body.append('to', to);
+  body.append('countrycode', 'au');
+  const response = await fetch('https://api.transmitsms.com/send-sms.json', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${credentials}`,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: body.toString()
+  });
+  const responseText = await response.text();
+  console.log('SMS response:', response.status, responseText);
 }
