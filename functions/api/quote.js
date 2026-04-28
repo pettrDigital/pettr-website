@@ -371,6 +371,7 @@ async function sendSMS(env, { phone, name, address, postcode, problem }) {
 
   const formData = new URLSearchParams();
   formData.append('message', message);
+  formData.append('from', 'PETTR');
   formData.append('list_id', '10962457');
   formData.append('countrycode', 'au');
 
@@ -618,6 +619,7 @@ async function sendBookingSMS(env, { phone, message }) {
   const formData = new URLSearchParams();
   formData.append('to', phone);
   formData.append('message', message);
+  formData.append('from', 'PETTR');
   formData.append('countrycode', 'au');
 
   console.log('Sending to Transmit SMS API...');
