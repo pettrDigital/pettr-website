@@ -1190,7 +1190,7 @@ p  { font-size: 1rem; line-height: 1.7; }
         <path d="M0.5 9.011C0.5 9.96756 0.80766 11.0629 1.26844 12.1792C1.73243 13.3032 2.3682 14.487 3.06061 15.6317C4.44559 17.9211 6.08025 20.0911 7.08894 21.3696C7.75209 22.2101 9.02414 22.2101 9.68729 21.3696C10.6952 20.0921 12.3395 17.9223 13.7341 15.633C14.4313 14.4885 15.0721 13.3046 15.5398 12.1805C16.0043 11.0643 16.3148 9.96837 16.3148 9.011C16.3148 4.59473 12.7796 1 8.40741 1C3.99497 1 0.5 4.59644 0.5 9.011ZM10.3765 9.011C10.3765 10.1446 9.48012 11.0147 8.40741 11.0147C7.30119 11.0147 6.43827 10.1497 6.43827 9.011C6.43827 7.90624 7.30623 7.00733 8.40741 7.00733C9.47505 7.00733 10.3765 7.91138 10.3765 9.011Z" fill="#f60404" stroke="white"/>
       </svg>
       <span class="trust-location-short">Sydney, NSW</span>
-      <span class="trust-location">Plumber To The Rescue, Sydney, NSW</span>
+      <span class="trust-location">Electrician To The Rescue, Sydney, NSW</span>
     </div>
     <div class="pttr-review-badge-mobile">
       <div class="google-icon-wrapper">
@@ -1541,7 +1541,7 @@ p  { font-size: 1rem; line-height: 1.7; }
     </a>
   </div>
   <div class="footer-bottom">
-    &copy; 2026 Plumber To The Rescue Pty Ltd. All Rights Reserved. |
+    &copy; 2026 Electrician To The Rescue Pty Ltd. All Rights Reserved. |
     <a href="#" target="_blank" rel="noopener">Privacy Policy</a> |
     <a href="#" target="_blank" rel="noopener">Terms &amp; Conditions</a>
   </div>
@@ -1601,89 +1601,62 @@ const CONFIG = {
   var suburb = hq || 'Sydney';
 
   var keywordMap = {
-    'emergency plumber': {
-      preheadline:  'Need an Emergency Plumber in {suburb}?',
+    'emergency electrician': {
+      preheadline:  'Need an Emergency Electrician in {suburb}?',
       headline:     'Stop the Stress.\nWe\'ll fix it today.',
       subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
       eyebrow:      'GET EMERGENCY HELP NOW',
-      offer:        'Same-Day Emergency Plumbing — $50 Off Your Job',
+      offer:        'Same-Day Emergency Electrician — $50 Off Your Job',
       submit:       'GET EMERGENCY HELP',
-      service:      'emergency plumber',
+      service:      'electrical-emergency',
     },
-    'plumber near me': {
-      preheadline:  'Need a Local Plumber in {suburb}?',
-      headline:     'Local, Same-Day Plumber Available in {suburb}',
+    'electrician near me': {
+      preheadline:  'Local Electrician Near You in {suburb}',
+      headline:     'Local, Same-Day Electrician in {suburb}',
       subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
-      eyebrow:      'BOOK A LOCAL PLUMBER',
+      eyebrow:      'BOOK A LOCAL ELECTRICIAN',
       offer:        'Book Today & Get $50 Off Your Service',
-      submit:       'GET A PLUMBER TODAY',
-      service:      'plumber',
+      submit:       'GET AN ELECTRICIAN TODAY',
+      service:      'electrical',
     },
-    'plumber': {
-      preheadline:  'Need a Local Plumber in {suburb}?',
-      headline:     'Local, Same-Day Plumber Available in {suburb}',
+    'electrician': {
+      preheadline:  'Local Electrician Available in {suburb}',
+      headline:     'Local, Same-Day Electrician in {suburb}',
       subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
-      eyebrow:      'BOOK A PLUMBER TODAY',
+      eyebrow:      'BOOK AN ELECTRICIAN TODAY',
       offer:        'Book Today & Get $50 Off Your Service',
-      submit:       'GET A PLUMBER TODAY',
-      service:      'plumber',
+      submit:       'GET AN ELECTRICIAN TODAY',
+      service:      'electrical',
     },
-    'blocked drain plumber': {
-      preheadline:  'Got a Blocked Drain in {suburb}?',
+    'switchboard upgrade': {
+      preheadline:  'Switchboard Upgrade in {suburb}?',
       headline:     'Stop the Stress.\nWe\'ll fix it today.',
       subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
-      eyebrow:      'GET YOUR DRAIN UNBLOCKED TODAY',
-      offer:        'Same-Day Drain Service — $50 Off Your Job',
-      submit:       'UNBLOCK MY DRAIN TODAY',
-      service:      'blocked drain',
+      eyebrow:      'GET YOUR SWITCHBOARD UPGRADED',
+      offer:        'Switchboard Upgrade — $50 Off Your Job',
+      submit:       'UPGRADE MY SWITCHBOARD',
+      service:      'switchboard',
     },
-    'blocked drains': {
-      preheadline:  'Blocked Drain in {suburb}?',
+    'switchboard electrician': {
+      preheadline:  'Switchboard Electrician in {suburb}?',
       headline:     'Stop the Stress.\nWe\'ll fix it today.',
       subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
-      eyebrow:      'GET YOUR DRAIN UNBLOCKED TODAY',
-      offer:        'Same-Day Drain Service — $50 Off Your Job',
-      submit:       'UNBLOCK MY DRAIN TODAY',
-      service:      'blocked drain',
-    },
-    'drain plumber': {
-      preheadline:  'Drain Problem in {suburb}?',
-      headline:     'Stop the Stress.\nWe\'ll fix it today.',
-      subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
-      eyebrow:      'GET YOUR DRAIN FIXED',
-      offer:        'Same-Day Drain Service — $50 Off Your Job',
-      submit:       'FIX MY DRAIN TODAY',
-      service:      'blocked drain',
-    },
-    'blocked toilet plumber': {
-      preheadline:  'Blocked Toilet in {suburb}?',
-      headline:     'Stop the Stress.\nWe\'ll fix it today.',
-      subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
-      eyebrow:      'GET YOUR TOILET FIXED',
-      offer:        'Same-Day Toilet Repair — $50 Off Your Job',
-      submit:       'FIX MY TOILET TODAY',
-      service:      'blocked toilet',
-    },
-    'hot water plumber': {
-      preheadline:  'Hot Water Issues in {suburb}?',
-      headline:     'Stop the Stress.\nWe\'ll fix it today.',
-      subline:      'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
-      eyebrow:      'GET YOUR HOT WATER BACK',
-      offer:        'Same-Day Hot Water Repair — $50 Off Your Job',
-      submit:       'FIX MY HOT WATER TODAY',
-      service:      'hot water',
+      eyebrow:      'GET YOUR SWITCHBOARD FIXED',
+      offer:        'Switchboard Service — $50 Off Your Job',
+      submit:       'FIX MY SWITCHBOARD',
+      service:      'switchboard',
     },
   };
 
   // Default fallback
   var defaults = {
-    preheadline: 'Local, Same-Day Plumber in {suburb}',
+    preheadline: 'Local Electrician in {suburb}',
     headline:    'Stop the Stress.\nWe\'ll fix it today.',
     subline:     'ON TIME. FIXED RIGHT. NO MESS. NO SURPRISES.',
     eyebrow:     'GET HELP NOW',
     offer:       'Book Today & Get $50 Off Your Service',
     submit:      'GET HELP NOW',
-    service:     'plumbing',
+    service:     'electrical-general',
   };
 
   var kw = keywordMap[rawKeyword] || defaults;
