@@ -27,7 +27,7 @@ export async function onRequestPost(context) {
     const subject = `PETTR Website - New Lead - ${trade} - ${service || "TBC"} - ${suburb || "TBC"}`;
     const pageUrl = request.headers.get('referer') || request.headers.get('origin') || '';
 
-    const smsMessage = `Hi ${name.split(' ')[0]}, thank you for contacting Plumber & Electrician To The Rescue. Someone from our team will be in touch shortly. If it's urgent, call us on 02 8103 4607.`;
+    const smsMessage = `Hi ${name.split(' ')[0]}, thank you for contacting Plumber & Electrician To The Rescue. Someone from our team will be in touch shortly. If it's urgent, please call us on 02 8103 4607.`;
 
     const textBody = `
 New PETTR Lead
