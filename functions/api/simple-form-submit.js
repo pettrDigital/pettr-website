@@ -107,7 +107,7 @@ GCLID: ${gclid}
       body: JSON.stringify({
         api_key:   env.SMTP2GO_API_KEY,
         sender:    "service@plumberandelectrician.com.au",
-        to:        ["digital.plumbertotherescue@gmail.com"],
+        to:        ["jobs@mrwasher.com.au"],
         subject,
         text_body: textBody,
         html_body: htmlBody,
