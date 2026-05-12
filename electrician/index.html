@@ -17,7 +17,7 @@
   fetchpriority="high">
 <link rel="preload" as="image"
   href="https://plumbertotherescue.com.au/wp-content/uploads/2026/04/hero-electrician-desktop.webp"
-  media="(min-width: 768px)"
+  media="(min-width: 1024px)"
   fetchpriority="high">
 
 <link rel="preload" as="font" type="font/woff2" crossorigin
@@ -132,7 +132,7 @@ p  { font-size: 1rem; line-height: 1.7; }
   .trust-available { gap: 6px; font-size: 13px; }
 }
 
-@media (min-width: 768px) and (max-width: 1279px) {
+@media (min-width: 768px) and (max-width: 1023px) {
   #sticky-trust-bar { padding: 0 5%; }
   .trust-location-short { display: inline; font-size: 13px; }
   .trust-location { display: none; }
@@ -141,7 +141,7 @@ p  { font-size: 1rem; line-height: 1.7; }
   .trust-available { font-size: 13px; }
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .trust-location-short { display: none; }
   .trust-location { display: inline; }
   .pttr-review-badge-mobile { display: none !important; }
@@ -200,7 +200,7 @@ p  { font-size: 1rem; line-height: 1.7; }
   #header { padding: 8px 22px; }
   .header-logo img { width: 153px; }
 }
-@media (min-width: 992px) {
+@media (min-width: 1024px) {
   #header { padding: 12px 22px; }
   .header-logo img { width: 180px; }
 }
@@ -565,7 +565,7 @@ p  { font-size: 1rem; line-height: 1.7; }
 /* ═══════════════════════════════════════════════════════════════
    TABLET — banner strip + side-by-side (768–1279)
    ═══════════════════════════════════════════════════════════════ */
-@media (min-width: 768px) and (max-width: 1279px) {
+@media (min-width: 768px) and (max-width: 1023px) {
   .lp-hero-wrap {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 320px auto auto;
@@ -682,7 +682,7 @@ p  { font-size: 1rem; line-height: 1.7; }
 /* ═══════════════════════════════════════════════════════════════
    DESKTOP — 3-column full bleed (1280–1535)
    ═══════════════════════════════════════════════════════════════ */
-@media (min-width: 1280px) and (max-width: 1535px) {
+@media (min-width: 1024px) and (max-width: 1535px) {
   .lp-hero-wrap {
     grid-template-columns: 400px minmax(0, 1fr) 420px;
     /* base clamp() handles height — no min-height here */
@@ -867,7 +867,7 @@ p  { font-size: 1rem; line-height: 1.7; }
   .bio-bullets { gap: 6px; font-size: 13px; }
 }
 
-@media (min-width: 768px) and (max-width: 1279px) {
+@media (min-width: 768px) and (max-width: 1023px) {
   #david-bio { padding: 32px 20px; }
   #david-bio .wrap { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: center; max-width: 760px; margin: 0 auto; background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); overflow: hidden; }
   .bio-content { background: transparent; border-radius: 0; box-shadow: none; padding: 6px 6px 6px 8px; margin-right: 0; min-height: 0; }
@@ -935,7 +935,7 @@ p  { font-size: 1rem; line-height: 1.7; }
   .promise-stacked-points .proof-block p { font-size: 13px; line-height: 1.5; }
 }
 
-@media (min-width: 768px) and (max-width: 1279px) {
+@media (min-width: 768px) and (max-width: 1023px) {
   #promise-proof { display: none; }
   #promise-proof-stacked { display: block; background: #033d56; padding: 36px 20px 40px; color: #fff; }
   .promise-stacked-header { margin-bottom: 24px; text-align: center; }
@@ -948,7 +948,7 @@ p  { font-size: 1rem; line-height: 1.7; }
   .promise-stacked-points .proof-block p { font-size: 14px; line-height: 1.55; }
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   #promise-proof-stacked { display: none; }
   #promise-proof { grid-template-columns: 1fr 1fr; }
   .promise-left { padding: 44px 32px 44px; }
@@ -985,9 +985,9 @@ p  { font-size: 1rem; line-height: 1.7; }
 .emergency-cta-row .btn:last-child { background: #fff; color: #0b84bd; border: 4px solid #0b84bd; }
 .emergency-cta-row .btn:last-child:hover { background: rgba(11,132,189,0.06); color: #0b84bd; }
 
-@media (min-width: 768px) and (max-width: 991px) { .emergency-services-grid { grid-template-columns: repeat(2, 1fr); gap: 18px; } }
-@media (min-width: 992px) { .emergency-services-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; } }
-@media (max-width: 991px) { #emergency-services { padding: 44px 0 56px; } .emergency-services-wrap { padding: 0 16px; } .emergency-services-header { margin-bottom: 28px; } .emergency-services-grid { margin-bottom: 28px; } }
+@media (min-width: 768px) and (max-width: 1023px) { .emergency-services-grid { grid-template-columns: repeat(2, 1fr); gap: 18px; } }
+@media (min-width: 1024px) { .emergency-services-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; } }
+@media (max-width: 1023px) { #emergency-services { padding: 44px 0 56px; } .emergency-services-wrap { padding: 0 16px; } .emergency-services-header { margin-bottom: 28px; } .emergency-services-grid { margin-bottom: 28px; } }
 
 /* ══════════════════════════════════════════════════════════════
    WHY CHOOSE US
@@ -1013,7 +1013,7 @@ p  { font-size: 1rem; line-height: 1.7; }
 .why-copy { background: transparent; font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: 700; line-height: 1.55; color: #4b5563; display: flex; align-items: center; justify-content: center; text-align: center; height: 100%; }
 
 @media (min-width: 768px) { .why-label { min-height: 100%; } }
-@media (max-width: 991px) {
+@media (max-width: 1023px) {
   #why-choose-pttr { padding: 48px 0 56px; }
   .why-choose-wrap { padding: 0 16px; }
   .why-choose-table { margin-top: 18px; }
@@ -1088,7 +1088,7 @@ p  { font-size: 1rem; line-height: 1.7; }
   .process-phase-band { margin: 0 0 12px -56px; padding: 7px 12px; }
 }
 
-@media (min-width: 768px) and (max-width: 1279px) {
+@media (min-width: 768px) and (max-width: 1023px) {
   #our-process { padding: 40px 0 48px; }
   .process-wrap { padding: 0 20px; }
   .process-shell { padding: 30px 22px 34px; }
@@ -1200,7 +1200,7 @@ p  { font-size: 1rem; line-height: 1.7; }
         <span class="star-rating">4.8</span>
         <span class="stars-icon">★★★★★</span>
         <span class="review-divider">|</span>
-        <span class="review-count">224 Reviews</span>
+        <span class="review-count">119 Reviews</span>
       </div>
     </div>
   </div>
@@ -1213,7 +1213,7 @@ p  { font-size: 1rem; line-height: 1.7; }
         <span class="star-rating">4.8</span>
         <span class="stars-icon">★★★★★</span>
         <span class="review-divider">|</span>
-        <span class="review-count">224 Reviews</span>
+        <span class="review-count">119 Reviews</span>
       </div>
     </div>
   </div>
@@ -1280,7 +1280,7 @@ p  { font-size: 1rem; line-height: 1.7; }
       <h2 class="guarantee-headline" id="guarantee-headline"></h2>
       <p class="guarantee-subline" id="guarantee-subline"></p>
       <ul class="hero-checklist">
-        <li id="hero-checklist-arrival">60 minute arrival in Sydney - Guaranteed</li>
+        <li id="hero-checklist-arrival">60 Minute Arrival Across Sydney - Guaranteed</li>
         <li>No Call Out Fee</li>
         <li>100,000+ Jobs Completed</li>
         <li>Lifetime Labour Guarantee</li>
@@ -1367,19 +1367,19 @@ p  { font-size: 1rem; line-height: 1.7; }
     </div>
     <div class="trust-reviews-grid">
       <div class="trust-review-card">
-        <p class="trust-review-quote">"I had a burst pipe and the front desk did everything they could to slot me in that very afternoon. Rohan arrived and did a fantastic job. Give them a go, you will not be sorry."</p>
+        <p class="trust-review-quote">"Kent was great. He arrived when he said he would, was super friendly and was able to find and isolate a fault really quickly. He took the time to explain everything to me really carefully and also gave advice on updating our old circuit boards."</p>
         <div class="trust-review-stars">★★★★★</div>
-        <p class="trust-review-author">Dave A.</p>
+        <p class="trust-review-author">Simeon B.</p>
       </div>
       <div class="trust-review-card">
-        <p class="trust-review-quote">"Super quick response to a toilet cistern that was behaving like Warragamba Dam!! Rohan had it fixed and flushing in no time. Wouldn't hesitate to recommend."</p>
+        <p class="trust-review-quote">"Kent was quick, efficient, friendly and very neat. Came to our rescue and fixed our switchboard. Under 2 hours from initial call to work completed. Amazing!"</p>
         <div class="trust-review-stars">★★★★★</div>
-        <p class="trust-review-author">Cheryl</p>
+        <p class="trust-review-author">Thea L.</p>
       </div>
       <div class="trust-review-card">
-        <p class="trust-review-quote">"Nick was prompt, tidy and efficient. He was friendly and happy to explain the steps. He insisted on tidying up afterwards. I would highly recommend him."</p>
+        <p class="trust-review-quote">"Terrific and efficient service from Simon after all the power went out in our house. He also promptly fixed up a couple of other little electrical problems that needed doing. Second time we've used them."</p>
         <div class="trust-review-stars">★★★★★</div>
-        <p class="trust-review-author">Robyn M., Lane Cove</p>
+        <p class="trust-review-author">Tom</p>
       </div>
     </div>
   </div>
@@ -1434,7 +1434,7 @@ p  { font-size: 1rem; line-height: 1.7; }
     <p class="promise-stacked-sub">Not 100% satisfied? Just call us — we'll make it right. <br>No arguments, no drama.</p>
   </div>
   <div class="promise-stacked-points">
-    <div class="proof-block"><span class="proof-num">01</span><div class="proof-text"><h3>On Time</h3><p>We show up when we say we will. You get a clear arrival window and we stick to it — or you don't pay for the labour.</p></div></div>
+    <div class="proof-block"><span class="proof-num">01</span><div class="proof-text"><h3>On Time</h3><p>We show up when we say we will. You get a clear arrival window and we stick to it — or you get $100 off your service.</p></div></div>
     <div class="proof-block"><span class="proof-num">02</span><div class="proof-text"><h3>Fixed Right</h3><p>We diagnose the root cause, not just the symptom. That's why our repairs last — backed by a lifetime labour guarantee.</p></div></div>
     <div class="proof-block"><span class="proof-num">03</span><div class="proof-text"><h3>No Mess</h3><p>We respect your home. Drop sheets, clean work areas, and a proper tidy-up before we leave.</p></div></div>
     <div class="proof-block"><span class="proof-num">04</span><div class="proof-text"><h3>No Surprises</h3><p>Clear, upfront pricing before we start. No hidden costs. No last-minute add-ons.</p></div></div>
@@ -1472,24 +1472,24 @@ p  { font-size: 1rem; line-height: 1.7; }
       <span class="grs-score">4.8</span>
       <span class="grs-stars">★★★★★</span>
       <span class="grs-divider">|</span>
-      <span class="grs-count">200+ Sydney customers</span>
+      <span class="grs-count">119+ Sydney customers</span>
     </div>
   </div>
   <div class="review-grid" style="max-width:1100px;margin:0 auto;">
     <div class="review-card">
-      <div class="review-card-header"><div class="avatar">E</div><div class="review-card-meta"><div class="reviewer-name">Enza C</div><div class="reviewer-date">Five Dock &bull; January 2026</div></div><svg class="review-card-g" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg></div>
+      <div class="review-card-header"><div class="avatar">S</div><div class="review-card-meta"><div class="reviewer-name">Simeon B.</div><div class="reviewer-date">6 months ago</div></div><svg class="review-card-g" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg></div>
       <div class="review-stars">★★★★★</div>
-      <p class="review-quote">Nick was very helpful on the day and how he quoted the work on the spot. Very happy with the service that Nick provided.</p>
+      <p class="review-quote">"Kent was great. He arrived when he said he would, was super friendly and was able to find and isolate a fault really quickly. He took the time to explain everything to me really carefully and also gave advice on updating our old circuit boards. All very much appreciated!"</p>
     </div>
     <div class="review-card">
-      <div class="review-card-header"><div class="avatar">K</div><div class="review-card-meta"><div class="reviewer-name">Kate S.</div><div class="reviewer-date">Alexandria &bull; February 2026</div></div><svg class="review-card-g" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg></div>
+      <div class="review-card-header"><div class="avatar">T</div><div class="review-card-meta"><div class="reviewer-name">Thea L.</div><div class="reviewer-date">2 years ago</div></div><svg class="review-card-g" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg></div>
       <div class="review-stars">★★★★★</div>
-      <p class="review-quote">Rohan was brilliant. Calm, professional, courteous — a good problem solver and did an excellent job.</p>
+      <p class="review-quote">"Kent was quick, efficient, friendly and very neat. Came to our rescue and fixed our switchboard. Under 2 hours from initial call to work completed. Amazing!"</p>
     </div>
     <div class="review-card">
-      <div class="review-card-header"><div class="avatar">A</div><div class="review-card-meta"><div class="reviewer-name">Anthony B</div><div class="reviewer-date">Hunters Hill &bull; 2 months ago</div></div><svg class="review-card-g" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg></div>
+      <div class="review-card-header"><div class="avatar green">T</div><div class="review-card-meta"><div class="reviewer-name">Tom</div><div class="reviewer-date">7 months ago</div></div><svg class="review-card-g" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg></div>
       <div class="review-stars">★★★★★</div>
-      <p class="review-quote">These guys were terrific. And Dave is the man!!</p>
+      <p class="review-quote">"Terrific and efficient service from Simon after all the power went out in our house. He also promptly fixed up a couple of other little electrical problems that needed doing. Second time we've used them. Great work!"</p>
     </div>
   </div>
 </section>
@@ -1501,7 +1501,7 @@ p  { font-size: 1rem; line-height: 1.7; }
       <div class="process-header">
         <span class="process-eyebrow">What To Expect When We Arrive</span>
         <h2>A premium, professional service, from start to finish</h2>
-        <p class="process-subhead">No guesswork. No hidden fees. Just expert Sydney plumbers who respect your home and your time.</p>
+        <p class="process-subhead">No guesswork. No hidden fees. Just expert Sydney electricians who respect your home and your time.</p>
       </div>
       <div class="process-body">
         <div class="process-photo-col">
@@ -1534,7 +1534,7 @@ p  { font-size: 1rem; line-height: 1.7; }
 <footer id="footer">
   <div class="footer-main">
     <div class="footer-logo-wrap"><img id="footer-logo" class="footer-logo" src="" alt="" width="200" height="60" loading="lazy" decoding="async"></div>
-    <div class="footer-legal">Licence No. 3A403 | ABN 53 658 854 553</div>
+    <div class="footer-legal">Licence No. A3403 | ABN 81 003 276 104</div>
     <a id="footer-phone-link" class="footer-phone" href="#">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24 11.47 11.47 0 0 0 3.58.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/></svg>
       <span id="footer-phone-text"></span>
