@@ -2198,7 +2198,7 @@
     bottom: 28px;
     right: 20px;
     z-index: 8000;
-    display: flex;
+    display: none;
     align-items: center;
     gap: 10px;
     background: rgba(255,255,255,0.95);
@@ -3651,7 +3651,15 @@
         document.head.appendChild(s1);
       }
       var launcher = document.getElementById('custom-chat-launcher');
-      if (launcher) launcher.addEventListener('click', loadTawkAndOpen);
+      if (launcher) {
+        launcher.addEventListener('click', loadTawkAndOpen);
+        var sydney = new Date(new Date().toLocaleString('en-US', { timeZone: 'Australia/Sydney' }));
+        var day = sydney.getDay();
+        var mins = sydney.getHours() * 60 + sydney.getMinutes();
+        if (day >= 1 && day <= 5 && mins >= 465 && mins < 1020) {
+          launcher.style.display = 'flex';
+        }
+      }
     }, 500);
 
   });
