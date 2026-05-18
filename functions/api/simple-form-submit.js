@@ -23,9 +23,17 @@ export async function onRequestPost(context) {
       return json({ success: false, error: "Name and phone are required" }, 400);
     }
 
-    const trade = ['electrical', 'electrical-emergency', 'switchboard'].includes((service || '').toLowerCase()) ? 'Electrical' : 'Plumbing';
-    const subject = `PETTR Website - New Lead - ${trade} - ${service || "TBC"} - ${suburb || "TBC"}`;
     const pageUrl = request.headers.get('referer') || request.headers.get('origin') || '';
+    const electricalServices = ['electrical', 'electrical-emergency', 'switchboard'];
+    let trade;
+    if (pageUrl.includes('/electrician')) {
+      trade = 'Electrical';
+    } else if (pageUrl.includes('/plumber')) {
+      trade = 'Plumbing';
+    } else {
+      trade = electricalServices.includes((service || '').toLowerCase()) ? 'Electrical' : 'Plumbing';
+    }
+    const subject = `PETTR Website - New Lead - ${trade} - ${suburb || "TBC"}`;
 
     const smsMessage = `Hi ${name.split(' ')[0]}, thank you for contacting Plumber & Electrician To The Rescue. Someone from our team will be in touch shortly. If it's urgent, please call us on 02 8103 4607.`;
 
