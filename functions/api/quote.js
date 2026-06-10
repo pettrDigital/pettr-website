@@ -267,7 +267,8 @@ export async function onRequest(context) {
       } else {
         // Standard booking with selected slot
         const slot = data.bookNowSlot;
-        const smsMessage = `Hi ${data.name}, your ${trade} booking is confirmed!\n\nTime: ${slot.day} ${slot.start_time}-${slot.end_time}\nAddress: ${data.address}${suburbStr} ${data.postcode}\nIssue: ${data.message}\n\nTech will call 30min before arrival.`;
+        const techStr = slot.tech ? `\nTech: ${slot.tech}` : '';
+        const smsMessage = `Hi ${data.name}, your ${trade} booking is confirmed!\n\nTime: ${slot.day} ${slot.start_time}-${slot.end_time}${techStr}\nAddress: ${data.address}${suburbStr} ${data.postcode}\nIssue: ${data.message}\n\nTech will call 30min before arrival.`;
 
         await sendBookingSMS(env, {
           phone: data.phone,
