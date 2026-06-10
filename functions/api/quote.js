@@ -307,6 +307,37 @@ export async function onRequest(context) {
         html: emailHtml,
       });
       console.log('Booking email sent to support');
+
+      // Create AroFlo job (gated by APPLY_UPDATES=false in the Cloud Function)
+      try {
+        const bookingPayload = {
+          name:        data.name,
+          phone:       data.phone,
+          email:       data.email,
+          address:     data.address,
+          suburb:      data.suburb || '',
+          postcode:    data.postcode,
+          trade,
+          urgency:     data.bookNowUrgency,
+          description: data.message,
+          ownership:   data.bookNowOwnership,
+          appliance:   data.bookNowAppliance,
+          slot:        data.bookNowSlot || null,
+        };
+        const jobRes = await fetch(
+          'https://us-central1-pettrdashboards.cloudfunctions.net/createWebBooking',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bookingPayload),
+          }
+        );
+        const jobResult = await jobRes.json();
+        console.log('AroFlo job creation result:', JSON.stringify(jobResult));
+      } catch (jobErr) {
+        // Non-fatal — booking confirmation already sent, log and continue
+        console.error('AroFlo job creation failed (non-fatal):', jobErr.message);
+      }
     }
 
     return new Response(JSON.stringify({ success: true, message: 'Quote request submitted. We will call you shortly!' }), {

@@ -387,6 +387,8 @@ async function getAvailableSlots(trade) {
         start_time_12,
         end_time_12,
         time_period,
+        userId: s.userId,
+        tech: s.tech,
       };
     });
 
@@ -398,6 +400,14 @@ async function getAvailableSlots(trade) {
     seenTimes.add(timeKey);
     return true;
   });
+}
+
+// Maps a slot's start_time (HH:MM) + date back to the tech userId that owns it.
+// Used by createWebBooking so we can assign the schedule entry to the right person.
+async function resolveTechForSlot(trade, date, startTime) {
+  const slots = await getAvailableSlots(trade);
+  const match = slots.find(s => s.date === date && s.start_time === startTime);
+  return match ? { userId: match.userId, tech: match.tech } : null;
 }
 
 // ====================== AROFLO WRITE OPERATIONS ======================
@@ -447,6 +457,18 @@ async function createTask({
 
   console.log("[createTask] Payload:", JSON.stringify(payload, null, 2));
   return aroFloPost("tasks", payload);
+}
+
+async function createScheduleEntry({ taskId, userId, date, startTime, endTime }) {
+  const tzOffset = "+11:00"; // AEDT — change to +10:00 for AEST (Apr–Oct)
+  const payload = {
+    task: { taskid: taskId },
+    scheduledto: { scheduledtoid: userId },
+    startdatetime: `${date}T${startTime}:00${tzOffset}`,
+    enddatetime:   `${date}T${endTime}:00${tzOffset}`,
+  };
+  console.log("[createScheduleEntry] Payload:", JSON.stringify(payload, null, 2));
+  return aroFloPost("schedules", payload);
 }
 
 // ====================== SHARED JOB CREATION LOGIC ======================
@@ -675,6 +697,122 @@ exports.aroFloAgent = onRequest(
         error:   err.message,
         message: "Something went wrong. The team will follow up shortly.",
       });
+    }
+  }
+);
+
+// ====================== WEB BOOKING ======================
+// Called by quote.js (Cloudflare Pages) when a user books via the website.
+// 1. Looks up or creates the AroFlo client
+// 2. Creates the task
+// 3. For standard bookings with a named slot, creates a schedule entry for the assigned tech
+//
+// All AroFlo writes are gated by APPLY_UPDATES.
+
+exports.createWebBooking = onRequest(
+  { minInstances: 0, timeoutSeconds: 30, memory: "256MiB" },
+  async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    if (req.method === "OPTIONS") return res.status(204).send("");
+    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+    let body;
+    try {
+      body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    } catch {
+      return res.status(400).json({ error: "Invalid JSON" });
+    }
+
+    console.log("[createWebBooking] payload:", JSON.stringify(body));
+
+    const {
+      name, phone, email,
+      address, suburb, postcode,
+      trade, urgency,
+      slot,           // { date, start_time, end_time, userId, tech } — standard bookings only
+      description,
+      ownership, appliance,
+    } = body;
+
+    if (!name || !phone || !address || !postcode || !trade || !urgency) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    try {
+      // Split name into first/last (best effort)
+      const nameParts = (name || "").trim().split(/\s+/);
+      const firstName = nameParts[0] || name;
+      const lastName  = nameParts.slice(1).join(" ") || "";
+
+      // 1. Look up or create client
+      const existingClient = await lookupClientByPhone(phone);
+      let clientId = existingClient?.clientid || null;
+
+      if (!clientId) {
+        const newClient = await createClient({
+          firstName, lastName, phone, email,
+          address, suburb, postcode, state: "NSW",
+        });
+        if (newClient?.blocked) {
+          console.log("[createWebBooking] client creation blocked (APPLY_UPDATES=false)");
+          clientId = "BLOCKED";
+        } else {
+          clientId = newClient?.zoneresponse?.id || newClient?.id || null;
+        }
+      }
+
+      // 2. Create task
+      const isAfterHours = urgency === "tonight";
+      const taskNotes = [
+        `Booked via website`,
+        `Ownership: ${ownership || "unknown"}`,
+        `Appliance: ${appliance || "unknown"}`,
+        ...(slot ? [`Slot: ${slot.day} ${slot.start_time}–${slot.end_time} (tech: ${slot.tech || "TBD"})`] : []),
+      ].join("\n");
+
+      const task = await createTask({
+        clientId,
+        trade,
+        isAfterHours,
+        description: description || "",
+        address, suburb, postcode,
+        callerName:    name,
+        callerPhone:   phone,
+        scheduledDate: slot?.date || null,
+        scheduledTime: slot?.start_time || null,
+      });
+
+      if (task?.blocked) {
+        console.log("[createWebBooking] task creation blocked (APPLY_UPDATES=false)");
+        return res.json({ success: false, blocked: true, message: "Test mode: logged but not committed." });
+      }
+
+      const taskId = task?.zoneresponse?.id || task?.id || null;
+
+      // 3. Create schedule entry for the assigned tech (standard bookings only)
+      if (!isAfterHours && slot?.userId && taskId) {
+        const schedule = await createScheduleEntry({
+          taskId,
+          userId:    slot.userId,
+          date:      slot.date,
+          startTime: slot.start_time,
+          endTime:   slot.end_time,
+        });
+
+        if (schedule?.blocked) {
+          console.log("[createWebBooking] schedule creation blocked (APPLY_UPDATES=false)");
+          return res.json({ success: false, blocked: true, message: "Test mode: schedule logged but not committed." });
+        }
+
+        console.log("[createWebBooking] schedule created for tech", slot.tech, "task", taskId);
+      }
+
+      console.log("[createWebBooking] complete — taskId:", taskId);
+      return res.json({ success: true, taskId });
+
+    } catch (err) {
+      console.error("[createWebBooking] error:", err.message, err.stack);
+      return res.status(500).json({ error: err.message });
     }
   }
 );
