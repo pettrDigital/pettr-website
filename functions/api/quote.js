@@ -310,6 +310,7 @@ export async function onRequest(context) {
       console.log('Booking email sent to support');
 
       // Create AroFlo job (gated by APPLY_UPDATES=false in the Cloud Function)
+      let arofloResult = null;
       try {
         const bookingPayload = {
           name:        data.name,
@@ -333,12 +334,18 @@ export async function onRequest(context) {
             body: JSON.stringify(bookingPayload),
           }
         );
-        const jobResult = await jobRes.json();
-        console.log('AroFlo job creation result:', JSON.stringify(jobResult));
+        arofloResult = await jobRes.json();
+        console.log('AroFlo job creation result:', JSON.stringify(arofloResult));
       } catch (jobErr) {
         // Non-fatal — booking confirmation already sent, log and continue
         console.error('AroFlo job creation failed (non-fatal):', jobErr.message);
+        arofloResult = { error: jobErr.message };
       }
+
+      return new Response(JSON.stringify({ success: true, message: 'Quote request submitted. We will call you shortly!', arofloResult }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
     }
 
     return new Response(JSON.stringify({ success: true, message: 'Quote request submitted. We will call you shortly!' }), {
