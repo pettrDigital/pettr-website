@@ -43,10 +43,18 @@ async function sendViaMessageMedia(env, { phone, message }) {
     destination_number: destination,
     format: 'SMS',
   };
-  // Without a source number, sends go out via the shared pool (two-way capable).
-  // Set MESSAGEMEDIA_SOURCE_NUMBER once a dedicated number is provisioned.
-  if (env.MESSAGEMEDIA_SOURCE_NUMBER) {
-    sms.source_number = env.MESSAGEMEDIA_SOURCE_NUMBER;
+  // MESSAGEMEDIA_SENDER controls the sender ID:
+  //   unset          → shared pool (two-way, but number rotates per message)
+  //   "PETTR"        → alpha tag (consistent branding, replies impossible —
+  //                    a do-not-reply footer is appended automatically)
+  //   "+614xxxxxxxx" → dedicated number (consistent and two-way)
+  if (env.MESSAGEMEDIA_SENDER) {
+    const isNumber = /^\+?\d+$/.test(env.MESSAGEMEDIA_SENDER);
+    sms.source_number = env.MESSAGEMEDIA_SENDER;
+    sms.source_number_type = isNumber ? 'INTERNATIONAL' : 'ALPHANUMERIC';
+    if (!isNumber) {
+      sms.content = `${message}\n\nDO NOT REPLY TO THIS MESSAGE`;
+    }
   }
 
   const response = await fetch('https://api.messagemedia.com/v1/messages', {
