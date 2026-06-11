@@ -57,6 +57,8 @@ async function sendViaMessageMedia(env, { phone, message }) {
     }
   }
 
+  console.log('Sender:', sms.source_number ? `${sms.source_number} (${sms.source_number_type})` : 'shared pool (MESSAGEMEDIA_SENDER not set)');
+
   const response = await fetch('https://api.messagemedia.com/v1/messages', {
     method: 'POST',
     headers: {
