@@ -1,3 +1,5 @@
+import { sendSMS as deliverSMS, normalizePhone } from '../lib/sms.js';
+
 export async function onRequest(context) {
   const { request, env } = context;
 
@@ -13,16 +15,32 @@ export async function onRequest(context) {
     const json = await request.json();
     console.log('Webhook payload:', JSON.stringify(json));
 
-    // Kudosity sends SMS_INBOUND events with mo.message and mo.sender
+    // MessageMedia payloads are shaped by our webhook template registration
+    // ({provider, message, phone}); Kudosity sends SMS_INBOUND events with
+    // mo.message and mo.sender.
     let message, phone;
 
-    if (json.event_type === 'SMS_INBOUND' && json.mo) {
+    if (json.provider === 'messagemedia') {
+      if (env.SMS_WEBHOOK_TOKEN && request.headers.get('X-Webhook-Token') !== env.SMS_WEBHOOK_TOKEN) {
+        console.error('Webhook token mismatch, rejecting');
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      message = json.message;
+      phone = json.phone;
+    } else if (json.event_type === 'SMS_INBOUND' && json.mo) {
       message = json.mo.message;
       phone = json.mo.sender;
     } else {
       message = json.message || json.mo?.message;
       phone = json.phone || json.sender || json.mo?.sender;
     }
+
+    // Canonical local format so lookups match how the docs were keyed,
+    // regardless of which provider delivered the reply.
+    phone = normalizePhone(phone) || phone;
 
     console.log('Parsed - Phone:', phone, 'Message:', message);
 
@@ -267,36 +285,10 @@ async function createStandardJob(env, bookingFlow, slot) {
 }
 
 async function sendOutboundSMS(env, { phone, message }) {
-  console.log('=== SENDING OUTBOUND SMS ===');
-  console.log('To:', phone);
-  console.log('Message:', message);
-
-  const apiKey = env.TRANSMITSMS_API_KEY;
-  const apiSecret = env.TRANSMITSMS_API_SECRET;
-  const credentials = btoa(`${apiKey}:${apiSecret}`);
-
-  const formData = new URLSearchParams();
-  formData.append('message', message);
-  formData.append('from', 'PETTR');
-  formData.append('list_id', '10962457');
-  formData.append('countrycode', 'au');
-
-  const response = await fetch('https://api.transmitsms.com/send-sms.json', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${credentials}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Accept': 'text/plain',
-    },
-    body: formData.toString(),
-  });
-
-  const responseText = await response.text();
-  console.log('SMS response status:', response.status);
-  console.log('SMS response:', responseText);
-
-  if (!response.ok) {
-    console.error('SMS error:', response.status);
+  try {
+    return await deliverSMS(env, { phone, message });
+  } catch (error) {
+    console.error('SMS error:', error.message);
   }
 }
 
@@ -504,34 +496,7 @@ Your role: Help them confirm the booking and offer available appointment slots. 
 }
 
 async function sendSMS(env, { phone, message }) {
-  const apiKey = env.TRANSMITSMS_API_KEY;
-  const apiSecret = env.TRANSMITSMS_API_SECRET;
-  const credentials = btoa(`${apiKey}:${apiSecret}`);
-
-  const formData = new URLSearchParams();
-  formData.append('message', message);
-  formData.append('from', 'PETTR');
-  formData.append('list_id', '10962457');
-  formData.append('countrycode', 'au');
-
-  const response = await fetch('https://api.transmitsms.com/send-sms.json', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${credentials}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Accept': 'text/plain',
-    },
-    body: formData.toString(),
-  });
-
-  const responseText = await response.text();
-  console.log('SMS response:', responseText);
-
-  if (!response.ok) {
-    throw new Error(`SMS error: ${response.status} ${responseText}`);
-  }
-
-  return responseText;
+  return deliverSMS(env, { phone, message });
 }
 
 async function sendBookingConfirmationEmail(env, { phone, bookingFlow, messages }) {

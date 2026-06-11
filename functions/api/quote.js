@@ -1,4 +1,6 @@
 
+import { sendSMS as deliverSMS, normalizePhone } from '../lib/sms.js';
+
 const SYDNEY_POSTCODES = new Set([
   // Sydney CBD & Inner
   2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2015, 2016, 2017, 2018, 2019, 2020, 2021,
@@ -399,39 +401,8 @@ async function sendEmail(env, { from, to, subject, html }) {
 }
 
 async function sendSMS(env, { phone, name, address, postcode, problem }) {
-  console.log('=== TRANSMIT SMS ===');
-  console.log('Recipient phone:', phone);
-
-  const apiKey = env.TRANSMITSMS_API_KEY;
-  const apiSecret = env.TRANSMITSMS_API_SECRET;
-  const credentials = btoa(`${apiKey}:${apiSecret}`);
-
   const message = `Hi ${name}, we received your service enquiry: ${problem} at ${address} ${postcode}. Would you like to go ahead and book that service?`;
-
-  const formData = new URLSearchParams();
-  formData.append('message', message);
-  formData.append('from', 'PETTR');
-  formData.append('list_id', '10962457');
-  formData.append('countrycode', 'au');
-
-  const response = await fetch('https://api.transmitsms.com/send-sms.json', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${credentials}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Accept': 'text/plain',
-    },
-    body: formData.toString(),
-  });
-
-  const responseText = await response.text();
-  console.log('SMS response:', responseText);
-
-  if (!response.ok) {
-    throw new Error(`SMS error: ${response.status} ${responseText}`);
-  }
-
-  return responseText;
+  return deliverSMS(env, { phone, message });
 }
 
 async function triggerRetellCallback(env, { phone, name, address, suburb, postcode, message, trade, isExistingCustomer }) {
@@ -538,7 +509,8 @@ async function storeQuoteInFirestore(env, { phone, name, address, postcode, prob
 
     const apiKey = env.FIREBASE_API_KEY;
     const projectId = env.FIREBASE_PROJECT_ID;
-    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/conversations/${phone}?key=${apiKey}`;
+    const phoneKey = normalizePhone(phone) || phone;
+    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/conversations/${phoneKey}?key=${apiKey}`;
 
     const response = await fetch(url, {
       method: 'PATCH',
@@ -609,14 +581,15 @@ async function storeBookingFlowState(env, data) {
 
     const apiKey = env.FIREBASE_API_KEY;
     const projectId = env.FIREBASE_PROJECT_ID;
-    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/booking_flows/${data.phone}?key=${apiKey}`;
+    const phoneKey = normalizePhone(data.phone) || data.phone;
+    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/booking_flows/${phoneKey}?key=${apiKey}`;
 
     const response = await fetch(url, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         fields: {
-          phone: { stringValue: data.phone },
+          phone: { stringValue: phoneKey },
           name: { stringValue: data.name },
           address: { stringValue: data.address },
           postcode: { stringValue: data.postcode },
@@ -641,49 +614,7 @@ async function sendBookingSMS(env, { phone, message }) {
   console.log('=== SENDING BOOKING SMS ===');
   console.log('To:', phone);
   console.log('Message length:', message.length);
-
-  const apiKey = env.TRANSMITSMS_API_KEY;
-  const apiSecret = env.TRANSMITSMS_API_SECRET;
-
-  console.log('API Key present:', !!apiKey);
-  console.log('API Secret present:', !!apiSecret);
-
-  if (!apiKey || !apiSecret) {
-    console.error('SMS credentials not configured');
-    throw new Error('SMS credentials not configured');
-  }
-
-  const credentials = btoa(`${apiKey}:${apiSecret}`);
-
-  const formData = new URLSearchParams();
-  formData.append('to', phone);
-  formData.append('message', message);
-  formData.append('from', 'PETTR');
-  formData.append('countrycode', 'au');
-
-  console.log('Sending to Transmit SMS API...');
-  const response = await fetch('https://api.transmitsms.com/send-sms.json', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${credentials}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Accept': 'text/plain',
-    },
-    body: formData.toString(),
-  });
-
-  const responseText = await response.text();
-  console.log('SMS response status:', response.status);
-  console.log('SMS response:', responseText.substring(0, 200));
-
-  if (!response.ok) {
-    console.error('SMS error - status:', response.status);
-    console.error('SMS error - body:', responseText);
-    throw new Error(`SMS error: ${response.status}`);
-  }
-
-  console.log('SMS sent successfully');
-  return responseText;
+  return deliverSMS(env, { phone, message });
 }
 
 function escapeHtml(text) {
