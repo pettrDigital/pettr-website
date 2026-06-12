@@ -1,7 +1,7 @@
 // Internal outbound-SMS endpoint for trusted backend callers (e.g. the
 // aroFloAgent Cloud Function confirming voice bookings). Requires the same
 // shared-secret header as the inbound webhook. Not for browser use.
-import { sendSMS } from '../lib/sms.js';
+import { sendSMS, composeBookingConfirmation } from '../lib/sms.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -18,16 +18,24 @@ export async function onRequest(context) {
   }
 
   try {
-    const { phone, message } = await request.json();
+    const { phone, message, booking, test } = await request.json();
 
-    if (!phone || !message) {
+    // Callers either pass a raw message, or booking fields which are
+    // composed with the same template the web booking flow uses.
+    let text = message || (booking ? composeBookingConfirmation(booking) : null);
+
+    if (!phone || !text) {
       return new Response(JSON.stringify({ error: 'Missing phone or message' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    await sendSMS(env, { phone, message });
+    if (test) {
+      text = `[TEST MODE - no job created] ${text}`;
+    }
+
+    await sendSMS(env, { phone, message: text });
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

@@ -20,6 +20,19 @@ export function toE164(raw) {
   return local.startsWith('0') ? `+61${local.slice(1)}` : `+${local}`;
 }
 
+// Single booking-confirmation template shared by web (quote.js) and voice
+// (aroFloAgent via /api/send-sms) so both channels send identical messages.
+export function composeBookingConfirmation({ name, trade, address, suburb, postcode, issue, urgency, day, startTime, endTime, tech }) {
+  const suburbStr = suburb ? ` ${suburb}` : '';
+  if (urgency === 'emergency' || urgency === 'tonight') {
+    return `Hi ${name}, emergency ${trade} booking received at ${address}${suburbStr} ${postcode}. A tech will call you back within 5-10 minutes. Thanks!`;
+  }
+  const timeStr = [day, startTime && endTime ? `${startTime}-${endTime}` : startTime].filter(Boolean).join(' ');
+  const techStr = tech ? `\nTech: ${tech}` : '';
+  const issueStr = issue ? `\nIssue: ${issue}` : '';
+  return `Hi ${name}, your ${trade} booking is confirmed!\n\nTime: ${timeStr || 'to be confirmed - the team will call between 7-9:30am'}${techStr}\nAddress: ${address}${suburbStr} ${postcode}${issueStr}\n\nTech will call 30min before arrival.`;
+}
+
 export async function sendSMS(env, { phone, message }) {
   if (env.MESSAGEMEDIA_API_KEY && env.MESSAGEMEDIA_API_SECRET) {
     return sendViaMessageMedia(env, { phone, message });

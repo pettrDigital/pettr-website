@@ -1,5 +1,5 @@
 
-import { sendSMS as deliverSMS, normalizePhone } from '../lib/sms.js';
+import { sendSMS as deliverSMS, normalizePhone, composeBookingConfirmation } from '../lib/sms.js';
 
 const SYDNEY_POSTCODES = new Set([
   // Sydney CBD & Inner
@@ -255,11 +255,16 @@ export async function onRequest(context) {
       console.log('=== INSTANT BOOKING INITIATED ===');
       const trade = data.bookNowServiceType;
 
-      const suburbStr = data.suburb ? ` ${data.suburb}` : '';
-
       if (data.bookNowUrgency === 'tonight') {
         // Emergency booking - send receipt SMS, tech will call within 5-10 mins
-        const smsMessage = `Hi ${data.name}, emergency ${trade} booking received at ${data.address}${suburbStr} ${data.postcode}. A tech will call you back within 5-10 minutes. Thanks!`;
+        const smsMessage = composeBookingConfirmation({
+          name: data.name,
+          trade,
+          address: data.address,
+          suburb: data.suburb,
+          postcode: data.postcode,
+          urgency: 'emergency',
+        });
 
         await sendBookingSMS(env, {
           phone: data.phone,
@@ -269,8 +274,18 @@ export async function onRequest(context) {
       } else {
         // Standard booking with selected slot
         const slot = data.bookNowSlot;
-        const techStr = slot.tech ? `\nTech: ${slot.tech}` : '';
-        const smsMessage = `Hi ${data.name}, your ${trade} booking is confirmed!\n\nTime: ${slot.day} ${slot.start_time}-${slot.end_time}${techStr}\nAddress: ${data.address}${suburbStr} ${data.postcode}\nIssue: ${data.message}\n\nTech will call 30min before arrival.`;
+        const smsMessage = composeBookingConfirmation({
+          name: data.name,
+          trade,
+          address: data.address,
+          suburb: data.suburb,
+          postcode: data.postcode,
+          issue: data.message,
+          day: slot.day,
+          startTime: slot.start_time,
+          endTime: slot.end_time,
+          tech: slot.tech,
+        });
 
         await sendBookingSMS(env, {
           phone: data.phone,
