@@ -16,7 +16,7 @@ const CryptoJS = require("crypto-js");
 const { SecretManagerServiceClient } = require("@google-cloud/secret-manager");
 const { onRequest } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
-const { getFirestore } = require("firebase-admin/firestore");
+const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 
 if (!admin.apps.length) admin.initializeApp();
 const db = getFirestore();
@@ -395,7 +395,7 @@ async function getAvailableSlots(trade) {
   tomorrowD.setUTCDate(tomorrowD.getUTCDate() + 1);
   const tomorrowSyd = tomorrowD.toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" });
 
-  const slots = sorted
+  return sorted
     .filter(s => s.start_sydney && s.end_sydney)
     .filter(s => new Date(s.start) > nowPlus30)
     .map(s => {
@@ -406,54 +406,14 @@ async function getAvailableSlots(trade) {
       else day = new Date(slotDate + "T12:00:00")
         .toLocaleDateString("en-AU", { timeZone: "Australia/Sydney", weekday: "long" });
 
-      // Convert 24-hour time to 12-hour format
-      const [startHour, startMin] = s.start_sydney.split(" ")[1].slice(0, 5).split(":");
-      const [endHour, endMin] = s.end_sydney.split(" ")[1].slice(0, 5).split(":");
-      const startHourNum = parseInt(startHour, 10);
-      const endHourNum = parseInt(endHour, 10);
-
-      const to12hr = (hour, min) => {
-        const h = parseInt(hour, 10);
-        const ampm = h >= 12 ? "pm" : "am";
-        const display = h > 12 ? h - 12 : (h === 0 ? 12 : h);
-        return `${display}${ampm}`;
-      };
-
-      const start_time_12 = to12hr(startHour, startMin);
-      const end_time_12 = to12hr(endHour, endMin);
-
-      // Determine if morning or afternoon
-      const time_period = startHourNum < 12 ? "morning" : "afternoon";
-
       return {
-        date: slotDate,
+        ...s,
         day,
         start_time: s.start_sydney.split(" ")[1].slice(0, 5),
-        end_time: s.end_sydney.split(" ")[1].slice(0, 5),
-        start_time_12,
-        end_time_12,
-        time_period,
-        userId: s.userId,
-        tech: s.tech,
+        end_time:   s.end_sydney.split(" ")[1].slice(0, 5),
+        date:       slotDate,
       };
     });
-
-  // Deduplicate: keep only the best tech (least busy) per time slot
-  const seenTimes = new Set();
-  return slots.filter(s => {
-    const timeKey = `${s.date}${s.start_time}${s.end_time}`;
-    if (seenTimes.has(timeKey)) return false;
-    seenTimes.add(timeKey);
-    return true;
-  });
-}
-
-// Maps a slot's start_time (HH:MM) + date back to the tech userId that owns it.
-// Used by createWebBooking so we can assign the schedule entry to the right person.
-async function resolveTechForSlot(trade, date, startTime) {
-  const slots = await getAvailableSlots(trade);
-  const match = slots.find(s => s.date === date && s.start_time === startTime);
-  return match ? { userId: match.userId, tech: match.tech } : null;
 }
 
 // ====================== AROFLO WRITE OPERATIONS ======================
@@ -505,18 +465,6 @@ async function createTask({
   return aroFloPost("tasks", payload);
 }
 
-async function createScheduleEntry({ taskId, userId, date, startTime, endTime }) {
-  const tzOffset = "+11:00"; // AEDT — change to +10:00 for AEST (Apr–Oct)
-  const payload = {
-    task: { taskid: taskId },
-    scheduledto: { scheduledtoid: userId },
-    startdatetime: `${date}T${startTime}:00${tzOffset}`,
-    enddatetime:   `${date}T${endTime}:00${tzOffset}`,
-  };
-  console.log("[createScheduleEntry] Payload:", JSON.stringify(payload, null, 2));
-  return aroFloPost("schedules", payload);
-}
-
 // ====================== BOOKING CONFIRMATION SMS ======================
 // Sends via the Cloudflare /api/send-sms endpoint so the MessageMedia
 // credentials and sender logic live in one place (functions/lib/sms.js).
@@ -527,18 +475,84 @@ const SMS_ENDPOINT = "https://dev.pettr-website-dev.pages.dev/api/send-sms";
 // `booking` fields are composed into the message by the Cloudflare endpoint
 // using the same template as web bookings, so both channels send identical
 // confirmations. `test` prefixes the SMS with a test-mode marker.
+// stage "during_call" = customer SMS only; the team email is deferred to
+// call end so the transcript can be included (see processCallEnd).
 async function sendConfirmationSMS(phone, booking, test) {
   try {
     const token = await getSecret("SMS_WEBHOOK_TOKEN");
     const res = await fetch(SMS_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Webhook-Token": token },
-      body: JSON.stringify({ phone, booking, test: !!test }),
+      body: JSON.stringify({ phone, booking, test: !!test, stage: "during_call" }),
     });
     console.log("[sendConfirmationSMS] status:", res.status);
   } catch (err) {
     // Non-fatal — the booking already succeeded; never fail the call over SMS.
     console.error("[sendConfirmationSMS] failed:", err.message);
+  }
+}
+
+// ====================== DEFERRED TEAM EMAILS ======================
+// Team emails fire at call end (with the transcript) — tool handlers stash
+// the payload keyed by call_id; the call_ended lifecycle event sends them.
+
+async function stashPendingNotification(callId, item) {
+  if (!callId) return false;
+  try {
+    await db.collection("pending_call_notifications").doc(callId).set({
+      callId,
+      items: FieldValue.arrayUnion(item),
+      createdAt: new Date().toISOString(),
+    }, { merge: true });
+    return true;
+  } catch (err) {
+    console.error("[stashPendingNotification] failed:", err.message);
+    return false;
+  }
+}
+
+// Fallback when no call_id is available — email immediately, no transcript.
+async function notifyTeamNow(item) {
+  try {
+    const token = await getSecret("SMS_WEBHOOK_TOKEN");
+    await fetch(SMS_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Webhook-Token": token },
+      body: JSON.stringify({ ...item, stage: "call_ended", transcript: "" }),
+    });
+  } catch (err) {
+    console.error("[notifyTeamNow] failed:", err.message);
+  }
+}
+
+async function processCallEnd(call) {
+  const callId = call?.call_id;
+  if (!callId) return;
+  try {
+    const ref = db.collection("pending_call_notifications").doc(callId);
+    const snap = await ref.get();
+    if (!snap.exists) return;
+    // Delete before sending so call_ended + call_analyzed can't double-send.
+    await ref.delete();
+
+    const { items = [] } = snap.data();
+    const transcript = call?.transcript || "";
+    const token = await getSecret("SMS_WEBHOOK_TOKEN");
+
+    for (const item of items) {
+      try {
+        const resp = await fetch(SMS_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Webhook-Token": token },
+          body: JSON.stringify({ ...item, stage: "call_ended", transcript }),
+        });
+        console.log(`[processCallEnd] emailed ${item.booking ? "booking" : item.request?.type} status=${resp.status}`);
+      } catch (err) {
+        console.error("[processCallEnd] email failed:", err.message);
+      }
+    }
+  } catch (err) {
+    console.error("[processCallEnd] failed:", err.message);
   }
 }
 
@@ -559,7 +573,7 @@ function slotEndTime(startTime) {
 
 // ====================== SHARED JOB CREATION LOGIC ======================
 
-async function handleCreateJob(args, isAfterHours, res) {
+async function handleCreateJob(args, isAfterHours, res, callId) {
   const {
     caller_phone, first_name, last_name, trade,
     description, street_address, suburb, postcode,
@@ -609,6 +623,8 @@ async function handleCreateJob(args, isAfterHours, res) {
       // APPLY_UPDATES is false — log and return gracefully (still send the
       // SMS, clearly marked, so the end-to-end flow is testable)
       await sendConfirmationSMS(caller_phone, bookingParams, true);
+      const stashed1 = await stashPendingNotification(callId, { phone: caller_phone, booking: bookingParams, test: true });
+      if (!stashed1) await notifyTeamNow({ phone: caller_phone, booking: bookingParams, test: true });
       return res.json({
         success: false,
         blocked: true,
@@ -645,6 +661,8 @@ async function handleCreateJob(args, isAfterHours, res) {
 
   if (task?.blocked) {
     await sendConfirmationSMS(caller_phone, bookingParams, true);
+    const stashed2 = await stashPendingNotification(callId, { phone: caller_phone, booking: bookingParams, test: true });
+    if (!stashed2) await notifyTeamNow({ phone: caller_phone, booking: bookingParams, test: true });
     return res.json({
       success: false,
       blocked: true,
@@ -654,6 +672,8 @@ async function handleCreateJob(args, isAfterHours, res) {
   }
 
   await sendConfirmationSMS(caller_phone, bookingParams, false);
+  const stashed3 = await stashPendingNotification(callId, { phone: caller_phone, booking: bookingParams, test: false });
+  if (!stashed3) await notifyTeamNow({ phone: caller_phone, booking: bookingParams, test: false });
 
   return res.json({
     success:  true,
@@ -753,9 +773,12 @@ exports.aroFloAgent = onRequest(
       });
     }
 
-    // ── Lifecycle events — acknowledge and ignore ─────────────────────────────
+    // ── Lifecycle events — call end triggers the deferred team emails ─────────
     if (["call_started", "call_ended", "call_analyzed"].includes(body.event)) {
       console.log(`[aroFloAgent] lifecycle event: ${body.event}`);
+      if (body.event === "call_ended" || body.event === "call_analyzed") {
+        await processCallEnd(body.call);
+      }
       return res.json({ received: true });
     }
 
@@ -790,12 +813,12 @@ exports.aroFloAgent = onRequest(
 
         // ── After-hours job creation ───────────────────────────────────────
         case "create_afterhours_job": {
-          return handleCreateJob(args, true, res);
+          return handleCreateJob(args, true, res, call_id);
         }
 
         // ── Standard hours job creation ────────────────────────────────────
         case "create_standard_job": {
-          return handleCreateJob(args, false, res);
+          return handleCreateJob(args, false, res, call_id);
         }
 
         // ── Cancel / reschedule / enquiry — capture + hand off, NO AroFlo write
@@ -822,19 +845,22 @@ exports.aroFloAgent = onRequest(
           await db.collection("change_requests").add(requestRecord);
           console.log("[capture_change_request] recorded:", requestRecord.type, requestRecord.phone);
 
-          // Team handoff email via the Cloudflare endpoint (non-fatal on failure
-          // — the Firestore record is the source of truth).
+          // Customer ack SMS now (cancel/reschedule — the endpoint decides);
+          // the team email is deferred to call end so it carries the transcript.
           try {
             const token = await getSecret("SMS_WEBHOOK_TOKEN");
             const resp = await fetch(SMS_ENDPOINT, {
               method: "POST",
               headers: { "Content-Type": "application/json", "X-Webhook-Token": token },
-              body: JSON.stringify({ phone: requestRecord.phone, request: requestRecord }),
+              body: JSON.stringify({ phone: requestRecord.phone, request: requestRecord, stage: "during_call" }),
             });
-            console.log("[capture_change_request] email status:", resp.status);
+            console.log("[capture_change_request] ack status:", resp.status);
           } catch (err) {
-            console.error("[capture_change_request] email failed:", err.message);
+            console.error("[capture_change_request] ack failed:", err.message);
           }
+
+          const reqItem = { phone: requestRecord.phone, request: requestRecord };
+          if (!(await stashPendingNotification(call_id, reqItem))) await notifyTeamNow(reqItem);
 
           return res.json({
             success: true,
@@ -865,149 +891,6 @@ exports.aroFloAgent = onRequest(
         error:   err.message,
         message: "Something went wrong. The team will follow up shortly.",
       });
-    }
-  }
-);
-
-// ====================== WEB BOOKING ======================
-// Called by quote.js (Cloudflare Pages) when a user books via the website.
-// 1. Looks up or creates the AroFlo client
-// 2. Creates the task
-// 3. For standard bookings with a named slot, creates a schedule entry for the assigned tech
-//
-// All AroFlo writes are gated by APPLY_UPDATES.
-
-exports.createWebBooking = onRequest(
-  { minInstances: 0, timeoutSeconds: 30, memory: "256MiB" },
-  async (req, res) => {
-    res.set("Access-Control-Allow-Origin", "*");
-    if (req.method === "OPTIONS") return res.status(204).send("");
-    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-
-    let body;
-    try {
-      body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-    } catch {
-      return res.status(400).json({ error: "Invalid JSON" });
-    }
-
-    console.log("[createWebBooking] payload:", JSON.stringify(body));
-
-    const {
-      name, phone, email,
-      address, suburb, postcode,
-      trade, urgency,
-      slot,           // { date, start_time, end_time, userId, tech } — standard bookings only
-      description,
-      ownership, appliance,
-    } = body;
-
-    if (!name || !phone || !address || !postcode || !trade || !urgency) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    try {
-      // Split name into first/last (best effort)
-      const nameParts = (name || "").trim().split(/\s+/);
-      const firstName = nameParts[0] || name;
-      const lastName  = nameParts.slice(1).join(" ") || "";
-
-      // 1. Look up or create client
-      const existingClient = await lookupClientByPhone(phone);
-      let clientId = existingClient?.clientid || null;
-
-      if (!clientId) {
-        const newClient = await createClient({
-          firstName, lastName, phone, email,
-          address, suburb, postcode, state: "NSW",
-        });
-        if (newClient?.blocked) {
-          console.log("[createWebBooking] client creation blocked (APPLY_UPDATES=false)");
-          clientId = "BLOCKED";
-        } else {
-          clientId = newClient?.zoneresponse?.id || newClient?.id || null;
-        }
-      }
-
-      // 2. Create task
-      const isAfterHours = urgency === "tonight";
-      const taskNotes = [
-        `Booked via website`,
-        `Ownership: ${ownership || "unknown"}`,
-        `Appliance: ${appliance || "unknown"}`,
-        ...(slot ? [`Slot: ${slot.day} ${slot.start_time}–${slot.end_time} (tech: ${slot.tech || "TBD"})`] : []),
-      ].join("\n");
-
-      const task = await createTask({
-        clientId,
-        trade,
-        isAfterHours,
-        description: description || "",
-        address, suburb, postcode,
-        callerName:    name,
-        callerPhone:   phone,
-        scheduledDate: slot?.date || null,
-        scheduledTime: slot?.start_time || null,
-      });
-
-      if (task?.blocked) {
-        console.log("[createWebBooking] task creation blocked (APPLY_UPDATES=false)");
-        return res.json({ success: false, blocked: true, message: "Test mode: logged but not committed." });
-      }
-
-      const taskId = task?.zoneresponse?.id || task?.id || null;
-
-      // 3. Create schedule entry for the assigned tech (standard bookings only)
-      if (!isAfterHours && slot?.userId && taskId) {
-        const schedule = await createScheduleEntry({
-          taskId,
-          userId:    slot.userId,
-          date:      slot.date,
-          startTime: slot.start_time,
-          endTime:   slot.end_time,
-        });
-
-        if (schedule?.blocked) {
-          console.log("[createWebBooking] schedule creation blocked (APPLY_UPDATES=false)");
-          return res.json({ success: false, blocked: true, message: "Test mode: schedule logged but not committed." });
-        }
-
-        console.log("[createWebBooking] schedule created for tech", slot.tech, "task", taskId);
-      }
-
-      console.log("[createWebBooking] complete — taskId:", taskId);
-      return res.json({ success: true, taskId });
-
-    } catch (err) {
-      console.error("[createWebBooking] error:", err.message, err.stack);
-      return res.status(500).json({ error: err.message });
-    }
-  }
-);
-
-// ====================== CLIENT LOOKUP ======================
-// Called by quote.js before triggering outbound callback
-// Returns existing customer data if found in Firestore
-
-exports.lookupClient = onRequest(
-  { minInstances: 1, timeoutSeconds: 10, memory: "256MiB" },
-  async (req, res) => {
-    res.set("Access-Control-Allow-Origin", "*");
-    if (req.method === "OPTIONS") return res.status(204).send("");
-    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-
-    const phone = req.body?.phone || "";
-    if (!phone) return res.status(400).json({ error: "Phone number required" });
-
-    try {
-      const client = await lookupClientByPhone(phone);
-      return res.json({
-        found: !!client,
-        client: client || null,
-      });
-    } catch (err) {
-      console.error("[lookupClient] Error:", err.message);
-      return res.status(500).json({ error: err.message });
     }
   }
 );

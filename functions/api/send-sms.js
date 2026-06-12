@@ -18,25 +18,41 @@ export async function onRequest(context) {
   }
 
   try {
-    const { phone, message, booking, request: changeRequest, test } = await request.json();
+    // `stage` splits voice notifications around the call lifecycle:
+    //   "during_call" → customer SMS only (confirmation or ack), no email
+    //   "call_ended"  → team email only, with the call transcript appended
+    //   absent        → both at once (legacy callers)
+    const { phone, message, booking, request: changeRequest, test, stage, transcript } = await request.json();
 
-    // Change requests (cancel / reschedule / enquiry) are email-only handoffs
-    // to the team — no AroFlo change, no customer SMS (Jess acks on the call).
+    // Change requests (cancel / reschedule / enquiry): email handoff to the
+    // team + written ack to the customer for cancel/reschedule.
     if (changeRequest) {
-      await notifyTeamChangeRequest(env, { phone, request: changeRequest });
+      if (stage !== 'during_call') {
+        await notifyTeamChangeRequest(env, { phone, request: changeRequest, transcript });
+      }
 
-      // Cancellations and reschedules also ack the customer in writing;
-      // enquiries stay verbal-only. SMS failure never fails the handoff.
-      const ack = composeChangeRequestAck(changeRequest);
-      if (ack && phone) {
-        try {
-          await sendSMS(env, { phone, message: ack });
-        } catch (smsError) {
-          console.error('Change request ack SMS failed:', smsError.message);
+      if (stage !== 'call_ended') {
+        const ack = composeChangeRequestAck(changeRequest);
+        if (ack && phone) {
+          try {
+            await sendSMS(env, { phone, message: ack });
+          } catch (smsError) {
+            console.error('Change request ack SMS failed:', smsError.message);
+          }
         }
       }
 
-      return new Response(JSON.stringify({ success: true, action: 'change_request_emailed' }), {
+      return new Response(JSON.stringify({ success: true, action: 'change_request_processed' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Call-end replay of a booking: team email with transcript, no SMS
+    // (the customer already got their confirmation during the call).
+    if (booking && stage === 'call_ended') {
+      await notifyTeamBookingEmail(env, { phone, booking, test, transcript });
+      return new Response(JSON.stringify({ success: true, action: 'booking_emailed' }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -59,9 +75,8 @@ export async function onRequest(context) {
 
     await sendSMS(env, { phone, message: text });
 
-    // Booking confirmations also notify the team by email, mirroring what
-    // quote.js does for web bookings.
-    if (booking) {
+    // Legacy/stage-less booking calls still email immediately.
+    if (booking && stage !== 'during_call') {
       await notifyTeamBookingEmail(env, { phone, booking, test });
     }
 
@@ -99,7 +114,19 @@ const REQUEST_SUBJECTS = {
   enquiry: 'Enquiry/Other',
 };
 
-async function notifyTeamChangeRequest(env, { phone, request }) {
+function escapeHtml(text) {
+  return String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
+}
+
+function transcriptHtml(transcript) {
+  if (!transcript) return '';
+  return `
+    <h3>Call transcript</h3>
+    <pre style="white-space:pre-wrap;font-family:monospace;font-size:13px;background:#f5f5f5;padding:12px;border-radius:4px;">${escapeHtml(transcript)}</pre>
+  `;
+}
+
+async function notifyTeamChangeRequest(env, { phone, request, transcript }) {
   const apiKey = env.SMTP2GO_API_KEY;
   if (!apiKey) {
     console.error('SMTP2GO_API_KEY not configured');
@@ -119,6 +146,7 @@ async function notifyTeamChangeRequest(env, { phone, request }) {
     ${preferred ? `<p><strong>Preferred new time:</strong> ${preferred} (NOT booked - team to confirm)</p>` : ''}
     <p><strong>Channel:</strong> ${channel || 'voice'}</p>
     <p><em>No change has been made in AroFlo - the team needs to action this and confirm with the customer.</em></p>
+    ${transcriptHtml(transcript)}
   `;
 
   const response = await fetch('https://api.smtp2go.com/v3/email/send', {
@@ -141,7 +169,7 @@ async function notifyTeamChangeRequest(env, { phone, request }) {
   console.log('Change request email sent:', type);
 }
 
-async function notifyTeamBookingEmail(env, { phone, booking, test }) {
+async function notifyTeamBookingEmail(env, { phone, booking, test, transcript }) {
   try {
     const apiKey = env.SMTP2GO_API_KEY;
     if (!apiKey) {
@@ -163,6 +191,7 @@ async function notifyTeamBookingEmail(env, { phone, booking, test }) {
       ${timeStr ? `<p><strong>Booked Slot:</strong> ${timeStr}</p>` : ''}
       ${tech ? `<p><strong>Tech:</strong> ${tech}</p>` : ''}
       <p><em>Booked via AI phone agent (Jess)</em></p>
+      ${transcriptHtml(transcript)}
     `;
 
     const response = await fetch('https://api.smtp2go.com/v3/email/send', {
