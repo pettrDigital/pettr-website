@@ -88,7 +88,7 @@ function composeChangeRequestAck({ type, name, preferredDate, preferredTime }) {
       ? new Date(`${preferredDate}T00:00:00Z`).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
       : (preferredDate || '');
     const preferred = [day, preferredTime].filter(Boolean).join(' ');
-    return `Hi ${first}, we've received your request to reschedule your booking${preferred ? ` to ${preferred}` : ''}. Your current booking stands until the team confirms the new time with you.`;
+    return `Hi ${first}, we've received your request to reschedule your booking${preferred ? ` to ${preferred}` : ''}. The team will be in touch shortly to confirm your new time.`;
   }
   return null;
 }
