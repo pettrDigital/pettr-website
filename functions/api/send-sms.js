@@ -24,6 +24,18 @@ export async function onRequest(context) {
     // to the team — no AroFlo change, no customer SMS (Jess acks on the call).
     if (changeRequest) {
       await notifyTeamChangeRequest(env, { phone, request: changeRequest });
+
+      // Cancellations and reschedules also ack the customer in writing;
+      // enquiries stay verbal-only. SMS failure never fails the handoff.
+      const ack = composeChangeRequestAck(changeRequest);
+      if (ack && phone) {
+        try {
+          await sendSMS(env, { phone, message: ack });
+        } catch (smsError) {
+          console.error('Change request ack SMS failed:', smsError.message);
+        }
+      }
+
       return new Response(JSON.stringify({ success: true, action: 'change_request_emailed' }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -64,6 +76,21 @@ export async function onRequest(context) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
+}
+
+function composeChangeRequestAck({ type, name, preferredDate, preferredTime }) {
+  const first = (name || '').trim().split(/\s+/)[0] || 'there';
+  if (type === 'cancel') {
+    return `Hi ${first}, we've received your request to cancel your booking. The team will confirm the cancellation with you shortly.`;
+  }
+  if (type === 'reschedule') {
+    const day = /^\d{4}-\d{2}-\d{2}$/.test(preferredDate || '')
+      ? new Date(`${preferredDate}T00:00:00Z`).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
+      : (preferredDate || '');
+    const preferred = [day, preferredTime].filter(Boolean).join(' ');
+    return `Hi ${first}, we've received your request to reschedule your booking${preferred ? ` to ${preferred}` : ''}. Your current booking stands until the team confirms the new time with you.`;
+  }
+  return null;
 }
 
 const REQUEST_SUBJECTS = {
