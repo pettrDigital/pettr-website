@@ -163,7 +163,11 @@ const TECHS = {
 
 // ====================== FIRESTORE CLIENT LOOKUP ======================
 
-async function lookupClientByPhone(rawPhone) {
+// Looks up by last-8 phone digits. When multiple clients share the number,
+// the confirmed surname picks between them; a name mismatch on a SINGLE match
+// still returns that match (spouse on the account number beats creating a
+// duplicate client).
+async function lookupClientByPhone(rawPhone, confirmedSurname) {
   const phone = normalisePhone(rawPhone);
   if (!phone) return null;
   const last8 = phone.slice(-8);
@@ -174,22 +178,64 @@ async function lookupClientByPhone(rawPhone) {
     let snap = await db.collection("aroflo_clients")
       .where("mobile_digits", "==", last8)
       .where("archived", "==", false)
-      .limit(1)
+      .limit(5)
       .get();
 
     if (snap.empty) {
       snap = await db.collection("aroflo_clients")
         .where("phone_digits", "==", last8)
         .where("archived", "==", false)
-        .limit(1)
+        .limit(5)
         .get();
     }
 
     if (snap.empty) return null;
-    return snap.docs[0].data();
+
+    const candidates = snap.docs.map(d => d.data());
+    if (candidates.length === 1) return candidates[0];
+
+    console.warn(`[lookupClientByPhone] ${candidates.length} clients share "${last8}"`);
+    if (confirmedSurname) {
+      const surname = String(confirmedSurname).trim().toLowerCase();
+      const match = candidates.find(c => (c.surname || "").trim().toLowerCase() === surname);
+      if (match) {
+        console.log(`[lookupClientByPhone] surname match: ${match.clientid}`);
+        return match;
+      }
+    }
+    return candidates[0];
   } catch (err) {
     console.error("[lookupClientByPhone] Firestore error:", err.message);
     return null;
+  }
+}
+
+// Write a freshly created AroFlo client straight into aroflo_clients so
+// lookups see it immediately instead of waiting for the next sync cycle.
+async function upsertClientToFirestore({ clientId, firstName, lastName, phone, email, address, suburb, postcode }) {
+  if (!clientId) return;
+  try {
+    const digits = normalisePhone(phone).slice(-8);
+    await db.collection("aroflo_clients").doc(String(clientId)).set({
+      clientid:      String(clientId),
+      firstname:     firstName || "",
+      surname:       lastName || "",
+      email:         email || "",
+      mobile:        normalisePhone(phone),
+      mobile_digits: digits,
+      phone_digits:  digits,
+      archived:      false,
+      address: {
+        addressline1: address || "",
+        suburb:       suburb || "",
+        postcode:     postcode || "",
+        state:        "NSW",
+      },
+      created_by_booking_flow: true,
+    }, { merge: true });
+    console.log("[upsertClientToFirestore] wrote", clientId);
+  } catch (err) {
+    console.error("[upsertClientToFirestore] failed:", err.message);
   }
 }
 
@@ -536,6 +582,17 @@ async function handleCreateJob(args, isAfterHours, res) {
 
   let resolvedClientId = client_id || null;
 
+  // Re-check Firestore with the confirmed name before creating — the pre-call
+  // lookup may have missed (e.g. client created moments ago) or the caller
+  // may be a different person on a shared number.
+  if (!resolvedClientId) {
+    const found = await lookupClientByPhone(caller_phone, last_name);
+    if (found?.clientid) {
+      console.log("[handleCreateJob] matched existing client at booking time:", found.clientid);
+      resolvedClientId = found.clientid;
+    }
+  }
+
   // Create client in AroFlo if not already known
   if (!resolvedClientId) {
     const newClient = await createClient({
@@ -561,6 +618,15 @@ async function handleCreateJob(args, isAfterHours, res) {
     }
 
     resolvedClientId = newClient?.zoneresponse?.id || newClient?.id || null;
+    await upsertClientToFirestore({
+      clientId:  resolvedClientId,
+      firstName: first_name,
+      lastName:  last_name,
+      phone:     caller_phone,
+      address:   street_address,
+      suburb,
+      postcode,
+    });
   }
 
   const task = await createTask({
