@@ -18,10 +18,20 @@ export async function onRequest(context) {
   }
 
   try {
-    const { phone, message, booking, test } = await request.json();
+    const { phone, message, booking, request: changeRequest, test } = await request.json();
 
-    // Callers either pass a raw message, or booking fields which are
-    // composed with the same template the web booking flow uses.
+    // Change requests (cancel / reschedule / enquiry) are email-only handoffs
+    // to the team — no AroFlo change, no customer SMS (Jess acks on the call).
+    if (changeRequest) {
+      await notifyTeamChangeRequest(env, { phone, request: changeRequest });
+      return new Response(JSON.stringify({ success: true, action: 'change_request_emailed' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Otherwise: either a raw message, or booking fields which are composed
+    // with the same template the web booking flow uses.
     let text = message || (booking ? composeBookingConfirmation(booking) : null);
 
     if (!phone || !text) {
@@ -56,6 +66,54 @@ export async function onRequest(context) {
   }
 }
 
+const REQUEST_SUBJECTS = {
+  cancel: 'Cancellation Request',
+  reschedule: 'Reschedule Request',
+  enquiry: 'Enquiry/Other',
+};
+
+async function notifyTeamChangeRequest(env, { phone, request }) {
+  const apiKey = env.SMTP2GO_API_KEY;
+  if (!apiKey) {
+    console.error('SMTP2GO_API_KEY not configured');
+    return;
+  }
+
+  const { type, name, details, jobReference, preferredDate, preferredTime, channel } = request;
+  const subjectPrefix = REQUEST_SUBJECTS[type] || REQUEST_SUBJECTS.enquiry;
+  const preferred = [preferredDate, preferredTime].filter(Boolean).join(' ');
+
+  const emailHtml = `
+    <h2>${subjectPrefix}</h2>
+    <p><strong>Name:</strong> ${name || 'Unknown'}</p>
+    <p><strong>Phone:</strong> ${phone || 'Unknown'}</p>
+    ${jobReference ? `<p><strong>Job reference:</strong> ${jobReference}</p>` : ''}
+    <p><strong>Request:</strong> ${details || 'Not specified'}</p>
+    ${preferred ? `<p><strong>Preferred new time:</strong> ${preferred} (NOT booked - team to confirm)</p>` : ''}
+    <p><strong>Channel:</strong> ${channel || 'voice'}</p>
+    <p><em>No change has been made in AroFlo - the team needs to action this and confirm with the customer.</em></p>
+  `;
+
+  const response = await fetch('https://api.smtp2go.com/v3/email/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      api_key: apiKey,
+      to: ['fergusg@mrwasher.com.au'],
+      sender: 'webform@plumberandelectrician.com.au',
+      subject: `${subjectPrefix} - ${name || phone || 'Unknown'}`,
+      html_body: emailHtml,
+    }),
+  });
+
+  if (!response.ok) {
+    console.error('Change request email failed:', response.status);
+    throw new Error(`Change request email failed: ${response.status}`);
+  }
+
+  console.log('Change request email sent:', type);
+}
+
 async function notifyTeamBookingEmail(env, { phone, booking, test }) {
   try {
     const apiKey = env.SMTP2GO_API_KEY;
@@ -68,7 +126,7 @@ async function notifyTeamBookingEmail(env, { phone, booking, test }) {
     const timeStr = [day, startTime && endTime ? `${startTime}-${endTime}` : startTime].filter(Boolean).join(' ');
 
     const emailHtml = `
-      <h2>New Phone Booking${test ? ' (TEST MODE - no AroFlo job created)' : ''}</h2>
+      <h2>New Booking Request${test ? ' (TEST MODE - no AroFlo job created)' : ''}</h2>
       <p><strong>Name:</strong> ${name}</p>
       <p><strong>Phone:</strong> ${phone}</p>
       <p><strong>Address:</strong> ${address}${suburb ? ` ${suburb}` : ''} ${postcode}</p>
@@ -87,7 +145,7 @@ async function notifyTeamBookingEmail(env, { phone, booking, test }) {
         api_key: apiKey,
         to: ['fergusg@mrwasher.com.au'],
         sender: 'webform@plumberandelectrician.com.au',
-        subject: `${test ? '[TEST MODE] ' : ''}New Phone Booking - ${name}`,
+        subject: `${test ? '[TEST MODE] ' : ''}New Booking Request${urgency === 'emergency' ? ' - EMERGENCY' : ''} - ${name}`,
         html_body: emailHtml,
       }),
     });

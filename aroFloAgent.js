@@ -798,6 +798,50 @@ exports.aroFloAgent = onRequest(
           return handleCreateJob(args, false, res);
         }
 
+        // ── Cancel / reschedule / enquiry — capture + hand off, NO AroFlo write
+        case "capture_change_request": {
+          const {
+            caller_phone, first_name, last_name,
+            request_type, details, job_reference,
+            preferred_date, preferred_time,
+          } = args;
+
+          const requestRecord = {
+            phone:         normalisePhone(caller_phone),
+            name:          [first_name, last_name].filter(Boolean).join(" "),
+            type:          request_type || "enquiry",
+            details:       details || "",
+            jobReference:  job_reference || "",
+            preferredDate: preferred_date || "",
+            preferredTime: preferred_time || "",
+            channel:       "voice",
+            status:        "pending",
+            createdAt:     new Date().toISOString(),
+          };
+
+          await db.collection("change_requests").add(requestRecord);
+          console.log("[capture_change_request] recorded:", requestRecord.type, requestRecord.phone);
+
+          // Team handoff email via the Cloudflare endpoint (non-fatal on failure
+          // — the Firestore record is the source of truth).
+          try {
+            const token = await getSecret("SMS_WEBHOOK_TOKEN");
+            const resp = await fetch(SMS_ENDPOINT, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "X-Webhook-Token": token },
+              body: JSON.stringify({ phone: requestRecord.phone, request: requestRecord }),
+            });
+            console.log("[capture_change_request] email status:", resp.status);
+          } catch (err) {
+            console.error("[capture_change_request] email failed:", err.message);
+          }
+
+          return res.json({
+            success: true,
+            message: "Request captured for the team. They will follow up with the caller directly.",
+          });
+        }
+
         // ── Safety emergency — log only, no AroFlo write ───────────────────
         case "log_safety_emergency": {
           const { caller_phone, description } = args;

@@ -321,7 +321,7 @@ export async function onRequest(context) {
       await sendEmail(env, {
         from: 'webform@plumberandelectrician.com.au',
         to: 'fergusg@mrwasher.com.au',
-        subject: `New Instant Booking - ${data.name}`,
+        subject: `New Booking Request${data.bookNowUrgency === 'tonight' ? ' - EMERGENCY' : ''} - ${data.name}`,
         html: emailHtml,
       });
       console.log('Booking email sent to support');
