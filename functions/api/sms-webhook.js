@@ -11,6 +11,18 @@ export async function onRequest(context) {
     return new Response('Method not allowed', { status: 405 });
   }
 
+  // HARD KILL SWITCH — SMS is outbound-only (booking confirmations).
+  // All inbound SMS is handled by the team in the MessageMedia hub; the AI
+  // must never reply on the shared pool. Only set SMS_AUTO_REPLY=true once a
+  // dedicated number exists for the automated booking flow.
+  if (env.SMS_AUTO_REPLY !== 'true') {
+    console.log('SMS_AUTO_REPLY disabled - inbound SMS ignored (team handles in hub)');
+    return new Response(JSON.stringify({ success: true, action: 'ignored' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     const json = await request.json();
     console.log('Webhook payload:', JSON.stringify(json));
@@ -74,58 +86,14 @@ export async function onRequest(context) {
       return handleOutboundBookingFlow(env, phone, message, bookingFlow);
     }
 
-    // Fetch conversation from Firestore using REST API
-    console.log('Fetching conversation for phone:', phone);
-    const conversationData = await getFirestoreDoc(env, 'conversations', phone);
-    console.log('Conversation data:', conversationData);
-    const messages = conversationData?.messages || [];
+    // No active booking flow: capture the message and notify the team.
+    // Deliberately NO auto-reply and NO AI conversation — SMS is
+    // outbound-only (booking confirmations); inbound is handled by humans.
+    console.log('No active booking flow - capturing message, no auto-reply');
+    await addMessageToConversation(env, phone, 'user', message);
+    await notifyTeamOfInboundSMS(env, { phone, message });
 
-    // Add customer message to history
-    messages.push({
-      role: 'user',
-      text: message,
-      timestamp: new Date().toISOString(),
-    });
-
-    // Get available slots from AroFlo
-    console.log('Fetching available slots...');
-    const trade = conversationData?.problem?.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
-    const availableSlots = await getAvailableSlots(trade);
-    console.log('Available slots:', availableSlots.length);
-
-    // Call Claude API to generate response
-    console.log('Calling Claude API...');
-    const claudeResponse = await callClaude(env, {
-      name: conversationData?.name || 'Customer',
-      problem: conversationData?.problem || 'Not specified',
-      address: conversationData?.address || '',
-      postcode: conversationData?.postcode || '',
-      trade,
-      availableSlots: availableSlots.slice(0, 3), // Top 3 slots
-      messages: messages.map(m => ({ role: m.role, content: m.text })),
-    });
-    console.log('Claude response:', claudeResponse);
-
-    // Add Claude response to history
-    messages.push({
-      role: 'assistant',
-      text: claudeResponse,
-      timestamp: new Date().toISOString(),
-    });
-
-    // Store updated conversation in Firestore
-    await updateFirestoreDoc(env, 'conversations', phone, {
-      messages,
-      lastUpdated: new Date().toISOString(),
-    });
-
-    // Send response via Kudosity SMS
-    await sendSMS(env, {
-      phone,
-      message: claudeResponse,
-    });
-
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, action: 'captured' }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -438,61 +406,40 @@ async function getAvailableSlots(trade) {
   }
 }
 
-async function callClaude(env, { name, problem, address, postcode, trade, availableSlots, messages }) {
-  const apiKey = env.CLAUDE_API_KEY;
+async function notifyTeamOfInboundSMS(env, { phone, message }) {
+  try {
+    const apiKey = env.SMTP2GO_API_KEY;
+    if (!apiKey) {
+      console.error('SMTP2GO_API_KEY not configured');
+      return;
+    }
 
-  if (!apiKey) {
-    throw new Error('CLAUDE_API_KEY not configured');
+    const response = await fetch('https://api.smtp2go.com/v3/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        api_key: apiKey,
+        to: ['fergusg@mrwasher.com.au'],
+        sender: 'webform@plumberandelectrician.com.au',
+        subject: `Inbound SMS from ${phone} - needs human reply`,
+        html_body: `
+          <h2>Inbound SMS (no auto-reply sent)</h2>
+          <p><strong>From:</strong> ${phone}</p>
+          <p><strong>Message:</strong> ${message}</p>
+          <p>SMS is outbound-only; please follow up with the customer directly.</p>
+        `,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Inbound SMS notification email failed:', response.status);
+      return;
+    }
+
+    console.log('Team notified of inbound SMS');
+  } catch (error) {
+    console.error('Error notifying team of inbound SMS:', error);
   }
-
-  const slotsText = availableSlots && availableSlots.length > 0
-    ? `\n\nAvailable appointment slots:\n${availableSlots
-        .map(slot => `- ${slot.day}, ${slot.start_time}-${slot.end_time} (${slot.tech})`)
-        .join('\n')}`
-    : '';
-
-  const systemPrompt = `You are a helpful booking assistant for Plumber & Electrician to the Rescue.
-
-Customer Details:
-- Name: ${name}
-- Address: ${address} ${postcode}
-- Issue: ${problem}
-- Service: ${trade}
-
-Pricing:
-- Standard Hours (7am-3pm): FREE call-out and quote
-- Emergency/After-Hours: $549 call-out fee inclusive of 1/2 hour of labour.
-- Licensed & insured with 35+ years experience
-
-Your role: Help them confirm the booking and offer available appointment slots. If they ask about fees or how we work, explain the pricing above. Be friendly, professional, and brief - keep responses to 1-2 sentences for SMS.${slotsText}`;
-
-  console.log('Claude request - Name:', name, 'Problem:', problem, 'Messages:', messages.length);
-
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'claude-opus-4-7',
-      max_tokens: 1024,
-      system: systemPrompt,
-      messages,
-    }),
-  });
-
-  console.log('Claude response status:', response.status);
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Claude error:', errorText);
-    throw new Error(`Claude API error: ${response.status} ${errorText}`);
-  }
-
-  const result = await response.json();
-  return result.content[0].text;
 }
 
 async function sendSMS(env, { phone, message }) {

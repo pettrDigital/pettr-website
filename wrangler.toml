@@ -3,9 +3,9 @@ compatibility_date = "2026-04-09"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "."
 
-vars = { QUOTE_EMAIL = "fergusg@mrwasher.com.au", RETELL_FROM_NUMBER = "+61258393807", AROFLO_LOOKUP_FUNCTION_URL = "https://us-central1-pettrdashboards.cloudfunctions.net/lookupClient" }
-# Sender ID for SMS. Re-add once MessageMedia enables alpha-tag API sending on
-# the sub account (support ticket) or a dedicated number is provisioned:
-#   MESSAGEMEDIA_SENDER = "PETTR"        (alpha tag, one-way, auto do-not-reply footer)
-#   MESSAGEMEDIA_SENDER = "+614xxxxxxxx" (dedicated number, two-way)
+vars = { QUOTE_EMAIL = "fergusg@mrwasher.com.au", RETELL_FROM_NUMBER = "+61258393807", AROFLO_LOOKUP_FUNCTION_URL = "https://us-central1-pettrdashboards.cloudfunctions.net/lookupClient", MESSAGEMEDIA_SENDER = "PETTR" }
+# MESSAGEMEDIA_SENDER: "PETTR" = alpha tag, one-way, auto do-not-reply footer.
+# NOTE: MessageMedia currently overrides the alpha tag to the shared pool —
+# support ticket open. Once a dedicated number exists, change to "+614xxxxxxxx"
+# (two-way, no footer).
 
