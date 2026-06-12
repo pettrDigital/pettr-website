@@ -496,6 +496,21 @@ async function sendConfirmationSMS(phone, booking, test) {
   }
 }
 
+// Slots are always two-hour windows; Jess only passes the date and start
+// time, so derive the weekday name and end time for the confirmation SMS to
+// match the web booking format ("Monday 09:00-11:00").
+function friendlyDay(dateStr) {
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  return isNaN(d) ? dateStr : d.toLocaleDateString("en-AU", { weekday: "long", timeZone: "UTC" });
+}
+
+function slotEndTime(startTime) {
+  const m = /^(\d{1,2}):(\d{2})/.exec(startTime || "");
+  if (!m) return null;
+  const h = (parseInt(m[1], 10) + 2) % 24;
+  return `${String(h).padStart(2, "0")}:${m[2]}`;
+}
+
 // ====================== SHARED JOB CREATION LOGIC ======================
 
 async function handleCreateJob(args, isAfterHours, res) {
@@ -514,8 +529,9 @@ async function handleCreateJob(args, isAfterHours, res) {
     postcode,
     issue:     description,
     urgency:   isAfterHours ? "emergency" : "standard",
-    day:       scheduled_date || null,
+    day:       scheduled_date ? friendlyDay(scheduled_date) : null,
     startTime: scheduled_time || null,
+    endTime:   scheduled_time ? slotEndTime(scheduled_time) : null,
   };
 
   let resolvedClientId = client_id || null;
