@@ -2,15 +2,14 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // SMS conversations stored by phone number
-    // Allow access via Firebase REST API with valid API key
-    match /conversations/{phone} {
-      allow read, write: if true;
-    }
-
-    // Booking flow state - SMS guided booking
-    match /booking_flows/{phone} {
-      allow read, write: if true;
+    // Deny all client/REST access. These collections (conversations,
+    // booking_flows) were previously world-readable/writable via the public
+    // API key. They are dormant while 2-way SMS is halted (SMS_AUTO_REPLY
+    // kill switch). Before re-enabling inbound SMS, the Cloudflare functions
+    // must authenticate as a service account (Bearer token) instead of using
+    // the public API key — only then loosen these rules.
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
