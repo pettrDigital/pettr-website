@@ -471,6 +471,28 @@ async function createScheduleEntry({ taskId, userId, date, startTime, endTime })
   return aroFloPost("schedules", payload);
 }
 
+// ====================== BOOKING CONFIRMATION SMS ======================
+// Sends via the Cloudflare /api/send-sms endpoint so the MessageMedia
+// credentials and sender logic live in one place (functions/lib/sms.js).
+// Requires Secret Manager secret SMS_WEBHOOK_TOKEN matching the Cloudflare one.
+// Switch to the production domain at cutover.
+const SMS_ENDPOINT = "https://dev.pettr-website-dev.pages.dev/api/send-sms";
+
+async function sendConfirmationSMS(phone, message) {
+  try {
+    const token = await getSecret("SMS_WEBHOOK_TOKEN");
+    const res = await fetch(SMS_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Webhook-Token": token },
+      body: JSON.stringify({ phone, message }),
+    });
+    console.log("[sendConfirmationSMS] status:", res.status);
+  } catch (err) {
+    // Non-fatal — the booking already succeeded; never fail the call over SMS.
+    console.error("[sendConfirmationSMS] failed:", err.message);
+  }
+}
+
 // ====================== SHARED JOB CREATION LOGIC ======================
 
 async function handleCreateJob(args, isAfterHours, res) {
@@ -480,6 +502,11 @@ async function handleCreateJob(args, isAfterHours, res) {
     client_id,
     scheduled_date, scheduled_time,
   } = args;
+
+  const addressStr = `${street_address}${suburb ? `, ${suburb}` : ""}`;
+  const confirmationText = isAfterHours
+    ? `Hi ${first_name}, your emergency ${trade} booking at ${addressStr} is confirmed. A tech will call you back within 5-10 minutes.`
+    : `Hi ${first_name}, your ${trade} booking at ${addressStr} is confirmed.${scheduled_date ? ` Time: ${scheduled_date}${scheduled_time ? ` ${scheduled_time}` : ""}.` : ""} Tech will call 30min before arrival.`;
 
   let resolvedClientId = client_id || null;
 
@@ -496,7 +523,9 @@ async function handleCreateJob(args, isAfterHours, res) {
     });
 
     if (newClient?.blocked) {
-      // APPLY_UPDATES is false — log and return gracefully
+      // APPLY_UPDATES is false — log and return gracefully (still send the
+      // SMS, clearly marked, so the end-to-end flow is testable)
+      await sendConfirmationSMS(caller_phone, `[TEST MODE - no job created] ${confirmationText}`);
       return res.json({
         success: false,
         blocked: true,
@@ -523,6 +552,7 @@ async function handleCreateJob(args, isAfterHours, res) {
   });
 
   if (task?.blocked) {
+    await sendConfirmationSMS(caller_phone, `[TEST MODE - no job created] ${confirmationText}`);
     return res.json({
       success: false,
       blocked: true,
@@ -530,6 +560,8 @@ async function handleCreateJob(args, isAfterHours, res) {
       logged_payload: task,
     });
   }
+
+  await sendConfirmationSMS(caller_phone, confirmationText);
 
   return res.json({
     success:  true,
