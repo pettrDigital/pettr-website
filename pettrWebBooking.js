@@ -21,6 +21,15 @@ if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
 const secretClient = new SecretManagerServiceClient();
 
+const { hmacPhone, encryptName, decryptName } = require("./clientCrypto");
+
+async function decodeClientDoc(c) {
+  if (!c) return null;
+  let firstname = c.firstname || "", surname = c.surname || "";
+  if (c.name_enc) { const n = await decryptName(c.name_enc); firstname = n.firstname; surname = n.surname; }
+  return { clientid: c.clientid, firstname, surname, archived: c.archived };
+}
+
 // ====================== CONSTANTS ======================
 
 const AROFLO_BASE   = "https://api.aroflo.com/";
@@ -147,27 +156,28 @@ async function lookupClientByPhone(rawPhone, confirmedSurname) {
   if (!last8) return null;
 
   try {
-    console.log(`[lookupClientByPhone] querying mobile_digits="${last8}"`);
+    const ph = await hmacPhone(rawPhone);
     let snap = await db.collection("aroflo_clients")
-      .where("mobile_digits", "==", last8)
-      .where("archived", "==", false)
-      .limit(5)
-      .get();
-
+      .where("mobile_hmac", "==", ph).where("archived", "==", false).limit(5).get();
     if (snap.empty) {
       snap = await db.collection("aroflo_clients")
-        .where("phone_digits", "==", last8)
-        .where("archived", "==", false)
-        .limit(5)
-        .get();
+        .where("phone_hmac", "==", ph).where("archived", "==", false).limit(5).get();
     }
-
+    // Transition fallback: legacy docs keyed on plaintext digits.
+    if (snap.empty) {
+      snap = await db.collection("aroflo_clients")
+        .where("mobile_digits", "==", last8).where("archived", "==", false).limit(5).get();
+    }
+    if (snap.empty) {
+      snap = await db.collection("aroflo_clients")
+        .where("phone_digits", "==", last8).where("archived", "==", false).limit(5).get();
+    }
     if (snap.empty) return null;
 
-    const candidates = snap.docs.map(d => d.data());
+    const candidates = await Promise.all(snap.docs.map(d => decodeClientDoc(d.data())));
     if (candidates.length === 1) return candidates[0];
 
-    console.warn(`[lookupClientByPhone] ${candidates.length} clients share "${last8}"`);
+    console.warn(`[lookupClientByPhone] ${candidates.length} clients share this number`);
     if (confirmedSurname) {
       const surname = String(confirmedSurname).trim().toLowerCase();
       const match = candidates.find(c => (c.surname || "").trim().toLowerCase() === surname);
@@ -186,25 +196,16 @@ async function lookupClientByPhone(rawPhone, confirmedSurname) {
 // Write a freshly created AroFlo client straight into aroflo_clients so
 // lookups see it immediately instead of waiting for the next sync cycle
 // (which would otherwise create duplicate clients for quick repeat contact).
-async function upsertClientToFirestore({ clientId, firstName, lastName, phone, email, address, suburb, postcode }) {
+async function upsertClientToFirestore({ clientId, firstName, lastName, phone }) {
   if (!clientId) return;
   try {
-    const digits = normalisePhone(phone).slice(-8);
+    const ph = await hmacPhone(phone);
     await db.collection("aroflo_clients").doc(String(clientId)).set({
-      clientid:      String(clientId),
-      firstname:     firstName || "",
-      surname:       lastName || "",
-      email:         email || "",
-      mobile:        normalisePhone(phone),
-      mobile_digits: digits,
-      phone_digits:  digits,
-      archived:      false,
-      address: {
-        addressline1: address || "",
-        suburb:       suburb || "",
-        postcode:     postcode || "",
-        state:        "NSW",
-      },
+      clientid:    String(clientId),
+      name_enc:    await encryptName(firstName, lastName),
+      mobile_hmac: ph,
+      phone_hmac:  ph,
+      archived:    false,
       created_by_booking_flow: true,
     }, { merge: true });
     console.log("[upsertClientToFirestore] wrote", clientId);

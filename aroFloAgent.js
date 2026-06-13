@@ -22,6 +22,22 @@ if (!admin.apps.length) admin.initializeApp();
 const db = getFirestore();
 const secretClient = new SecretManagerServiceClient();
 
+const { hmacPhone, encryptName, decryptName } = require("./clientCrypto");
+
+// Normalise a stored aroflo_clients doc to plaintext {clientid, firstname,
+// surname, archived}, handling both the new (encrypted) and legacy (plaintext)
+// formats during the migration window.
+async function decodeClientDoc(c) {
+  if (!c) return null;
+  let firstname = c.firstname || "";
+  let surname = c.surname || "";
+  if (c.name_enc) {
+    const n = await decryptName(c.name_enc);
+    firstname = n.firstname; surname = n.surname;
+  }
+  return { clientid: c.clientid, firstname, surname, archived: c.archived };
+}
+
 // ====================== SECRETS ======================
 
 async function getSecret(name) {
@@ -174,27 +190,28 @@ async function lookupClientByPhone(rawPhone, confirmedSurname) {
   if (!last8) return null;
 
   try {
-    console.log(`[lookupClientByPhone] querying for mobile_digits="${last8}"`);
+    const ph = await hmacPhone(rawPhone);
     let snap = await db.collection("aroflo_clients")
-      .where("mobile_digits", "==", last8)
-      .where("archived", "==", false)
-      .limit(5)
-      .get();
-
+      .where("mobile_hmac", "==", ph).where("archived", "==", false).limit(5).get();
     if (snap.empty) {
       snap = await db.collection("aroflo_clients")
-        .where("phone_digits", "==", last8)
-        .where("archived", "==", false)
-        .limit(5)
-        .get();
+        .where("phone_hmac", "==", ph).where("archived", "==", false).limit(5).get();
     }
-
+    // Transition fallback: legacy docs keyed on plaintext digits.
+    if (snap.empty) {
+      snap = await db.collection("aroflo_clients")
+        .where("mobile_digits", "==", last8).where("archived", "==", false).limit(5).get();
+    }
+    if (snap.empty) {
+      snap = await db.collection("aroflo_clients")
+        .where("phone_digits", "==", last8).where("archived", "==", false).limit(5).get();
+    }
     if (snap.empty) return null;
 
-    const candidates = snap.docs.map(d => d.data());
+    const candidates = await Promise.all(snap.docs.map(d => decodeClientDoc(d.data())));
     if (candidates.length === 1) return candidates[0];
 
-    console.warn(`[lookupClientByPhone] ${candidates.length} clients share "${last8}"`);
+    console.warn(`[lookupClientByPhone] ${candidates.length} clients share this number`);
     if (confirmedSurname) {
       const surname = String(confirmedSurname).trim().toLowerCase();
       const match = candidates.find(c => (c.surname || "").trim().toLowerCase() === surname);
@@ -294,27 +311,36 @@ async function lookupCustomerBookings({ clientId, phone, surname }) {
   return { found: true, clientname: client.clientname, count: bookings.length, bookings_summary: summary, bookings };
 }
 
+// Live address fetch by clientid (address is no longer stored in Firestore).
+// Best-effort: any failure returns blanks so the caller degrades gracefully.
+async function fetchClientAddress(clientId) {
+  try {
+    const cData = await aroFloGet(["zone=clients", "where=" + encodeURIComponent(`and|clientid|=|${clientId}`), "page=1"].join("&"));
+    const client = (cData?.zoneresponse?.clients || [])[0];
+    const a = client?.address || (Array.isArray(client?.locations?.location) ? client.locations.location[0] : client?.locations?.location) || {};
+    return {
+      addressline1: a.addressline1 || a.address1 || "",
+      suburb:       a.suburb || a.city || "",
+      postcode:     a.postcode || "",
+    };
+  } catch (e) {
+    console.error("[fetchClientAddress] failed:", e.message);
+    return { addressline1: "", suburb: "", postcode: "" };
+  }
+}
+
 // Write a freshly created AroFlo client straight into aroflo_clients so
 // lookups see it immediately instead of waiting for the next sync cycle.
-async function upsertClientToFirestore({ clientId, firstName, lastName, phone, email, address, suburb, postcode }) {
+async function upsertClientToFirestore({ clientId, firstName, lastName, phone }) {
   if (!clientId) return;
   try {
-    const digits = normalisePhone(phone).slice(-8);
+    const ph = await hmacPhone(phone);
     await db.collection("aroflo_clients").doc(String(clientId)).set({
-      clientid:      String(clientId),
-      firstname:     firstName || "",
-      surname:       lastName || "",
-      email:         email || "",
-      mobile:        normalisePhone(phone),
-      mobile_digits: digits,
-      phone_digits:  digits,
-      archived:      false,
-      address: {
-        addressline1: address || "",
-        suburb:       suburb || "",
-        postcode:     postcode || "",
-        state:        "NSW",
-      },
+      clientid:    String(clientId),
+      name_enc:    await encryptName(firstName, lastName),
+      mobile_hmac: ph,
+      phone_hmac:  ph,
+      archived:    false,
       created_by_booking_flow: true,
     }, { merge: true });
     console.log("[upsertClientToFirestore] wrote", clientId);
@@ -795,16 +821,20 @@ exports.retellInboundWebhook = onRequest(
 
     console.log(`[retellInboundWebhook] ${client ? "FOUND " + client.clientid : "NOT FOUND"} for ${fromNumber}`);
 
+    // Address isn't stored (PII minimisation) — fetch it live for known callers
+    // so Jess can still confirm "I have your address as…". Best-effort.
+    const addr = client?.clientid ? await fetchClientAddress(client.clientid) : { addressline1: "", suburb: "", postcode: "" };
+
     return res.json({
       call_inbound: {
         dynamic_variables: {
           caller_phone:   normalisedPhone,
-          first_name:     client?.firstname             || "",
-          last_name:      client?.surname               || "",
-          client_id:      client?.clientid              || "",
-          street_address: client?.address?.addressline1 || "",
-          suburb:         client?.address?.suburb       || "",
-          postcode:       client?.address?.postcode     || "",
+          first_name:     client?.firstname  || "",
+          last_name:      client?.surname    || "",
+          client_id:      client?.clientid   || "",
+          street_address: addr.addressline1,
+          suburb:         addr.suburb,
+          postcode:       addr.postcode,
           client_found:   client ? "true" : "false",
           lookup_source:  "inbound_webhook",
         },
@@ -840,16 +870,18 @@ exports.aroFloAgent = onRequest(
       const fromNumber = body.call_inbound.from_number || "";
       const normalisedPhone = normalisePhone(fromNumber);
       const client = fromNumber ? await lookupClientByPhone(fromNumber) : null;
+      // Address isn't stored (PII minimisation) — fetch it live for known callers.
+      const addr = client?.clientid ? await fetchClientAddress(client.clientid) : { addressline1: "", suburb: "", postcode: "" };
       return res.json({
         call_inbound: {
           dynamic_variables: {
             caller_phone:   normalisedPhone,
-            first_name:     client?.firstname             || "",
-            last_name:      client?.surname               || "",
-            client_id:      client?.clientid              || "",
-            street_address: client?.address?.addressline1 || "",
-            suburb:         client?.address?.suburb       || "",
-            postcode:       client?.address?.postcode     || "",
+            first_name:     client?.firstname || "",
+            last_name:      client?.surname   || "",
+            client_id:      client?.clientid  || "",
+            street_address: addr.addressline1,
+            suburb:         addr.suburb,
+            postcode:       addr.postcode,
             client_found:   client ? "true" : "false",
             lookup_source:  "inbound_webhook",
           },
