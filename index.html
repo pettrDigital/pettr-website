@@ -2772,6 +2772,13 @@ ul { list-style: none; }
 
           <!-- STEP 2: Booking Details -->
           <div id="step2Content" style="display: none;">
+            <!-- Name (split into first/last, both required for the booking) -->
+            <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+              <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Confirm your name for the booking</div>
+              <input type="text" id="bookNowFirstName" placeholder="First name*" style="width: 100%; margin-bottom: 8px;">
+              <input type="text" id="bookNowLastName" placeholder="Last name*" style="width: 100%;">
+            </div>
+
             <!-- Service Type -->
             <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
               <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">What service type do you need?</div>
@@ -3695,6 +3702,16 @@ function goToStep2() {
   const step2Content = document.getElementById('step2Content');
   if (step1Content) step1Content.style.display = 'none';
   if (step2Content) step2Content.style.display = 'flex';
+
+  // Parse the single name field into first + last so a one-word entry forces a
+  // surname before they can submit. Only prefill if the fields are still empty.
+  const full = (document.querySelector('input[name="name"]')?.value || '').trim();
+  const parts = full.split(/\s+/).filter(Boolean);
+  const fn = document.getElementById('bookNowFirstName');
+  const ln = document.getElementById('bookNowLastName');
+  if (fn && !fn.value) fn.value = parts[0] || '';
+  if (ln && !ln.value) ln.value = parts.slice(1).join(' ');
+
   updateSlotVisibility();
 }
 
@@ -3964,6 +3981,19 @@ if (quoteForm) {
       return;
     }
 
+    // Require first AND last name for the booking, then recombine into the
+    // single `name` field the backend splits (so the AroFlo client gets a surname).
+    const bnFirst = document.getElementById('bookNowFirstName')?.value.trim() || '';
+    const bnLast  = document.getElementById('bookNowLastName')?.value.trim() || '';
+    if (!bnFirst || !bnLast) {
+      formMessage.style.backgroundColor = '#f8d7da';
+      formMessage.style.color = '#721c24';
+      formMessage.textContent = 'Please enter both your first and last name.';
+      formMessage.style.display = 'block';
+      return;
+    }
+    document.querySelector('input[name="name"]').value = `${bnFirst} ${bnLast}`;
+
     const serviceType = document.querySelector('input[name="bookNowServiceType"]:checked')?.value;
     if (!serviceType) {
       formMessage.style.backgroundColor = '#f8d7da';
@@ -4114,12 +4144,21 @@ function setupPlacesAutocomplete() {
     const place = autocomplete.getPlace();
     if (!place.address_components) return;
 
-    let suburb = '';
-    let postcode = '';
-    const localityComponent = place.address_components.find(c => c.types.includes('locality'));
-    suburb = localityComponent?.long_name || '';
-    const postalComponent = place.address_components.find(c => c.types.includes('postal_code'));
-    postcode = postalComponent?.long_name || '';
+    const comp = (type) => place.address_components.find(c => c.types.includes(type))?.long_name || '';
+    const subpremise   = comp('subpremise');    // unit number, e.g. "19"
+    const streetNumber = comp('street_number'); // e.g. "13"
+    const route        = comp('route');         // e.g. "Cranbrook Avenue"
+    const suburb       = comp('locality') || comp('postal_town') || comp('sublocality') || '';
+    const postcode     = comp('postal_code');
+
+    // Street line ONLY — no suburb/state/country. Google otherwise drops the full
+    // formatted address into the input, which then gets read back to the customer
+    // twice (and "NSW" spoken as letters). Suburb + postcode live in their own fields.
+    let streetLine = [streetNumber, route].filter(Boolean).join(' ');
+    if (subpremise) streetLine = streetLine ? `${subpremise}/${streetLine}` : subpremise;
+
+    const addressInput = document.getElementById('addressInput');
+    if (addressInput && streetLine) addressInput.value = streetLine;
 
     const suburbInput = document.querySelector('input[name="suburb"]');
     const postcodeInput = document.querySelector('input[name="postcode"]');

@@ -48,11 +48,15 @@ export async function onRequest(context) {
       });
     }
 
-    // Call-end replay of a booking: team email with transcript, no SMS
-    // (the customer already got their confirmation during the call).
+    // Call-end replay of a booking: send the customer confirmation SMS now (so it
+    // lands AFTER Jess said "I'll send you a text", not mid-call) AND the team
+    // email with transcript.
     if (booking && stage === 'call_ended') {
+      let smsText = composeBookingConfirmation(booking);
+      if (test) smsText = `[TEST MODE - no job created] ${smsText}`;
+      if (phone && smsText) await sendSMS(env, { phone, message: smsText });
       await notifyTeamBookingEmail(env, { phone, booking, test, transcript });
-      return new Response(JSON.stringify({ success: true, action: 'booking_emailed' }), {
+      return new Response(JSON.stringify({ success: true, action: 'booking_sms_and_emailed' }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });

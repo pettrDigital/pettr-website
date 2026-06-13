@@ -33,99 +33,7 @@ function isInServiceArea(postcodeRaw) {
   return !isNaN(pc) && SYDNEY_POSTCODES.has(pc);
 }
 
-let retellSetupDone = false;
-
-async function setupRetellFunctions(env) {
-  if (retellSetupDone) return;
-  retellSetupDone = true;
-
-  const apiKey = env.RETELL_API_KEY;
-  const outboundAgentId = 'agent_ae39eceb83f12b6a4fcdfd4c89';
-
-  if (!apiKey) return;
-
-  try {
-    const functions = [
-      {
-        name: 'get_available_slots',
-        description: 'Get available appointment slots for a given trade',
-        parameters: {
-          type: 'object',
-          properties: {
-            trade: { type: 'string', enum: ['plumbing', 'electrical'] },
-          },
-          required: ['trade'],
-        },
-      },
-      {
-        name: 'create_afterhours_job',
-        description: 'Create an emergency after-hours job',
-        parameters: {
-          type: 'object',
-          properties: {
-            caller_phone: { type: 'string' },
-            first_name: { type: 'string' },
-            last_name: { type: 'string' },
-            trade: { type: 'string', enum: ['plumbing', 'electrical'] },
-            description: { type: 'string' },
-            street_address: { type: 'string' },
-            suburb: { type: 'string' },
-            postcode: { type: 'string' },
-            client_id: { type: 'string', nullable: true },
-          },
-          required: ['caller_phone', 'first_name', 'last_name', 'trade', 'description', 'street_address', 'suburb', 'postcode'],
-        },
-      },
-      {
-        name: 'create_standard_job',
-        description: 'Create a standard business hours job',
-        parameters: {
-          type: 'object',
-          properties: {
-            caller_phone: { type: 'string' },
-            first_name: { type: 'string' },
-            last_name: { type: 'string' },
-            trade: { type: 'string', enum: ['plumbing', 'electrical'] },
-            description: { type: 'string' },
-            street_address: { type: 'string' },
-            suburb: { type: 'string' },
-            postcode: { type: 'string' },
-            client_id: { type: 'string', nullable: true },
-            scheduled_date: { type: 'string', nullable: true },
-            scheduled_time: { type: 'string', nullable: true },
-          },
-          required: ['caller_phone', 'first_name', 'last_name', 'trade', 'description', 'street_address', 'suburb', 'postcode'],
-        },
-      },
-    ];
-
-    const variables = [
-      { name: 'first_name', description: 'Caller first name' },
-      { name: 'last_name', description: 'Caller last name' },
-      { name: 'phone', description: 'Caller phone number' },
-      { name: 'street_address', description: 'Service address street' },
-      { name: 'suburb', description: 'Service address suburb' },
-      { name: 'postcode', description: 'Service address postcode' },
-      { name: 'description', description: 'Job description/issue' },
-      { name: 'trade', description: 'Type of service: plumbing or electrical' },
-      { name: 'is_existing_customer', description: 'Whether caller is existing customer' },
-    ];
-
-    await fetch(`https://api.retellai.com/v2/agents/${outboundAgentId}`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ functions, variables }),
-    }).catch(err => console.warn('Retell setup warning:', err.message));
-  } catch (err) {
-    console.warn('Retell function setup failed:', err.message);
-  }
-}
-
 export async function onRequest(context) {
-  await setupRetellFunctions(context.env);
   const { request, env } = context;
 
   if (request.method !== 'POST') {
@@ -219,28 +127,6 @@ export async function onRequest(context) {
       console.log('Triggering Retell callback for:', data.phone);
       const trade = data.message.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
 
-      // Look up customer in AroFlo to check if they're existing (but use form data as provided)
-      let isExistingCustomer = false;
-
-      try {
-        const lookupUrl = env.AROFLO_LOOKUP_FUNCTION_URL;
-        const lookupResponse = await fetch(lookupUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone: data.phone }),
-        });
-
-        if (lookupResponse.ok) {
-          const lookupResult = await lookupResponse.json();
-          if (lookupResult.found && lookupResult.client) {
-            console.log('Found existing customer:', lookupResult.client.clientid);
-            isExistingCustomer = true;
-          }
-        }
-      } catch (err) {
-        console.warn('Customer lookup failed:', err.message);
-      }
-
       await triggerRetellCallback(env, {
         phone: data.phone,
         name: data.name,
@@ -249,50 +135,67 @@ export async function onRequest(context) {
         postcode: data.postcode,
         message: data.message,
         trade: trade,
-        isExistingCustomer,
       });
     } else if (data.requestType === 'bookNow') {
       console.log('=== INSTANT BOOKING INITIATED ===');
       const trade = data.bookNowServiceType;
 
-      if (data.bookNowUrgency === 'tonight') {
-        // Emergency booking - send receipt SMS, tech will call within 5-10 mins
-        const smsMessage = composeBookingConfirmation({
-          name: data.name,
-          trade,
-          address: data.address,
-          suburb: data.suburb,
-          postcode: data.postcode,
-          urgency: 'emergency',
-        });
+      const slot = data.bookNowSlot || null;
 
-        await sendBookingSMS(env, {
-          phone: data.phone,
-          message: smsMessage,
-        });
-        console.log('Emergency booking receipt SMS sent to:', data.phone);
-      } else {
-        // Standard booking with selected slot
-        const slot = data.bookNowSlot;
-        const smsMessage = composeBookingConfirmation({
-          name: data.name,
+      // Create the AroFlo job FIRST so the confirmation SMS can carry the job
+      // number and be marked [TEST MODE] when writes are blocked — identical
+      // message, marking and ordering to the voice flow.
+      let arofloResult = null;
+      try {
+        const bookingPayload = {
+          name:        data.name,
+          phone:       data.phone,
+          email:       data.email,
+          address:     data.address,
+          suburb:      data.suburb || '',
+          postcode:    data.postcode,
           trade,
-          address: data.address,
-          suburb: data.suburb,
-          postcode: data.postcode,
-          issue: data.message,
-          day: slot.day,
-          startTime: slot.start_time,
-          endTime: slot.end_time,
-          tech: slot.tech,
-        });
-
-        await sendBookingSMS(env, {
-          phone: data.phone,
-          message: smsMessage,
-        });
-        console.log('Standard booking confirmation SMS sent to:', data.phone);
+          urgency:     data.bookNowUrgency,
+          description: data.message,
+          ownership:   data.bookNowOwnership,
+          appliance:   data.bookNowAppliance,
+          slot,
+        };
+        const jobRes = await fetch(
+          'https://us-central1-pettrdashboards.cloudfunctions.net/createWebBooking',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bookingPayload),
+          }
+        );
+        arofloResult = await jobRes.json();
+        console.log('AroFlo job creation result:', JSON.stringify(arofloResult));
+      } catch (jobErr) {
+        // Non-fatal — still send the confirmation, just without a job number
+        console.error('AroFlo job creation failed (non-fatal):', jobErr.message);
+        arofloResult = { error: jobErr.message };
       }
+
+      const jobNumber  = arofloResult?.jobNumber || null;
+      const testPrefix = arofloResult?.blocked === true ? '[TEST MODE - no job created] ' : '';
+
+      // Confirmation SMS — same template + test marking as the voice flow
+      const smsMessage = (data.bookNowUrgency === 'tonight')
+        ? composeBookingConfirmation({
+            name: data.name, trade,
+            address: data.address, suburb: data.suburb, postcode: data.postcode,
+            urgency: 'emergency', jobNumber,
+          })
+        : composeBookingConfirmation({
+            name: data.name, trade,
+            address: data.address, suburb: data.suburb, postcode: data.postcode,
+            issue: data.message,
+            day: slot?.day, startTime: slot?.start_time, endTime: slot?.end_time, tech: slot?.tech,
+            jobNumber,
+          });
+      await sendBookingSMS(env, { phone: data.phone, message: testPrefix + smsMessage });
+      console.log('Booking confirmation SMS sent to:', data.phone, '| jobNumber:', jobNumber, '| test:', !!testPrefix);
 
       // Send email to support with booking details
       const suburbDisplay = data.suburb ? `, ${escapeHtml(data.suburb)}` : '';
@@ -309,8 +212,7 @@ export async function onRequest(context) {
         <p><strong>Appliance Type:</strong> ${data.bookNowAppliance}</p>
       `;
 
-      if (data.bookNowSlot) {
-        const slot = data.bookNowSlot;
+      if (slot) {
         emailHtml += `
         <p><strong>Booked Slot:</strong> ${slot.day} ${slot.start_time}-${slot.end_time}</p>
         `;
@@ -325,39 +227,6 @@ export async function onRequest(context) {
         html: emailHtml,
       });
       console.log('Booking email sent to support');
-
-      // Create AroFlo job (gated by APPLY_UPDATES=false in the Cloud Function)
-      let arofloResult = null;
-      try {
-        const bookingPayload = {
-          name:        data.name,
-          phone:       data.phone,
-          email:       data.email,
-          address:     data.address,
-          suburb:      data.suburb || '',
-          postcode:    data.postcode,
-          trade,
-          urgency:     data.bookNowUrgency,
-          description: data.message,
-          ownership:   data.bookNowOwnership,
-          appliance:   data.bookNowAppliance,
-          slot:        data.bookNowSlot || null,
-        };
-        const jobRes = await fetch(
-          'https://us-central1-pettrdashboards.cloudfunctions.net/createWebBooking',
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bookingPayload),
-          }
-        );
-        arofloResult = await jobRes.json();
-        console.log('AroFlo job creation result:', JSON.stringify(arofloResult));
-      } catch (jobErr) {
-        // Non-fatal — booking confirmation already sent, log and continue
-        console.error('AroFlo job creation failed (non-fatal):', jobErr.message);
-        arofloResult = { error: jobErr.message };
-      }
 
       return new Response(JSON.stringify({ success: true, message: 'Quote request submitted. We will call you shortly!', arofloResult }), {
         status: 200,
@@ -420,7 +289,7 @@ async function sendSMS(env, { phone, name, address, postcode, problem }) {
   return deliverSMS(env, { phone, message });
 }
 
-async function triggerRetellCallback(env, { phone, name, address, suburb, postcode, message, trade, isExistingCustomer }) {
+async function triggerRetellCallback(env, { phone, name, address, suburb, postcode, message, trade }) {
   console.log('=== RETELL CALLBACK ===');
   console.log('Phone:', phone);
   console.log('Name:', name);
@@ -429,7 +298,6 @@ async function triggerRetellCallback(env, { phone, name, address, suburb, postco
   console.log('Postcode:', postcode);
   console.log('Message:', message);
   console.log('Trade:', trade);
-  console.log('Existing Customer:', isExistingCustomer);
 
   const retellApiKey = env.RETELL_API_KEY;
   const retellAgentId = env.RETELL_AGENT_ID;
@@ -476,13 +344,16 @@ async function triggerRetellCallback(env, { phone, name, address, suburb, postco
     retell_llm_dynamic_variables: {
       first_name: name ? name.split(' ')[0] : '',
       last_name: name ? name.split(' ').slice(1).join(' ') : '',
+      // Explicit flag the agent can read — Retell substitutes {{last_name}} to ""
+      // before the model sees it, so an "is the surname empty?" check can't work
+      // off the variable itself.
+      surname_provided: (name && name.trim().split(/\s+/).length > 1) ? 'true' : 'false',
       phone: phone,
       street_address: address || '',
       suburb: suburb || '',
       postcode: postcode || '',
       description: message || '',
       trade: trade || '',
-      is_existing_customer: isExistingCustomer ? 'true' : 'false',
     },
   };
   console.log('Payload:', JSON.stringify(payload));
