@@ -210,6 +210,90 @@ async function lookupClientByPhone(rawPhone, confirmedSurname) {
   }
 }
 
+// ====================== LIVE BOOKING LOOKUP ======================
+// Resolves a caller's CURRENT bookings live from AroFlo (the synced last_jobs
+// is stale and can be mis-grouped, so we never use it here). Chain:
+//   clientid → clientname (clients zone)
+//   → tasks (tasks zone, filtered by clientname, VERIFIED by clientid)
+//   → schedule per open task (schedules zone, by taskid)
+// AroFlo can't filter tasks by clientid, only clientname (which isn't unique),
+// so the clientid re-check is what guarantees we only return THIS client's jobs.
+
+function cleanDesc(html) {
+  return String(html || "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim().slice(0, 120);
+}
+
+function isOpenStatus(status) {
+  return !/archived|completed|cancelled|invoiced/i.test(status || "");
+}
+
+// "2025/11/14 09:00:00" → "Friday 14 November, 9:00am"
+function friendlySchedule(startDatetime) {
+  const m = /^(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2})/.exec(startDatetime || "");
+  if (!m) return startDatetime || "";
+  const [, y, mo, d, hh, mi] = m;
+  const dt = new Date(Date.UTC(+y, +mo - 1, +d));
+  const day = isNaN(dt) ? "" : dt.toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+  let h = +hh; const ampm = h >= 12 ? "pm" : "am"; h = h % 12 || 12;
+  const time = `${h}${mi === "00" ? "" : ":" + mi}${ampm}`;
+  return `${day}, ${time}`;
+}
+
+async function lookupCustomerBookings({ clientId, phone, surname }) {
+  let cid = clientId || null;
+  if (!cid && phone) {
+    const found = await lookupClientByPhone(phone, surname);
+    cid = found?.clientid || null;
+  }
+  if (!cid) return { found: false, count: 0, bookings_summary: "I couldn't find an existing customer record for that number." };
+
+  // 1. clientid → clientname
+  const cData = await aroFloGet(["zone=clients", "where=" + encodeURIComponent(`and|clientid|=|${cid}`), "page=1"].join("&"));
+  const client = (cData?.zoneresponse?.clients || [])[0];
+  if (!client) return { found: false, count: 0, bookings_summary: "I couldn't find an existing customer record for that number." };
+
+  // 2. tasks by clientname, VERIFIED by clientid, open only, not deleted
+  const tData = await aroFloGet([
+    "zone=tasks",
+    "where=" + encodeURIComponent(`and|clientname|=|${client.clientname}`),
+    "orderby=" + encodeURIComponent("datetimerequested desc"),
+    "page=1",
+  ].join("&"));
+  const openTasks = (tData?.zoneresponse?.tasks || [])
+    .filter(t => (t.client?.clientid || "") === cid)
+    .filter(t => !(t.deleteddate || t.deleteddatetime))
+    .filter(t => isOpenStatus(t.status))
+    .slice(0, 5);
+
+  // 3. schedule per open task
+  const bookings = [];
+  for (const t of openTasks) {
+    let schedule = null;
+    try {
+      const sData = await aroFloGet(["zone=schedules", "where=" + encodeURIComponent(`and|taskid|=|${t.taskid}`), "page=1"].join("&"));
+      const s = (sData?.zoneresponse?.schedules || [])[0];
+      if (s) schedule = { scheduleid: s.scheduleid, start: s.startdatetime, end: s.enddatetime, tech: s.scheduledto?.scheduledtoname || "" };
+    } catch (e) {
+      console.error("[lookupCustomerBookings] schedule fetch failed:", e.message);
+    }
+    bookings.push({
+      jobnumber:   t.jobnumber,
+      taskid:      t.taskid,
+      status:      t.status,
+      description: cleanDesc(t.description),
+      scheduleid:  schedule?.scheduleid || "",
+      when:        schedule ? friendlySchedule(schedule.start) : "not yet scheduled",
+      tech:        schedule?.tech || "",
+    });
+  }
+
+  const summary = bookings.length
+    ? bookings.map(b => `Job ${b.jobnumber}: ${b.description || "no description"} — ${b.when}${b.tech ? ` with ${b.tech}` : ""}`).join("; ")
+    : "no current bookings on file";
+
+  return { found: true, clientname: client.clientname, count: bookings.length, bookings_summary: summary, bookings };
+}
+
 // Write a freshly created AroFlo client straight into aroflo_clients so
 // lookups see it immediately instead of waiting for the next sync cycle.
 async function upsertClientToFirestore({ clientId, firstName, lastName, phone, email, address, suburb, postcode }) {
@@ -791,6 +875,16 @@ exports.aroFloAgent = onRequest(
 
     try {
       switch (name) {
+
+        // ── Live booking lookup for an existing caller (cancel/reschedule) ──
+        case "lookup_customer_bookings": {
+          const result = await lookupCustomerBookings({
+            clientId: args.client_id || null,
+            phone:    args.caller_phone || null,
+            surname:  args.last_name || null,
+          });
+          return res.json(result);
+        }
 
         // ── Service area check ─────────────────────────────────────────────
         case "check_service_area": {
