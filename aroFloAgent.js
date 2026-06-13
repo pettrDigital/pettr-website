@@ -184,27 +184,16 @@ const TECHS = {
 // still returns that match (spouse on the account number beats creating a
 // duplicate client).
 async function lookupClientByPhone(rawPhone, confirmedSurname) {
-  const phone = normalisePhone(rawPhone);
-  if (!phone) return null;
-  const last8 = phone.slice(-8);
-  if (!last8) return null;
+  if (!normalisePhone(rawPhone)) return null;
 
   try {
     const ph = await hmacPhone(rawPhone);
+    if (!ph) return null;
     let snap = await db.collection("aroflo_clients")
       .where("mobile_hmac", "==", ph).where("archived", "==", false).limit(5).get();
     if (snap.empty) {
       snap = await db.collection("aroflo_clients")
         .where("phone_hmac", "==", ph).where("archived", "==", false).limit(5).get();
-    }
-    // Transition fallback: legacy docs keyed on plaintext digits.
-    if (snap.empty) {
-      snap = await db.collection("aroflo_clients")
-        .where("mobile_digits", "==", last8).where("archived", "==", false).limit(5).get();
-    }
-    if (snap.empty) {
-      snap = await db.collection("aroflo_clients")
-        .where("phone_digits", "==", last8).where("archived", "==", false).limit(5).get();
     }
     if (snap.empty) return null;
 
