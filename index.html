@@ -2772,8 +2772,8 @@ ul { list-style: none; }
 
           <!-- STEP 2: Booking Details -->
           <div id="step2Content" style="display: none;">
-            <!-- Name (split into first/last, both required for the booking) -->
-            <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+            <!-- Name (first/last). Only shown when step 1 didn't supply both parts. -->
+            <div id="bookNowNameBox" style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
               <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Confirm your name for the booking</div>
               <input type="text" id="bookNowFirstName" placeholder="First name*" style="width: 100%; margin-bottom: 8px;">
               <input type="text" id="bookNowLastName" placeholder="Last name*" style="width: 100%;">
@@ -2825,26 +2825,24 @@ ul { list-style: none; }
                 <div style="font-size: 14px; color: #fff; line-height: 1.4;">We recommend speaking to your landlord or Real Estate Manager. By proceeding you will be responsible for any service costs incurred.</div>
               </div>
 
-              <!-- Appliance Type -->
-              <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
-                <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Does this relate to an appliance?</div>
-                <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
-                  <input type="radio" name="bookNowAppliance" value="new" style="margin: 0; flex-shrink: 0; width: auto;">
-                  <span style="font-size: 14px; color: #fff;">New appliance</span>
-                </label>
-                <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
-                  <input type="radio" name="bookNowAppliance" value="existing" style="margin: 0; flex-shrink: 0; width: auto;">
-                  <span style="font-size: 14px; color: #fff;">Existing appliance</span>
-                </label>
-                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                  <input type="radio" name="bookNowAppliance" value="neither" style="margin: 0; flex-shrink: 0; width: auto;">
-                  <span style="font-size: 14px; color: #fff;">Neither</span>
-                </label>
-              </div>
+              <!-- Existing-appliance question (electrical only) -->
+              <div id="applianceSection" style="display: none;">
+                <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+                  <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Does this request relate to an existing appliance?</div>
+                  <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
+                    <input type="radio" name="bookNowAppliance" value="yes" style="margin: 0; flex-shrink: 0; width: auto;">
+                    <span style="font-size: 14px; color: #fff;">Yes</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="radio" name="bookNowAppliance" value="no" style="margin: 0; flex-shrink: 0; width: auto;">
+                    <span style="font-size: 14px; color: #fff;">No</span>
+                  </label>
+                </div>
 
-              <!-- Existing Appliance Warning -->
-              <div id="existingApplianceWarning" style="display: none; padding: 12px; background: rgba(244, 67, 54, 0.2); border: 1px solid rgba(244, 67, 54, 0.4); border-radius: 6px; margin-bottom: 12px;">
-                <div style="font-size: 14px; color: #fff; line-height: 1.4;">Unfortunately we are not able to service existing appliances.</div>
+                <!-- Existing Appliance Warning -->
+                <div id="existingApplianceWarning" style="display: none; padding: 12px; background: rgba(244, 67, 54, 0.2); border: 1px solid rgba(244, 67, 54, 0.4); border-radius: 6px; margin-bottom: 12px;">
+                  <div style="font-size: 14px; color: #fff; line-height: 1.4;">Unfortunately we are not able to service existing appliances.</div>
+                </div>
               </div>
 
               <!-- Available Slots -->
@@ -2880,7 +2878,7 @@ ul { list-style: none; }
           <p style="margin: 8px 0; color: #3f3f3f;"><strong>Issue:</strong> <span id="confirmIssue"></span></p>
           <p style="margin: 8px 0; color: #3f3f3f;"><strong>Urgency:</strong> <span id="confirmUrgency"></span></p>
           <p style="margin: 8px 0; color: #3f3f3f;"><strong>Homeowner/Tenant:</strong> <span id="confirmOwnership"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Appliance Type:</strong> <span id="confirmAppliance"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;" id="confirmApplianceRow"><strong>Existing appliance:</strong> <span id="confirmAppliance"></span></p>
           <p style="margin: 8px 0; color: #3f3f3f;" id="confirmSlotRow"><strong>Booked Slot:</strong> <span id="confirmSlot"></span></p>
         </div>
         <p style="color: #666; font-size: 14px; margin-bottom: 16px;">Check your SMS and email for confirmation details.</p>
@@ -3703,14 +3701,20 @@ function goToStep2() {
   if (step1Content) step1Content.style.display = 'none';
   if (step2Content) step2Content.style.display = 'flex';
 
-  // Parse the single name field into first + last so a one-word entry forces a
-  // surname before they can submit. Only prefill if the fields are still empty.
+  // Only ask for first/last on step 2 if step 1 didn't give us BOTH a first and
+  // a last name. If both are present, hide the box and use the name as typed.
   const full = (document.querySelector('input[name="name"]')?.value || '').trim();
   const parts = full.split(/\s+/).filter(Boolean);
+  const nameBox = document.getElementById('bookNowNameBox');
   const fn = document.getElementById('bookNowFirstName');
   const ln = document.getElementById('bookNowLastName');
-  if (fn && !fn.value) fn.value = parts[0] || '';
-  if (ln && !ln.value) ln.value = parts.slice(1).join(' ');
+  if (parts.length >= 2 && parts[0]) {
+    if (nameBox) nameBox.style.display = 'none';
+  } else {
+    if (nameBox) nameBox.style.display = 'block';
+    if (fn && !fn.value) fn.value = parts[0] || '';
+    if (ln && !ln.value) ln.value = parts.slice(1).join(' ');
+  }
 
   updateSlotVisibility();
 }
@@ -3729,11 +3733,26 @@ function updateSlotVisibility() {
   if (urgency === 'standard') {
     standardOptions.style.display = 'block';
     slotSelect.required = true;
+    updateApplianceVisibility();
     fetchAvailableSlots();
   } else {
     standardOptions.style.display = 'none';
     slotSelect.required = false;
     slotSelect.value = '';
+  }
+}
+
+// The existing-appliance question is only relevant to electrical jobs.
+function updateApplianceVisibility() {
+  const serviceType = document.querySelector('input[name="bookNowServiceType"]:checked')?.value;
+  const isElectrical = serviceType === 'electrical';
+  const section = document.getElementById('applianceSection');
+  if (section) section.style.display = isElectrical ? 'block' : 'none';
+  if (!isElectrical) {
+    // Clear any stale answer/warning so it can't carry over to a plumbing job.
+    document.querySelectorAll('input[name="bookNowAppliance"]').forEach(r => { r.checked = false; });
+    const warn = document.getElementById('existingApplianceWarning');
+    if (warn) warn.style.display = 'none';
   }
 }
 
@@ -3852,6 +3871,7 @@ document.querySelectorAll('input[name="bookNowUrgency"]').forEach(radio => {
 
 document.querySelectorAll('input[name="bookNowServiceType"]').forEach(radio => {
   radio.addEventListener('change', function() {
+    updateApplianceVisibility();
     const urgency = document.querySelector('input[name="bookNowUrgency"]:checked')?.value;
     if (urgency === 'standard') {
       fetchAvailableSlots();
@@ -3867,7 +3887,7 @@ document.querySelectorAll('input[name="bookNowOwnership"]').forEach(radio => {
 
 document.querySelectorAll('input[name="bookNowAppliance"]').forEach(radio => {
   radio.addEventListener('change', function() {
-    document.getElementById('existingApplianceWarning').style.display = this.value === 'existing' ? 'block' : 'none';
+    document.getElementById('existingApplianceWarning').style.display = this.value === 'yes' ? 'block' : 'none';
   });
 });
 
@@ -3889,7 +3909,15 @@ function showConfirmation(formData, arofloResult) {
   document.getElementById('confirmIssue').textContent = formData.get('message');
   document.getElementById('confirmUrgency').textContent = urgency === 'tonight' ? 'Emergency - $549 call our fee including first 1/2 hour labour' : 'Standard Business Hours';
   document.getElementById('confirmOwnership').textContent = formData.get('bookNowOwnership');
-  document.getElementById('confirmAppliance').textContent = formData.get('bookNowAppliance');
+  // Appliance row only applies to electrical jobs — hide it when there's no answer.
+  const applianceVal = formData.get('bookNowAppliance');
+  const applianceRow = document.getElementById('confirmApplianceRow');
+  if (applianceVal) {
+    document.getElementById('confirmAppliance').textContent = applianceVal === 'yes' ? 'Yes' : 'No';
+    applianceRow.style.display = 'block';
+  } else {
+    applianceRow.style.display = 'none';
+  }
 
   const slotRow = document.getElementById('confirmSlotRow');
   if (slot) {
@@ -3981,18 +4009,21 @@ if (quoteForm) {
       return;
     }
 
-    // Require first AND last name for the booking, then recombine into the
-    // single `name` field the backend splits (so the AroFlo client gets a surname).
-    const bnFirst = document.getElementById('bookNowFirstName')?.value.trim() || '';
-    const bnLast  = document.getElementById('bookNowLastName')?.value.trim() || '';
-    if (!bnFirst || !bnLast) {
-      formMessage.style.backgroundColor = '#f8d7da';
-      formMessage.style.color = '#721c24';
-      formMessage.textContent = 'Please enter both your first and last name.';
-      formMessage.style.display = 'block';
-      return;
+    // Only enforce first/last if we actually asked for them on step 2 (the name
+    // box is hidden when step 1 already supplied a full first + last name).
+    const nameBox = document.getElementById('bookNowNameBox');
+    if (nameBox && nameBox.style.display !== 'none') {
+      const bnFirst = document.getElementById('bookNowFirstName')?.value.trim() || '';
+      const bnLast  = document.getElementById('bookNowLastName')?.value.trim() || '';
+      if (!bnFirst || !bnLast) {
+        formMessage.style.backgroundColor = '#f8d7da';
+        formMessage.style.color = '#721c24';
+        formMessage.textContent = 'Please enter both your first and last name.';
+        formMessage.style.display = 'block';
+        return;
+      }
+      document.querySelector('input[name="name"]').value = `${bnFirst} ${bnLast}`;
     }
-    document.querySelector('input[name="name"]').value = `${bnFirst} ${bnLast}`;
 
     const serviceType = document.querySelector('input[name="bookNowServiceType"]:checked')?.value;
     if (!serviceType) {
@@ -4021,10 +4052,19 @@ if (quoteForm) {
     const appliance = document.querySelector('input[name="bookNowAppliance"]:checked')?.value;
     const slot = document.querySelector('select[name="bookNowSlot"]')?.value;
 
-    if (!ownership || !appliance) {
+    if (!ownership) {
       formMessage.style.backgroundColor = '#f8d7da';
       formMessage.style.color = '#721c24';
       formMessage.textContent = 'Please complete all booking details.';
+      formMessage.style.display = 'block';
+      return;
+    }
+
+    // The existing-appliance question is only asked for electrical jobs.
+    if (serviceType === 'electrical' && !appliance) {
+      formMessage.style.backgroundColor = '#f8d7da';
+      formMessage.style.color = '#721c24';
+      formMessage.textContent = 'Please answer the appliance question.';
       formMessage.style.display = 'block';
       return;
     }
@@ -4057,7 +4097,7 @@ async function submitForm(requestType, bookingData = {}) {
     if (requestType === 'bookNow') {
       formData.set('bookNowUrgency', bookingData.urgency);
       formData.set('bookNowOwnership', bookingData.ownership);
-      formData.set('bookNowAppliance', bookingData.appliance);
+      formData.set('bookNowAppliance', bookingData.appliance || '');
       if (bookingData.slot) formData.set('bookNowSlot', bookingData.slot);
     }
 
