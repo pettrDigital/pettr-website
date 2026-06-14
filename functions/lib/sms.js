@@ -57,14 +57,14 @@ async function sendViaMessageMedia(env, { phone, message }) {
     destination_number: destination,
     format: 'SMS',
   };
-  // MESSAGEMEDIA_SENDER controls the sender ID:
-  //   unset          → shared pool (two-way, but number rotates per message)
-  //   "PETTR"        → alpha tag (consistent branding, replies impossible —
-  //                    a do-not-reply footer is appended automatically)
-  //   "+614xxxxxxxx" → dedicated number (consistent and two-way)
-  if (env.MESSAGEMEDIA_SENDER) {
-    const isNumber = /^\+?\d+$/.test(env.MESSAGEMEDIA_SENDER);
-    sms.source_number = env.MESSAGEMEDIA_SENDER;
+  // Sender ID: defaults to our dedicated AU number (consistent + two-way).
+  // Override via MESSAGEMEDIA_SENDER env var:
+  //   "+614xxxxxxxx" → dedicated number   |   "PETTR" → alpha tag (one-way,
+  //   auto do-not-reply footer)           |   "pool" → shared pool (rotates)
+  const sender = env.MESSAGEMEDIA_SENDER || '+61437964618';
+  if (sender.toLowerCase() !== 'pool') {
+    const isNumber = /^\+?\d+$/.test(sender);
+    sms.source_number = sender;
     sms.source_number_type = isNumber ? 'INTERNATIONAL' : 'ALPHANUMERIC';
     if (!isNumber) {
       sms.content = `${message}\n\nDO NOT REPLY TO THIS MESSAGE`;

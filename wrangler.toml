@@ -3,9 +3,8 @@ compatibility_date = "2026-04-09"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "."
 
-vars = { QUOTE_EMAIL = "fergusg@mrwasher.com.au", RETELL_FROM_NUMBER = "+61258393807", MESSAGEMEDIA_SENDER = "PETTR" }
-# MESSAGEMEDIA_SENDER: "PETTR" = alpha tag, one-way, auto do-not-reply footer.
-# NOTE: MessageMedia currently overrides the alpha tag to the shared pool —
-# support ticket open. Once a dedicated number exists, change to "+614xxxxxxxx"
-# (two-way, no footer).
+vars = { QUOTE_EMAIL = "fergusg@mrwasher.com.au", RETELL_FROM_NUMBER = "+61258393807", MESSAGEMEDIA_SENDER = "+61437964618" }
+# MESSAGEMEDIA_SENDER: our dedicated AU number (two-way, consistent, no footer).
+# Code default is the same number (functions/lib/sms.js). Alternatives:
+# "PETTR" = alpha tag (one-way, auto do-not-reply footer); "pool" = shared pool.
 
