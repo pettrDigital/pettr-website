@@ -27,11 +27,10 @@ export async function onRequest(context) {
     // Change requests (cancel / reschedule / enquiry): email handoff to the
     // team + written ack to the customer for cancel/reschedule.
     if (changeRequest) {
+      // Both the team email AND the customer ack fire at call end, so the ack
+      // lands after the call (like a booking) — not mid-call. during_call = no-op.
       if (stage !== 'during_call') {
         await notifyTeamChangeRequest(env, { phone, request: changeRequest, transcript });
-      }
-
-      if (stage !== 'call_ended') {
         const ack = composeChangeRequestAck(changeRequest);
         if (ack && phone) {
           try {
