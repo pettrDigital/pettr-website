@@ -2871,6 +2871,7 @@ ul { list-style: none; }
       <div style="background: #fff; border-radius: 12px; padding: 32px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
         <h2 style="color: #077bab; margin-bottom: 16px; font-family: 'Montserrat', sans-serif;">Booking Confirmed!</h2>
         <div style="background: #f5f6f7; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+          <p style="margin: 8px 0; color: #077bab; font-weight: 700;" id="confirmJobRow"><strong>Job Number:</strong> <span id="confirmJobNumber"></span></p>
           <p style="margin: 8px 0; color: #3f3f3f;"><strong>Name:</strong> <span id="confirmName"></span></p>
           <p style="margin: 8px 0; color: #3f3f3f;"><strong>Email:</strong> <span id="confirmEmail"></span></p>
           <p style="margin: 8px 0; color: #3f3f3f;"><strong>Phone:</strong> <span id="confirmPhone"></span></p>
@@ -3925,6 +3926,16 @@ function showConfirmation(formData, arofloResult) {
     slotRow.style.display = 'block';
   } else {
     slotRow.style.display = 'none';
+  }
+
+  // Job number — only present once the AroFlo job is written (hidden in test mode).
+  const jobNumber = arofloResult && (arofloResult.jobNumber || null);
+  const jobRow = document.getElementById('confirmJobRow');
+  if (jobNumber) {
+    document.getElementById('confirmJobNumber').textContent = jobNumber;
+    jobRow.style.display = 'block';
+  } else {
+    jobRow.style.display = 'none';
   }
 
   const debugRow = document.getElementById('arofloDebugRow');
