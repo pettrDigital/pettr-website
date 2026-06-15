@@ -76,7 +76,17 @@ export async function onRequest(context) {
       const appliance = formData.get('bookNowAppliance');
       const slot = formData.get('bookNowSlot');
 
-      if (!serviceType || !urgency || !ownership || !appliance) {
+      if (!serviceType || !urgency || !ownership) {
+        return new Response(JSON.stringify({ error: 'Missing booking details' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      // The existing-appliance question is asked for ELECTRICAL jobs only — the
+      // form hides it for plumbing, so don't require it there (was rejecting all
+      // plumbing bookings with "Missing booking details").
+      if (serviceType === 'electrical' && !appliance) {
         return new Response(JSON.stringify({ error: 'Missing booking details' }), {
           status: 400,
           headers: { 'Content-Type': 'application/json' },
