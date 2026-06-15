@@ -204,8 +204,13 @@ export async function onRequest(context) {
             day: slot?.day, startTime: slot?.start_time, endTime: slot?.end_time, tech: slot?.tech,
             jobNumber,
           });
-      await sendBookingSMS(env, { phone: data.phone, message: testPrefix + smsMessage });
-      console.log('Booking confirmation SMS sent to:', data.phone, '| jobNumber:', jobNumber, '| test:', !!testPrefix);
+      try {
+        await sendBookingSMS(env, { phone: data.phone, message: testPrefix + smsMessage });
+        console.log('Booking confirmation SMS sent to:', data.phone, '| jobNumber:', jobNumber, '| test:', !!testPrefix);
+      } catch (smsErr) {
+        // Non-fatal — the booking already succeeded; never fail the request over SMS.
+        console.error('Booking confirmation SMS failed (non-fatal):', smsErr.message);
+      }
 
       // Send email to support with booking details
       const isAfterHours = data.bookNowUrgency === 'tonight';
@@ -235,13 +240,18 @@ export async function onRequest(context) {
       emailHtml += `</div>`;
 
       const subjectLead = (booked && jobNumber) ? `Job Booked: ${jobNumber}` : 'Job Request';
-      await sendEmail(env, {
-        from: 'webform@plumberandelectrician.com.au',
-        to: 'fergusg@mrwasher.com.au',
-        subject: `${subjectLead} - ${data.name}${isAfterHours ? ' - AFTER HOURS' : ''}`,
-        html: emailHtml,
-      });
-      console.log('Booking email sent to support');
+      try {
+        await sendEmail(env, {
+          from: 'webform@plumberandelectrician.com.au',
+          to: 'fergusg@mrwasher.com.au',
+          subject: `${subjectLead} - ${data.name}${isAfterHours ? ' - AFTER HOURS' : ''}`,
+          html: emailHtml,
+        });
+        console.log('Booking email sent to support');
+      } catch (emailErr) {
+        // Non-fatal — the booking already succeeded; never fail the request over email.
+        console.error('Booking notification email failed (non-fatal):', emailErr.message);
+      }
 
       return new Response(JSON.stringify({ success: true, message: 'Quote request submitted. We will call you shortly!', arofloResult }), {
         status: 200,
