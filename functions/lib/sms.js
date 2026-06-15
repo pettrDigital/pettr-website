@@ -24,14 +24,19 @@ export function toE164(raw) {
 // (aroFloAgent via /api/send-sms) so both channels send identical messages.
 export function composeBookingConfirmation({ name, trade, address, suburb, postcode, issue, urgency, day, startTime, endTime, tech, jobNumber }) {
   const suburbStr = suburb ? ` ${suburb}` : '';
-  const jobStr = jobNumber ? `\nJob #${jobNumber}` : '';
-  if (urgency === 'emergency' || urgency === 'tonight') {
-    return `Hi ${name}, emergency ${trade} booking received at ${address}${suburbStr} ${postcode}.${jobStr}\n\nA tech will call you back within 5-10 minutes. Thanks!`;
-  }
+  const isAfterHours = urgency === 'emergency' || urgency === 'tonight';
   const timeStr = [day, startTime && endTime ? `${startTime}-${endTime}` : startTime].filter(Boolean).join(' ');
+  const hasSlot = !!timeStr;
+  // Job number leads the message, but only for a committed job: a confirmed
+  // slot, or an after-hours call-out (tech calling back now). A standard
+  // booking with no slot is still being arranged by the team, so no number.
+  const jobTop = (jobNumber && (hasSlot || isAfterHours)) ? `Job Number: ${jobNumber}\n\n` : '';
+  if (isAfterHours) {
+    return `${jobTop}Hi ${name}, after-hours ${trade} booking received at ${address}${suburbStr} ${postcode}.\n\nA tech will call you back within 5-10 minutes. Thanks!`;
+  }
   const techStr = tech ? `\nTech: ${tech}` : '';
   const issueStr = issue ? `\nIssue: ${issue}` : '';
-  return `Hi ${name}, your ${trade} booking is confirmed!${jobStr}\n\nTime: ${timeStr || 'to be confirmed - the team will call between 7-9:30am'}${techStr}\nAddress: ${address}${suburbStr} ${postcode}${issueStr}\n\nTech will call 30min before arrival.`;
+  return `${jobTop}Hi ${name}, your ${trade} booking is confirmed!\n\nTime: ${timeStr || 'to be confirmed - the team will call between 7-9:30am'}${techStr}\nAddress: ${address}${suburbStr} ${postcode}${issueStr}\n\nTech will call 30min before arrival.`;
 }
 
 export async function sendSMS(env, { phone, message }) {

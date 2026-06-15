@@ -96,19 +96,27 @@ export async function onRequest(context) {
   }
 }
 
-function composeChangeRequestAck({ type, name, preferredDate, preferredTime }) {
+function composeChangeRequestAck({ type, name, jobReference, address, suburb, postcode, issue, preferredDate, preferredTime }) {
   const first = (name || '').trim().split(/\s+/)[0] || 'there';
+  if (type !== 'cancel' && type !== 'reschedule') return null; // enquiry: no ack
+
+  const jobTop = jobReference ? `Job Number: ${jobReference}\n\n` : '';
+  const suburbStr = suburb ? ` ${suburb}` : '';
+  const addressLine = address ? `\nAddress: ${address}${suburbStr}${postcode ? ` ${postcode}` : ''}` : '';
+  const issueLine = issue ? `\nIssue: ${issue}` : '';
+
   if (type === 'cancel') {
-    return `Hi ${first}, we've received your request to cancel your booking. The team will confirm the cancellation with you shortly.`;
+    // Client has cancelled; the team just removes the booking — no confirmation back.
+    return `${jobTop}Hi ${first}, your cancellation request is in.${addressLine}${issueLine}\n\nThe team will remove the booking.`;
   }
-  if (type === 'reschedule') {
-    const day = /^\d{4}-\d{2}-\d{2}$/.test(preferredDate || '')
-      ? new Date(`${preferredDate}T00:00:00Z`).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
-      : (preferredDate || '');
-    const preferred = [day, preferredTime].filter(Boolean).join(' ');
-    return `Hi ${first}, we've received your request to reschedule your booking${preferred ? ` to ${preferred}` : ''}. The team will be in touch shortly to confirm your new time.`;
-  }
-  return null;
+
+  // reschedule — lead with the requested new time, then the unchanged job details.
+  const day = /^\d{4}-\d{2}-\d{2}$/.test(preferredDate || '')
+    ? new Date(`${preferredDate}T00:00:00Z`).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
+    : (preferredDate || '');
+  const preferred = [day, preferredTime].filter(Boolean).join(' ');
+  const timeLine = preferred ? `\nTime: ${preferred}` : '';
+  return `${jobTop}Hi ${first}, your reschedule request is in.\n\nRequested new booking:${timeLine}${addressLine}${issueLine}\n\nThe team will confirm your new time shortly.`;
 }
 
 const REQUEST_SUBJECTS = {
@@ -116,6 +124,20 @@ const REQUEST_SUBJECTS = {
   reschedule: 'Reschedule Request',
   enquiry: 'Enquiry/Other',
 };
+
+// With a job number we lead the subject with the job, e.g. "Job Cancelled: 143545 - Name".
+// Enquiries (and reschedule/cancel with no identified job) fall back to the plain label.
+const REQUEST_SUBJECT_LABELS = {
+  cancel: 'Job Cancelled',
+  reschedule: 'Job Rescheduled',
+};
+
+function changeRequestSubject({ type, name, phone, jobReference }) {
+  const who = name || phone || 'Unknown';
+  const label = REQUEST_SUBJECT_LABELS[type];
+  if (label && jobReference) return `${label}: ${jobReference} - ${who}`;
+  return `${REQUEST_SUBJECTS[type] || REQUEST_SUBJECTS.enquiry} - ${who}`;
+}
 
 function escapeHtml(text) {
   return String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
@@ -136,15 +158,18 @@ async function notifyTeamChangeRequest(env, { phone, request, transcript }) {
     return;
   }
 
-  const { type, name, details, jobReference, preferredDate, preferredTime, channel } = request;
+  const { type, name, details, jobReference, address, suburb, postcode, issue, preferredDate, preferredTime, channel } = request;
   const subjectPrefix = REQUEST_SUBJECTS[type] || REQUEST_SUBJECTS.enquiry;
   const preferred = [preferredDate, preferredTime].filter(Boolean).join(' ');
+  const addressStr = address ? `${address}${suburb ? ` ${suburb}` : ''}${postcode ? ` ${postcode}` : ''}` : '';
 
   const emailHtml = `
     <h2>${subjectPrefix}</h2>
     <p><strong>Name:</strong> ${name || 'Unknown'}</p>
     <p><strong>Phone:</strong> ${phone || 'Unknown'}</p>
-    ${jobReference ? `<p><strong>Job reference:</strong> ${jobReference}</p>` : ''}
+    ${jobReference ? `<p><strong>Job number:</strong> ${jobReference}</p>` : ''}
+    ${addressStr ? `<p><strong>Address:</strong> ${addressStr}</p>` : ''}
+    ${issue ? `<p><strong>Issue:</strong> ${issue}</p>` : ''}
     <p><strong>Request:</strong> ${details || 'Not specified'}</p>
     ${preferred ? `<p><strong>Preferred new time:</strong> ${preferred} (NOT booked - team to confirm)</p>` : ''}
     <p><strong>Channel:</strong> ${channel || 'voice'}</p>
@@ -159,7 +184,7 @@ async function notifyTeamChangeRequest(env, { phone, request, transcript }) {
       api_key: apiKey,
       to: ['fergusg@mrwasher.com.au'],
       sender: 'webform@plumberandelectrician.com.au',
-      subject: `${subjectPrefix} - ${name || phone || 'Unknown'}`,
+      subject: changeRequestSubject({ type, name, phone, jobReference }),
       html_body: emailHtml,
     }),
   });
@@ -180,23 +205,29 @@ async function notifyTeamBookingEmail(env, { phone, booking, test, transcript })
       return;
     }
 
-    const { name, trade, address, suburb, postcode, issue, urgency, day, startTime, endTime, tech } = booking;
+    const { name, trade, address, suburb, postcode, issue, urgency, day, startTime, endTime, tech, jobNumber } = booking;
+    const isAfterHours = urgency === 'emergency' || urgency === 'tonight';
     const timeStr = [day, startTime && endTime ? `${startTime}-${endTime}` : startTime].filter(Boolean).join(' ');
+    // "Booked" (gets a job number) = a confirmed slot or an after-hours call-out.
+    // A standard booking with no slot is still a "Job Request".
+    const booked = !!timeStr || isAfterHours;
 
     const emailHtml = `
-      <h2>New Booking Request${test ? ' (TEST MODE - no AroFlo job created)' : ''}</h2>
+      <h2>${booked ? 'Booked Job' : 'Job Request'}${test ? ' (TEST MODE - no AroFlo job created)' : ''}</h2>
+      ${jobNumber ? `<p><strong>Job number:</strong> ${jobNumber}</p>` : ''}
       <p><strong>Name:</strong> ${name}</p>
       <p><strong>Phone:</strong> ${phone}</p>
       <p><strong>Address:</strong> ${address}${suburb ? ` ${suburb}` : ''} ${postcode}</p>
       <p><strong>Issue:</strong> ${issue || 'Not specified'}</p>
       <p><strong>Service Type:</strong> ${trade}</p>
-      <p><strong>Urgency:</strong> ${urgency === 'emergency' ? 'Emergency - $549 call out fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
+      <p><strong>Urgency:</strong> ${isAfterHours ? 'After Hours - $549 call out fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
       ${timeStr ? `<p><strong>Booked Slot:</strong> ${timeStr}</p>` : ''}
       ${tech ? `<p><strong>Tech:</strong> ${tech}</p>` : ''}
       <p><em>Booked via AI phone agent (Jess)</em></p>
       ${transcriptHtml(transcript)}
     `;
 
+    const subjectLead = (booked && jobNumber) ? `Job Booked: ${jobNumber}` : 'Job Request';
     const response = await fetch('https://api.smtp2go.com/v3/email/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -204,7 +235,7 @@ async function notifyTeamBookingEmail(env, { phone, booking, test, transcript })
         api_key: apiKey,
         to: ['fergusg@mrwasher.com.au'],
         sender: 'webform@plumberandelectrician.com.au',
-        subject: `${test ? '[TEST MODE] ' : ''}New Booking Request${urgency === 'emergency' ? ' - EMERGENCY' : ''} - ${name}`,
+        subject: `${test ? '[TEST MODE] ' : ''}${subjectLead} - ${name}${isAfterHours ? ' - AFTER HOURS' : ''}`,
         html_body: emailHtml,
       }),
     });

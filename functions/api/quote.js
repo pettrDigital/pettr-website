@@ -198,16 +198,20 @@ export async function onRequest(context) {
       console.log('Booking confirmation SMS sent to:', data.phone, '| jobNumber:', jobNumber, '| test:', !!testPrefix);
 
       // Send email to support with booking details
+      const isAfterHours = data.bookNowUrgency === 'tonight';
+      // "Booked" (gets a job number) = a confirmed slot or an after-hours call-out.
+      const booked = !!slot || isAfterHours;
       const suburbDisplay = data.suburb ? `, ${escapeHtml(data.suburb)}` : '';
       let emailHtml = `
-        <h2>New Instant Booking</h2>
+        <h2>${booked ? 'Booked Job' : 'Job Request'}</h2>
+        ${jobNumber ? `<p><strong>Job number:</strong> ${escapeHtml(String(jobNumber))}</p>` : ''}
         <p><strong>Name:</strong> ${escapeHtml(data.name)}</p>
         <p><strong>Email:</strong> ${escapeHtml(data.email)}</p>
         <p><strong>Phone:</strong> ${escapeHtml(data.phone)}</p>
         <p><strong>Address:</strong> ${escapeHtml(data.address)}${suburbDisplay} ${escapeHtml(data.postcode)}</p>
         <p><strong>Issue:</strong> ${escapeHtml(data.message)}</p>
         <p><strong>Service Type:</strong> ${escapeHtml(trade)}</p>
-        <p><strong>Urgency:</strong> ${data.bookNowUrgency === 'tonight' ? 'Emergency - $549 call our fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
+        <p><strong>Urgency:</strong> ${isAfterHours ? 'After Hours - $549 call out fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
         <p><strong>Homeowner/Tenant:</strong> ${data.bookNowOwnership}</p>
         <p><strong>Appliance Type:</strong> ${data.bookNowAppliance}</p>
       `;
@@ -220,10 +224,11 @@ export async function onRequest(context) {
 
       emailHtml += `</div>`;
 
+      const subjectLead = (booked && jobNumber) ? `Job Booked: ${jobNumber}` : 'Job Request';
       await sendEmail(env, {
         from: 'webform@plumberandelectrician.com.au',
         to: 'fergusg@mrwasher.com.au',
-        subject: `New Booking Request${data.bookNowUrgency === 'tonight' ? ' - EMERGENCY' : ''} - ${data.name}`,
+        subject: `${subjectLead} - ${data.name}${isAfterHours ? ' - AFTER HOURS' : ''}`,
         html: emailHtml,
       });
       console.log('Booking email sent to support');
