@@ -116,8 +116,7 @@ function composeChangeRequestAck({ type, name, jobReference, address, suburb, po
     : (preferredDate || '');
   const preferred = [day, preferredTime].filter(Boolean).join(' ');
   const timeLine = preferred ? `\nTime: ${preferred}` : '';
-  // To the customer the new time is booked; the team actions the AroFlo change behind the scenes.
-  return `${jobTop}Hi ${first}, your booking has been moved.\n\nUpdated booking:${timeLine}${addressLine}${issueLine}\n\nWe'll send a reminder before the visit.`;
+  return `${jobTop}Hi ${first}, your reschedule request is in.\n\nRequested new booking:${timeLine}${addressLine}${issueLine}\n\nThe team will confirm your new time shortly.`;
 }
 
 const REQUEST_SUBJECTS = {
