@@ -104,6 +104,16 @@ export async function onRequest(context) {
   }
 }
 
+// Standard slots are always 2-hour windows, but reschedule capture passes only
+// the start time. Derive the full window so the ack matches the new-booking SMS
+// ("07:00-09:00"). Returns "" for a blank/unparseable time.
+function twoHourWindow(start) {
+  const m = /^(\d{1,2}):(\d{2})/.exec(String(start || '').trim());
+  if (!m) return String(start || '').trim();
+  const sH = parseInt(m[1], 10);
+  return `${String(sH).padStart(2, '0')}:${m[2]}-${String((sH + 2) % 24).padStart(2, '0')}:${m[2]}`;
+}
+
 function composeChangeRequestAck({ type, name, jobReference, address, suburb, postcode, issue, preferredDate, preferredTime }) {
   const first = (name || '').trim().split(/\s+/)[0] || 'there';
   if (type !== 'cancel' && type !== 'reschedule') return null; // enquiry: no ack
@@ -122,7 +132,7 @@ function composeChangeRequestAck({ type, name, jobReference, address, suburb, po
   const day = /^\d{4}-\d{2}-\d{2}$/.test(preferredDate || '')
     ? new Date(`${preferredDate}T00:00:00Z`).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
     : (preferredDate || '');
-  const preferred = [day, preferredTime].filter(Boolean).join(' ');
+  const preferred = [day, twoHourWindow(preferredTime)].filter(Boolean).join(' ');
   const timeLine = preferred ? `\nTime: ${preferred}` : '';
   return `${jobTop}Hi ${first}, your reschedule request is in.\n\nRequested new booking:${timeLine}${addressLine}${issueLine}\n\nThe team will confirm your new time shortly.`;
 }
@@ -168,7 +178,7 @@ async function notifyTeamChangeRequest(env, { phone, request, transcript }) {
 
   const { type, name, details, jobReference, address, suburb, postcode, issue, preferredDate, preferredTime, channel } = request;
   const subjectPrefix = REQUEST_SUBJECTS[type] || REQUEST_SUBJECTS.enquiry;
-  const preferred = [preferredDate, preferredTime].filter(Boolean).join(' ');
+  const preferred = [preferredDate, twoHourWindow(preferredTime)].filter(Boolean).join(' ');
   const addressStr = address ? `${address}${suburb ? ` ${suburb}` : ''}${postcode ? ` ${postcode}` : ''}` : '';
 
   const emailHtml = `
