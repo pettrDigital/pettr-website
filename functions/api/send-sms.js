@@ -22,7 +22,7 @@ export async function onRequest(context) {
     //   "during_call" → customer SMS only (confirmation or ack), no email
     //   "call_ended"  → team email only, with the call transcript appended
     //   absent        → both at once (legacy callers)
-    const { phone, message, booking, request: changeRequest, test, stage, transcript } = await request.json();
+    const { phone, message, booking, request: changeRequest, test, stage, transcript, customerSms, customerEmail } = await request.json();
 
     // Change requests (cancel / reschedule / enquiry): email handoff to the
     // team + written ack to the customer for cancel/reschedule.
@@ -32,11 +32,19 @@ export async function onRequest(context) {
       if (stage !== 'during_call') {
         await notifyTeamChangeRequest(env, { phone, request: changeRequest, transcript });
         const ack = composeChangeRequestAck(changeRequest);
-        if (ack && phone) {
+        if (ack) {
+          // Route the customer ack to the BOOKING's contact: a mobile (customerSms)
+          // → SMS; else an email (customerEmail) → email; else nothing (team phones
+          // them). Legacy callers send no customerSms field → fall back to `phone`.
+          const smsTarget = (customerSms !== undefined) ? customerSms : phone;
           try {
-            await sendSMS(env, { phone, message: ack });
-          } catch (smsError) {
-            console.error('Change request ack SMS failed:', smsError.message);
+            if (smsTarget) {
+              await sendSMS(env, { phone: smsTarget, message: ack });
+            } else if (customerEmail) {
+              await sendCustomerEmail(env, { email: customerEmail, request: changeRequest, message: ack });
+            }
+          } catch (ackError) {
+            console.error('Change request ack failed:', ackError.message);
           }
         }
       }
@@ -195,6 +203,51 @@ async function notifyTeamChangeRequest(env, { phone, request, transcript }) {
   }
 
   console.log('Change request email sent:', type);
+}
+
+// Customer-facing email ack (used when the booking has no SMS-able mobile). Same
+// wording as the SMS ack, via SMTP2GO. Sent to the customer, not the team.
+function customerEmailSubject(request) {
+  const t = request?.type;
+  if (t === 'reschedule') return 'Your reschedule request — Plumber & Electrician to the Rescue';
+  if (t === 'cancel')     return 'Your cancellation — Plumber & Electrician to the Rescue';
+  return 'Your enquiry — Plumber & Electrician to the Rescue';
+}
+
+async function sendCustomerEmail(env, { email, request, message }) {
+  const apiKey = env.SMTP2GO_API_KEY;
+  if (!apiKey) {
+    console.error('SMTP2GO_API_KEY not configured');
+    return;
+  }
+  if (!email) return;
+
+  const bodyHtml = escapeHtml(message || '').replace(/\n/g, '<br>');
+  const emailHtml = `
+    <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;line-height:1.5;">
+      ${bodyHtml}
+      <p style="margin-top:16px;color:#666;">Plumber &amp; Electrician to the Rescue</p>
+    </div>
+  `;
+
+  const response = await fetch('https://api.smtp2go.com/v3/email/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      api_key: apiKey,
+      to: [email],
+      sender: 'webform@plumberandelectrician.com.au',
+      subject: customerEmailSubject(request),
+      html_body: emailHtml,
+    }),
+  });
+
+  if (!response.ok) {
+    console.error('Customer email failed:', response.status);
+    throw new Error(`Customer email failed: ${response.status}`);
+  }
+
+  console.log('Customer ack email sent to', email);
 }
 
 async function notifyTeamBookingEmail(env, { phone, booking, test, transcript }) {
