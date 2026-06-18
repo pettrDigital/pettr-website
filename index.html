@@ -4088,8 +4088,24 @@ async function submitForm(requestType, bookingData = {}) {
   const originalText = submitBtn.textContent;
 
   submitBtn.disabled = true;
-  submitBtn.textContent = 'Submitting...';
   formMessage.style.display = 'none';
+
+  // Booking into AroFlo runs several steps and can take a few seconds — cycle
+  // reassuring status text (and a sub-message) so it visibly feels like it's
+  // working, not hung/timing out.
+  let stepTimer = null;
+  if (requestType === 'bookNow') {
+    const steps = ['Booking you in…', 'Confirming your time…', 'Just locking it in…'];
+    let i = 0;
+    submitBtn.textContent = steps[0];
+    formMessage.style.backgroundColor = '#e7f3f8';
+    formMessage.style.color = '#0a5a7a';
+    formMessage.textContent = 'Securing your booking — this can take a few seconds, hang tight.';
+    formMessage.style.display = 'block';
+    stepTimer = setInterval(() => { i = Math.min(i + 1, steps.length - 1); submitBtn.textContent = steps[i]; }, 2500);
+  } else {
+    submitBtn.textContent = 'Submitting…';
+  }
 
   try {
     const formData = new FormData(quoteForm);
@@ -4113,6 +4129,7 @@ async function submitForm(requestType, bookingData = {}) {
 
     if (response.ok && result.success) {
       if (requestType === 'bookNow') {
+        formMessage.style.display = 'none';
         showConfirmation(new FormData(quoteForm), result.arofloResult);
       } else {
         formMessage.style.backgroundColor = '#d4edda';
@@ -4134,6 +4151,7 @@ async function submitForm(requestType, bookingData = {}) {
     formMessage.textContent = 'Network error. Please try again.';
     formMessage.style.display = 'block';
   } finally {
+    if (stepTimer) clearInterval(stepTimer);
     submitBtn.disabled = false;
     submitBtn.textContent = originalText;
   }

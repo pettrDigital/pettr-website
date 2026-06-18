@@ -22,7 +22,7 @@ export async function onRequest(context) {
     //   "during_call" → customer SMS only (confirmation or ack), no email
     //   "call_ended"  → team email only, with the call transcript appended
     //   absent        → both at once (legacy callers)
-    const { phone, message, booking, request: changeRequest, test, stage, transcript, customerSms, customerEmail } = await request.json();
+    const { phone, message, booking, request: changeRequest, test, stage, transcript, customerSms, customerEmail, noCustomerMessage } = await request.json();
 
     // Change requests (cancel / reschedule / enquiry): email handoff to the
     // team + written ack to the customer for cancel/reschedule.
@@ -61,7 +61,7 @@ export async function onRequest(context) {
     if (booking && stage === 'call_ended') {
       let smsText = composeBookingConfirmation(booking);
       if (test) smsText = `[TEST MODE - no job created] ${smsText}`;
-      if (phone && smsText) await sendSMS(env, { phone, message: smsText });
+      if (phone && smsText && !noCustomerMessage) await sendSMS(env, { phone, message: smsText });
       await notifyTeamBookingEmail(env, { phone, booking, test, transcript });
       return new Response(JSON.stringify({ success: true, action: 'booking_sms_and_emailed' }), {
         status: 200,
