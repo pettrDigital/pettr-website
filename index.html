@@ -2805,6 +2805,19 @@ ul { list-style: none; }
               </ul>
             </div>
 
+            <!-- Appliance triage note — auto-shown when the page-1 description mentions an appliance (sits right under the exclusions notice) -->
+            <input type="hidden" name="bookNowAppliance" id="bookNowApplianceFlag" value="">
+            <div id="existingApplianceWarning" style="display: none; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+              <div style="font-size: 13px; color: #fff; line-height: 1.5;">
+                <strong>A quick note on appliances</strong><br>
+                We install and connect appliances, but we don&rsquo;t do internal appliance repairs &mdash; for some faults a local appliance technician is the better call:
+                <ul style="margin: 8px 0 0; padding-left: 18px; color: rgba(255,255,255,0.85);">
+                  <li><strong>Oven / cooker:</strong> we can supply &amp; install a new oven, but an element / &ldquo;not heating up&rdquo; fault needs an appliance technician.</li>
+                  <li><strong>Washing machine:</strong> a fault/error or one that won&rsquo;t pump out needs an appliance technician. If it&rsquo;s the hose or connection at the back, we can repair or clear it.</li>
+                </ul>
+              </div>
+            </div>
+
             <!-- Urgency -->
             <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
               <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">When do you need this?</div>
@@ -2842,19 +2855,6 @@ ul { list-style: none; }
               <!-- Tenant Warning -->
               <div id="tenantWarning" style="display: none; padding: 12px; background: rgba(255, 193, 7, 0.2); border: 1px solid rgba(255, 193, 7, 0.4); border-radius: 6px; margin-bottom: 12px;">
                 <div style="font-size: 14px; color: #fff; line-height: 1.4;">By proceeding you will be responsible for any service costs incurred. We recommend speaking to your landlord or Real Estate Manager.</div>
-              </div>
-
-              <!-- Appliance triage note — auto-shown when the page-1 description mentions an appliance -->
-              <input type="hidden" name="bookNowAppliance" id="bookNowApplianceFlag" value="">
-              <div id="existingApplianceWarning" style="display: none; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
-                <div style="font-size: 13px; color: #fff; line-height: 1.5;">
-                  <strong>A quick note on appliances</strong><br>
-                  We install and connect appliances, but we don&rsquo;t do internal appliance repairs &mdash; for some faults a local appliance technician is the better call:
-                  <ul style="margin: 8px 0 0; padding-left: 18px; color: rgba(255,255,255,0.85);">
-                    <li><strong>Oven / cooker:</strong> we can supply &amp; install a new oven, but an element / &ldquo;not heating up&rdquo; fault needs an appliance technician.</li>
-                    <li><strong>Washing machine:</strong> a fault/error or one that won&rsquo;t pump out needs an appliance technician. If it&rsquo;s the hose or connection at the back, we can repair or clear it.</li>
-                  </ul>
-                </div>
               </div>
 
               <!-- Available Slots -->
