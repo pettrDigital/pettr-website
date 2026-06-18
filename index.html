@@ -2848,7 +2848,7 @@ ul { list-style: none; }
               <div id="applianceSection" style="display: none;">
                 <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
                   <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                    <input type="checkbox" name="bookNowAppliance" value="yes" id="bookNowAppliance" style="margin: 2px 0 0; flex-shrink: 0; width: auto;">
+                    <input type="radio" name="bookNowAppliance" value="yes" id="bookNowAppliance" style="margin: 2px 0 0; flex-shrink: 0; width: auto;">
                     <span style="font-size: 14px; color: #fff; line-height: 1.3;">My issue relates to an appliance (e.g. oven, cooker, washing machine, dryer)</span>
                   </label>
                 </div>
@@ -3910,12 +3910,20 @@ document.querySelectorAll('input[name="bookNowOwnership"]').forEach(radio => {
   });
 });
 
-// Single optional checkbox — show the appliance triage note when ticked.
-document.querySelectorAll('input[name="bookNowAppliance"]').forEach(cb => {
-  cb.addEventListener('change', function() {
+// Single radio that toggles on/off — a lone radio can't normally be deselected,
+// so we clear it when clicked while already on. mousedown captures the pre-click
+// state (reads the live DOM, so external resets are handled). Shows the triage
+// note when selected.
+(function() {
+  const radio = document.getElementById('bookNowAppliance');
+  if (!radio) return;
+  let wasChecked = false;
+  radio.addEventListener('mousedown', function() { wasChecked = this.checked; });
+  radio.addEventListener('click', function() {
+    if (wasChecked) this.checked = false;
     document.getElementById('existingApplianceWarning').style.display = this.checked ? 'block' : 'none';
   });
-});
+})();
 
 // Show the "things we don't cover" notice (auto-expanded) ONLY when the page-1
 // description or address mentions an excluded item; otherwise keep it hidden.
