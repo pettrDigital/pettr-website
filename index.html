@@ -3910,18 +3910,21 @@ document.querySelectorAll('input[name="bookNowOwnership"]').forEach(radio => {
   });
 });
 
-// Single radio that toggles on/off — a lone radio can't normally be deselected,
-// so we clear it when clicked while already on. mousedown captures the pre-click
-// state (reads the live DOM, so external resets are handled). Shows the triage
-// note when selected.
+// Single radio that toggles on/off via mouse AND keyboard. A lone radio can't be
+// deselected natively, so we fully control its state: preventDefault stops the
+// native "check" and toggle() is the only thing that flips it. Space is handled in
+// keydown (with preventDefault, so the synthetic click doesn't double-toggle).
 (function() {
   const radio = document.getElementById('bookNowAppliance');
   if (!radio) return;
-  let wasChecked = false;
-  radio.addEventListener('mousedown', function() { wasChecked = this.checked; });
-  radio.addEventListener('click', function() {
-    if (wasChecked) this.checked = false;
-    document.getElementById('existingApplianceWarning').style.display = this.checked ? 'block' : 'none';
+  const note = document.getElementById('existingApplianceWarning');
+  function toggle() {
+    radio.checked = !radio.checked;
+    if (note) note.style.display = radio.checked ? 'block' : 'none';
+  }
+  radio.addEventListener('click', function(e) { e.preventDefault(); toggle(); });
+  radio.addEventListener('keydown', function(e) {
+    if (e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') { e.preventDefault(); toggle(); }
   });
 })();
 
