@@ -2792,6 +2792,19 @@ ul { list-style: none; }
               </label>
             </div>
 
+            <!-- What we don't cover (both trades) — collapsed so it doesn't intimidate -->
+            <details id="exclusionsNotice" style="display: none; margin-bottom: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; padding: 10px 12px;">
+              <summary style="cursor: pointer; font-size: 13px; color: rgba(255,255,255,0.85);">A few things we don&rsquo;t cover &mdash; tap to check</summary>
+              <ul style="margin: 10px 0 2px; padding-left: 18px; font-size: 12.5px; color: rgba(255,255,255,0.8); line-height: 1.5;">
+                <li><strong>Air-conditioners</strong> &mdash; though we can investigate leaks near an air-con unit.</li>
+                <li><strong>Shopping centres</strong> (e.g. Westfield) &mdash; centres use their own preferred trades via the building manager.</li>
+                <li><strong>Solar panels &amp; inverters.</strong></li>
+                <li><strong>Solar hot-water heaters.</strong></li>
+                <li><strong>Gas heaters</strong> &mdash; note this is different from gas hot-water systems and heat-pump hot water, which we <strong>do</strong> service.</li>
+                <li><strong>Vehicles &amp; caravans</strong> &mdash; these need an auto electrician.</li>
+              </ul>
+            </details>
+
             <!-- Urgency -->
             <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
               <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">When do you need this?</div>
@@ -2834,7 +2847,7 @@ ul { list-style: none; }
               <!-- Existing-appliance question (electrical only) -->
               <div id="applianceSection" style="display: none;">
                 <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
-                  <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Does this request relate to an existing appliance?</div>
+                  <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">My issue relates to an appliance (oven, cooker, washing machine, or dryer)</div>
                   <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
                     <input type="radio" name="bookNowAppliance" value="yes" style="margin: 0; flex-shrink: 0; width: auto;">
                     <span style="font-size: 14px; color: #fff;">Yes</span>
@@ -2845,9 +2858,16 @@ ul { list-style: none; }
                   </label>
                 </div>
 
-                <!-- Existing Appliance Warning -->
-                <div id="existingApplianceWarning" style="display: none; padding: 12px; background: rgba(244, 67, 54, 0.2); border: 1px solid rgba(244, 67, 54, 0.4); border-radius: 6px; margin-bottom: 12px;">
-                  <div style="font-size: 14px; color: #fff; line-height: 1.4;">Unfortunately we are not able to service existing appliances.</div>
+                <!-- Appliance triage note (soft / informational) -->
+                <div id="existingApplianceWarning" style="display: none; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+                  <div style="font-size: 13px; color: #fff; line-height: 1.5;">
+                    <strong>A quick note on appliances</strong><br>
+                    We install and connect appliances, but we don&rsquo;t do internal appliance repairs &mdash; for some faults a local appliance technician is the better call:
+                    <ul style="margin: 8px 0 0; padding-left: 18px; color: rgba(255,255,255,0.85);">
+                      <li><strong>Oven / cooker:</strong> we can supply &amp; install a new oven, but an element / &ldquo;not heating up&rdquo; fault needs an appliance technician.</li>
+                      <li><strong>Washing machine:</strong> a fault/error or one that won&rsquo;t pump out needs an appliance technician. If it&rsquo;s the hose or connection at the back, we can repair or clear it.</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
 
@@ -3754,6 +3774,9 @@ function updateApplianceVisibility() {
   const isElectrical = serviceType === 'electrical';
   const section = document.getElementById('applianceSection');
   if (section) section.style.display = isElectrical ? 'block' : 'none';
+  // Exclusions notice shows for BOTH trades, once a service type is chosen.
+  const exclusions = document.getElementById('exclusionsNotice');
+  if (exclusions) exclusions.style.display = serviceType ? 'block' : 'none';
   if (!isElectrical) {
     // Clear any stale answer/warning so it can't carry over to a plumbing job.
     document.querySelectorAll('input[name="bookNowAppliance"]').forEach(r => { r.checked = false; });
