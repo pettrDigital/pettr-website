@@ -2793,8 +2793,8 @@ ul { list-style: none; }
             </div>
 
             <!-- What we don't cover (both trades) — collapsed so it doesn't intimidate -->
-            <details id="exclusionsNotice" style="display: none; margin-bottom: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; padding: 10px 12px;">
-              <summary style="cursor: pointer; font-size: 13px; color: rgba(255,255,255,0.85);">A few things we don&rsquo;t cover &mdash; tap to check</summary>
+            <div id="exclusionsNotice" style="display: none; margin-bottom: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; padding: 10px 12px;">
+              <div style="font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85);">A few things we don&rsquo;t cover</div>
               <ul style="margin: 10px 0 2px; padding-left: 18px; font-size: 12.5px; color: rgba(255,255,255,0.8); line-height: 1.5;">
                 <li><strong>Air-conditioners</strong> &mdash; though we can investigate leaks near an air-con unit.</li>
                 <li><strong>Shopping centres</strong> (e.g. Westfield) &mdash; centres use their own preferred trades via the building manager.</li>
@@ -2803,7 +2803,7 @@ ul { list-style: none; }
                 <li><strong>Gas heaters</strong> &mdash; note this is different from gas hot-water systems and heat-pump hot water, which we <strong>do</strong> service.</li>
                 <li><strong>Vehicles &amp; caravans</strong> &mdash; these need an auto electrician.</li>
               </ul>
-            </details>
+            </div>
 
             <!-- Urgency -->
             <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
@@ -3935,7 +3935,6 @@ function evaluateExclusions() {
     'caravan', 'motorhome', 'campervan', 'vehicle', 'boat',
   ];
   const hit = phrases.some(p => text.includes(p)) || /\b(car|rv)\b/.test(text);
-  notice.open = hit;
   notice.style.display = hit ? 'block' : 'none';
 }
 
