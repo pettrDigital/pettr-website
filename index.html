@@ -2795,13 +2795,19 @@ ul { list-style: none; }
             <!-- Urgency -->
             <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
               <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">When do you need this?</div>
-              <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
-                <input type="radio" name="bookNowUrgency" value="standard" style="margin: 0; flex-shrink: 0; width: auto;">
-                <span style="font-size: 14px; color: #fff;">Standard Hours (7am-3pm Mon-Fri, excl. Public Holidays)</span>
+              <label style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; cursor: pointer;">
+                <input type="radio" name="bookNowUrgency" value="standard" style="margin: 2px 0 0; flex-shrink: 0; width: auto;">
+                <span style="color: #fff; line-height: 1.3;">
+                  <span style="font-size: 14px;">Standard Hours</span><br>
+                  <span style="font-size: 11px; color: rgba(255,255,255,0.65);">7am&ndash;3pm Mon&ndash;Fri, excl. public holidays</span>
+                </span>
               </label>
-              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="radio" name="bookNowUrgency" value="tonight" style="margin: 0; flex-shrink: 0; width: auto;">
-                <span style="font-size: 14px; color: #fff;">After Hours</span>
+              <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                <input type="radio" name="bookNowUrgency" value="tonight" style="margin: 2px 0 0; flex-shrink: 0; width: auto;">
+                <span style="color: #fff; line-height: 1.3;">
+                  <span style="font-size: 14px;">After Hours / Emergency</span><br>
+                  <span style="font-size: 11px; color: rgba(255,255,255,0.65);">All other times &mdash; available 24/7, 365 days a year</span>
+                </span>
               </label>
             </div>
 
