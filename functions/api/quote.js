@@ -83,15 +83,8 @@ export async function onRequest(context) {
         });
       }
 
-      // The existing-appliance question is asked for ELECTRICAL jobs only — the
-      // form hides it for plumbing, so don't require it there (was rejecting all
-      // plumbing bookings with "Missing booking details").
-      if (serviceType === 'electrical' && !appliance) {
-        return new Response(JSON.stringify({ error: 'Missing booking details' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }
+      // Appliance is now an optional single checkbox (informational) — never
+      // required. We capture it if ticked, but never block a booking on it.
 
       if (urgency === 'standard' && !slot) {
         return new Response(JSON.stringify({ error: 'Time slot is required for standard bookings' }), {
@@ -228,7 +221,7 @@ export async function onRequest(context) {
         <p><strong>Service Type:</strong> ${escapeHtml(trade)}</p>
         <p><strong>Urgency:</strong> ${isAfterHours ? 'After Hours - $549 call out fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
         <p><strong>Homeowner/Tenant:</strong> ${data.bookNowOwnership}</p>
-        <p><strong>Appliance Type:</strong> ${data.bookNowAppliance}</p>
+        ${data.bookNowAppliance === 'yes' ? '<p><strong>Relates to an appliance:</strong> Yes</p>' : ''}
       `;
 
       if (slot) {

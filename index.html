@@ -2847,14 +2847,9 @@ ul { list-style: none; }
               <!-- Existing-appliance question (electrical only) -->
               <div id="applianceSection" style="display: none;">
                 <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
-                  <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">My issue relates to an appliance (oven, cooker, washing machine, or dryer)</div>
-                  <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
-                    <input type="radio" name="bookNowAppliance" value="yes" style="margin: 0; flex-shrink: 0; width: auto;">
-                    <span style="font-size: 14px; color: #fff;">Yes</span>
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                    <input type="radio" name="bookNowAppliance" value="no" style="margin: 0; flex-shrink: 0; width: auto;">
-                    <span style="font-size: 14px; color: #fff;">No</span>
+                  <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" name="bookNowAppliance" value="yes" id="bookNowAppliance" style="margin: 2px 0 0; flex-shrink: 0; width: auto;">
+                    <span style="font-size: 14px; color: #fff; line-height: 1.3;">My issue relates to an appliance (e.g. oven, cooker, washing machine, dryer)</span>
                   </label>
                 </div>
 
@@ -3743,6 +3738,7 @@ function goToStep2() {
   }
 
   updateSlotVisibility();
+  evaluateExclusions();
 }
 
 function goBackToStep1() {
@@ -3777,9 +3773,6 @@ function updateApplianceVisibility() {
   const isElectrical = serviceType === 'electrical';
   const section = document.getElementById('applianceSection');
   if (section) section.style.display = isElectrical ? 'block' : 'none';
-  // Exclusions notice shows for BOTH trades, once a service type is chosen.
-  const exclusions = document.getElementById('exclusionsNotice');
-  if (exclusions) exclusions.style.display = serviceType ? 'block' : 'none';
   if (!isElectrical) {
     // Clear any stale answer/warning so it can't carry over to a plumbing job.
     document.querySelectorAll('input[name="bookNowAppliance"]').forEach(r => { r.checked = false; });
@@ -3917,11 +3910,34 @@ document.querySelectorAll('input[name="bookNowOwnership"]').forEach(radio => {
   });
 });
 
-document.querySelectorAll('input[name="bookNowAppliance"]').forEach(radio => {
-  radio.addEventListener('change', function() {
-    document.getElementById('existingApplianceWarning').style.display = this.value === 'yes' ? 'block' : 'none';
+// Single optional checkbox — show the appliance triage note when ticked.
+document.querySelectorAll('input[name="bookNowAppliance"]').forEach(cb => {
+  cb.addEventListener('change', function() {
+    document.getElementById('existingApplianceWarning').style.display = this.checked ? 'block' : 'none';
   });
 });
+
+// Show the "things we don't cover" notice (auto-expanded) ONLY when the page-1
+// description or address mentions an excluded item; otherwise keep it hidden.
+function evaluateExclusions() {
+  const notice = document.getElementById('exclusionsNotice');
+  if (!notice) return;
+  const text = [
+    document.querySelector('textarea[name="message"]')?.value || '',
+    document.querySelector('input[name="address"]')?.value || '',
+  ].join(' ').toLowerCase();
+  const phrases = [
+    'air con', 'aircon', 'air-con', 'air conditioner', 'air conditioning', 'a/c',
+    'split system', 'reverse cycle',
+    'shopping centre', 'shopping center', 'shopping mall', 'westfield',
+    'solar', 'inverter', 'photovoltaic',
+    'gas heater', 'gas heating',
+    'caravan', 'motorhome', 'campervan', 'vehicle', 'boat',
+  ];
+  const hit = phrases.some(p => text.includes(p)) || /\b(car|rv)\b/.test(text);
+  notice.open = hit;
+  notice.style.display = hit ? 'block' : 'none';
+}
 
 function showConfirmation(formData, arofloResult) {
   const modal = document.getElementById('confirmationModal');
@@ -4095,14 +4111,7 @@ if (quoteForm) {
       return;
     }
 
-    // The existing-appliance question is only asked for electrical jobs.
-    if (serviceType === 'electrical' && !appliance) {
-      formMessage.style.backgroundColor = '#f8d7da';
-      formMessage.style.color = '#721c24';
-      formMessage.textContent = 'Please answer the appliance question.';
-      formMessage.style.display = 'block';
-      return;
-    }
+    // Appliance is now an optional single checkbox (informational) — not required.
 
     if (!slot) {
       formMessage.style.backgroundColor = '#f8d7da';
