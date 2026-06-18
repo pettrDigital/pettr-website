@@ -3756,14 +3756,17 @@ function updateSlotVisibility() {
   const standardOptions = document.getElementById('standardOptions');
   const slotSelect = document.getElementById('bookNowSlot');
 
+  // NOTE: never set slotSelect.required — it lives in a step that gets hidden
+  // (page 1 / after-hours), and a hidden `required` field blocks native form
+  // validation with "invalid form control ... is not focusable". The slot is
+  // validated in JS at submit instead (see the bookNow branch).
+  slotSelect.required = false;
   if (urgency === 'standard') {
     standardOptions.style.display = 'block';
-    slotSelect.required = true;
     updateApplianceVisibility();
     fetchAvailableSlots();
   } else {
     standardOptions.style.display = 'none';
-    slotSelect.required = false;
     slotSelect.value = '';
   }
 }
@@ -3991,6 +3994,8 @@ if (quoteForm) {
 
     const submitBtn = document.getElementById('submitBtn');
     const formMessage = document.getElementById('formMessage');
+    formMessage.style.display = 'none';   // clear any stale error before re-validating
+
     const phoneInput = document.querySelector('input[name="phone"]');
     const suburbInput = document.querySelector('input[name="suburb"]');
     const postcodeInput = document.querySelector('input[name="postcode"]');
