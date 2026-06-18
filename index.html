@@ -2844,25 +2844,16 @@ ul { list-style: none; }
                 <div style="font-size: 14px; color: #fff; line-height: 1.4;">By proceeding you will be responsible for any service costs incurred. We recommend speaking to your landlord or Real Estate Manager.</div>
               </div>
 
-              <!-- Existing-appliance question (electrical only) -->
-              <div id="applianceSection" style="display: none;">
-                <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
-                  <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                    <input type="radio" name="bookNowAppliance" value="yes" id="bookNowAppliance" style="margin: 2px 0 0; flex-shrink: 0; width: auto;">
-                    <span style="font-size: 14px; color: #fff; line-height: 1.3;">My issue relates to an appliance (e.g. oven, cooker, washing machine, dryer)</span>
-                  </label>
-                </div>
-
-                <!-- Appliance triage note (soft / informational) -->
-                <div id="existingApplianceWarning" style="display: none; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
-                  <div style="font-size: 13px; color: #fff; line-height: 1.5;">
-                    <strong>A quick note on appliances</strong><br>
-                    We install and connect appliances, but we don&rsquo;t do internal appliance repairs &mdash; for some faults a local appliance technician is the better call:
-                    <ul style="margin: 8px 0 0; padding-left: 18px; color: rgba(255,255,255,0.85);">
-                      <li><strong>Oven / cooker:</strong> we can supply &amp; install a new oven, but an element / &ldquo;not heating up&rdquo; fault needs an appliance technician.</li>
-                      <li><strong>Washing machine:</strong> a fault/error or one that won&rsquo;t pump out needs an appliance technician. If it&rsquo;s the hose or connection at the back, we can repair or clear it.</li>
-                    </ul>
-                  </div>
+              <!-- Appliance triage note — auto-shown when the page-1 description mentions an appliance -->
+              <input type="hidden" name="bookNowAppliance" id="bookNowApplianceFlag" value="">
+              <div id="existingApplianceWarning" style="display: none; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+                <div style="font-size: 13px; color: #fff; line-height: 1.5;">
+                  <strong>A quick note on appliances</strong><br>
+                  We install and connect appliances, but we don&rsquo;t do internal appliance repairs &mdash; for some faults a local appliance technician is the better call:
+                  <ul style="margin: 8px 0 0; padding-left: 18px; color: rgba(255,255,255,0.85);">
+                    <li><strong>Oven / cooker:</strong> we can supply &amp; install a new oven, but an element / &ldquo;not heating up&rdquo; fault needs an appliance technician.</li>
+                    <li><strong>Washing machine:</strong> a fault/error or one that won&rsquo;t pump out needs an appliance technician. If it&rsquo;s the hose or connection at the back, we can repair or clear it.</li>
+                  </ul>
                 </div>
               </div>
 
@@ -3739,6 +3730,7 @@ function goToStep2() {
 
   updateSlotVisibility();
   evaluateExclusions();
+  evaluateAppliance();
 }
 
 function goBackToStep1() {
@@ -3759,25 +3751,10 @@ function updateSlotVisibility() {
   slotSelect.required = false;
   if (urgency === 'standard') {
     standardOptions.style.display = 'block';
-    updateApplianceVisibility();
     fetchAvailableSlots();
   } else {
     standardOptions.style.display = 'none';
     slotSelect.value = '';
-  }
-}
-
-// The existing-appliance question is only relevant to electrical jobs.
-function updateApplianceVisibility() {
-  const serviceType = document.querySelector('input[name="bookNowServiceType"]:checked')?.value;
-  const isElectrical = serviceType === 'electrical';
-  const section = document.getElementById('applianceSection');
-  if (section) section.style.display = isElectrical ? 'block' : 'none';
-  if (!isElectrical) {
-    // Clear any stale answer/warning so it can't carry over to a plumbing job.
-    document.querySelectorAll('input[name="bookNowAppliance"]').forEach(r => { r.checked = false; });
-    const warn = document.getElementById('existingApplianceWarning');
-    if (warn) warn.style.display = 'none';
   }
 }
 
@@ -3896,7 +3873,6 @@ document.querySelectorAll('input[name="bookNowUrgency"]').forEach(radio => {
 
 document.querySelectorAll('input[name="bookNowServiceType"]').forEach(radio => {
   radio.addEventListener('change', function() {
-    updateApplianceVisibility();
     const urgency = document.querySelector('input[name="bookNowUrgency"]:checked')?.value;
     if (urgency === 'standard') {
       fetchAvailableSlots();
@@ -3910,23 +3886,22 @@ document.querySelectorAll('input[name="bookNowOwnership"]').forEach(radio => {
   });
 });
 
-// Single radio that toggles on/off via mouse AND keyboard. A lone radio can't be
-// deselected natively, so we fully control its state: preventDefault stops the
-// native "check" and toggle() is the only thing that flips it. Space is handled in
-// keydown (with preventDefault, so the synthetic click doesn't double-toggle).
-(function() {
-  const radio = document.getElementById('bookNowAppliance');
-  if (!radio) return;
+// Show the appliance triage note when the page-1 description mentions an appliance
+// (same keyword pattern as the exclusions notice). Also sets a hidden flag so the
+// team email can note it. No question asked — it's derived from what they wrote.
+function evaluateAppliance() {
   const note = document.getElementById('existingApplianceWarning');
-  function toggle() {
-    radio.checked = !radio.checked;
-    if (note) note.style.display = radio.checked ? 'block' : 'none';
-  }
-  radio.addEventListener('click', function(e) { e.preventDefault(); toggle(); });
-  radio.addEventListener('keydown', function(e) {
-    if (e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') { e.preventDefault(); toggle(); }
-  });
-})();
+  const flag = document.getElementById('bookNowApplianceFlag');
+  if (!note) return;
+  const text = (document.querySelector('textarea[name="message"]')?.value || '').toLowerCase();
+  const terms = [
+    'oven', 'cooker', 'cooktop', 'stove', 'hotplate', 'rangehood', 'range hood',
+    'washing machine', 'washing-machine', 'dryer', 'dishwasher',
+  ];
+  const hit = terms.some(t => text.includes(t));
+  note.style.display = hit ? 'block' : 'none';
+  if (flag) flag.value = hit ? 'yes' : '';
+}
 
 // Show the "things we don't cover" notice (auto-expanded) ONLY when the page-1
 // description or address mentions an excluded item; otherwise keep it hidden.
@@ -4110,7 +4085,7 @@ if (quoteForm) {
     }
 
     const ownership = document.querySelector('input[name="bookNowOwnership"]:checked')?.value;
-    const appliance = document.querySelector('input[name="bookNowAppliance"]:checked')?.value;
+    const appliance = document.querySelector('input[name="bookNowAppliance"]')?.value;  // hidden flag set from the description
     const slot = document.querySelector('select[name="bookNowSlot"]')?.value;
 
     if (!ownership) {
