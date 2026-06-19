@@ -1,4 +1,6 @@
 
+import { sendSMS as deliverSMS, normalizePhone, composeBookingConfirmation } from '../lib/sms.js';
+
 const SYDNEY_POSTCODES = new Set([
   // Sydney CBD & Inner
   2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2015, 2016, 2017, 2018, 2019, 2020, 2021,
@@ -68,17 +70,21 @@ export async function onRequest(context) {
     }
 
     if (requestType === 'bookNow') {
+      const serviceType = formData.get('bookNowServiceType');
       const urgency = formData.get('bookNowUrgency');
       const ownership = formData.get('bookNowOwnership');
       const appliance = formData.get('bookNowAppliance');
       const slot = formData.get('bookNowSlot');
 
-      if (!urgency || !ownership || !appliance) {
+      if (!serviceType || !urgency || !ownership) {
         return new Response(JSON.stringify({ error: 'Missing booking details' }), {
           status: 400,
           headers: { 'Content-Type': 'application/json' },
         });
       }
+
+      // Appliance is now an optional single checkbox (informational) — never
+      // required. We capture it if ticked, but never block a booking on it.
 
       if (urgency === 'standard' && !slot) {
         return new Response(JSON.stringify({ error: 'Time slot is required for standard bookings' }), {
@@ -87,6 +93,7 @@ export async function onRequest(context) {
         });
       }
 
+      data.bookNowServiceType = serviceType;
       data.bookNowUrgency = urgency;
       data.bookNowOwnership = ownership;
       data.bookNowAppliance = appliance;
@@ -121,54 +128,103 @@ export async function onRequest(context) {
       });
 
       console.log('Triggering Retell callback for:', data.phone);
+      const trade = data.message.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
+
       await triggerRetellCallback(env, {
         phone: data.phone,
         name: data.name,
+        address: data.address,
+        suburb: data.suburb,
+        postcode: data.postcode,
+        message: data.message,
+        trade: trade,
       });
     } else if (data.requestType === 'bookNow') {
       console.log('=== INSTANT BOOKING INITIATED ===');
-      const trade = data.message.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
+      const trade = data.bookNowServiceType;
 
-      const suburbStr = data.suburb ? ` ${data.suburb}` : '';
+      const slot = data.bookNowSlot || null;
 
-      if (data.bookNowUrgency === 'tonight') {
-        // Emergency booking - send receipt SMS, tech will call within 5-10 mins
-        const smsMessage = `Hi ${data.name}, emergency ${trade} booking received at ${data.address}${suburbStr} ${data.postcode}. A tech will call you back within 5-10 minutes. Thanks!`;
+      // Create the AroFlo job FIRST so the confirmation SMS can carry the job
+      // number and be marked [TEST MODE] when writes are blocked — identical
+      // message, marking and ordering to the voice flow.
+      let arofloResult = null;
+      try {
+        const bookingPayload = {
+          name:        data.name,
+          phone:       data.phone,
+          email:       data.email,
+          address:     data.address,
+          suburb:      data.suburb || '',
+          postcode:    data.postcode,
+          trade,
+          urgency:     data.bookNowUrgency,
+          description: data.message,
+          ownership:   data.bookNowOwnership,
+          appliance:   data.bookNowAppliance,
+          slot,
+        };
+        const jobRes = await fetch(
+          'https://us-central1-pettrdashboards.cloudfunctions.net/createWebBooking',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bookingPayload),
+          }
+        );
+        arofloResult = await jobRes.json();
+        console.log('AroFlo job creation result:', JSON.stringify(arofloResult));
+      } catch (jobErr) {
+        // Non-fatal — still send the confirmation, just without a job number
+        console.error('AroFlo job creation failed (non-fatal):', jobErr.message);
+        arofloResult = { error: jobErr.message };
+      }
 
-        await sendBookingSMS(env, {
-          phone: data.phone,
-          message: smsMessage,
-        });
-        console.log('Emergency booking receipt SMS sent to:', data.phone);
-      } else {
-        // Standard booking with selected slot
-        const slot = data.bookNowSlot;
-        const smsMessage = `Hi ${data.name}, your ${trade} booking is confirmed!\n\nTime: ${slot.day} ${slot.start_time}-${slot.end_time}\nAddress: ${data.address}${suburbStr} ${data.postcode}\nIssue: ${data.message}\n\nTech will call 30min before arrival.`;
+      const jobNumber  = arofloResult?.jobNumber || null;
+      const testPrefix = arofloResult?.blocked === true ? '[TEST MODE - no job created] ' : '';
 
-        await sendBookingSMS(env, {
-          phone: data.phone,
-          message: smsMessage,
-        });
-        console.log('Standard booking confirmation SMS sent to:', data.phone);
+      // Confirmation SMS — same template + test marking as the voice flow
+      const smsMessage = (data.bookNowUrgency === 'tonight')
+        ? composeBookingConfirmation({
+            name: data.name, trade,
+            address: data.address, suburb: data.suburb, postcode: data.postcode,
+            urgency: 'emergency', jobNumber,
+          })
+        : composeBookingConfirmation({
+            name: data.name, trade,
+            address: data.address, suburb: data.suburb, postcode: data.postcode,
+            issue: data.message,
+            day: slot?.day, startTime: slot?.start_time, endTime: slot?.end_time, tech: slot?.tech,
+            jobNumber,
+          });
+      try {
+        await sendBookingSMS(env, { phone: data.phone, message: testPrefix + smsMessage });
+        console.log('Booking confirmation SMS sent to:', data.phone, '| jobNumber:', jobNumber, '| test:', !!testPrefix);
+      } catch (smsErr) {
+        // Non-fatal — the booking already succeeded; never fail the request over SMS.
+        console.error('Booking confirmation SMS failed (non-fatal):', smsErr.message);
       }
 
       // Send email to support with booking details
+      const isAfterHours = data.bookNowUrgency === 'tonight';
+      // "Booked" (gets a job number) = a confirmed slot or an after-hours call-out.
+      const booked = !!slot || isAfterHours;
       const suburbDisplay = data.suburb ? `, ${escapeHtml(data.suburb)}` : '';
       let emailHtml = `
-        <h2>New Instant Booking</h2>
+        <h2>${booked ? 'Booked Job' : 'Job Request'}</h2>
+        ${jobNumber ? `<p><strong>Job number:</strong> ${escapeHtml(String(jobNumber))}</p>` : ''}
         <p><strong>Name:</strong> ${escapeHtml(data.name)}</p>
         <p><strong>Email:</strong> ${escapeHtml(data.email)}</p>
         <p><strong>Phone:</strong> ${escapeHtml(data.phone)}</p>
         <p><strong>Address:</strong> ${escapeHtml(data.address)}${suburbDisplay} ${escapeHtml(data.postcode)}</p>
         <p><strong>Issue:</strong> ${escapeHtml(data.message)}</p>
         <p><strong>Service Type:</strong> ${escapeHtml(trade)}</p>
-        <p><strong>Urgency:</strong> ${data.bookNowUrgency === 'tonight' ? 'Emergency - $549 call our fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
+        <p><strong>Urgency:</strong> ${isAfterHours ? 'After Hours - $549 call out fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
         <p><strong>Homeowner/Tenant:</strong> ${data.bookNowOwnership}</p>
-        <p><strong>Appliance Type:</strong> ${data.bookNowAppliance}</p>
+        ${data.bookNowAppliance === 'yes' ? '<p><strong>Relates to an appliance:</strong> Yes</p>' : ''}
       `;
 
-      if (data.bookNowSlot) {
-        const slot = data.bookNowSlot;
+      if (slot) {
         emailHtml += `
         <p><strong>Booked Slot:</strong> ${slot.day} ${slot.start_time}-${slot.end_time}</p>
         `;
@@ -176,13 +232,24 @@ export async function onRequest(context) {
 
       emailHtml += `</div>`;
 
-      await sendEmail(env, {
-        from: 'webform@plumberandelectrician.com.au',
-        to: 'fergusg@mrwasher.com.au',
-        subject: `New Instant Booking - ${data.name}`,
-        html: emailHtml,
+      const subjectLead = (booked && jobNumber) ? `Job Booked: ${jobNumber}` : 'Job Request';
+      try {
+        await sendEmail(env, {
+          from: 'webform@plumberandelectrician.com.au',
+          to: 'fergusg@mrwasher.com.au',
+          subject: `${subjectLead} - ${data.name}${isAfterHours ? ' - AFTER HOURS' : ''}`,
+          html: emailHtml,
+        });
+        console.log('Booking email sent to support');
+      } catch (emailErr) {
+        // Non-fatal — the booking already succeeded; never fail the request over email.
+        console.error('Booking notification email failed (non-fatal):', emailErr.message);
+      }
+
+      return new Response(JSON.stringify({ success: true, message: 'Quote request submitted. We will call you shortly!', arofloResult }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       });
-      console.log('Booking email sent to support');
     }
 
     return new Response(JSON.stringify({ success: true, message: 'Quote request submitted. We will call you shortly!' }), {
@@ -236,44 +303,19 @@ async function sendEmail(env, { from, to, subject, html }) {
 }
 
 async function sendSMS(env, { phone, name, address, postcode, problem }) {
-  console.log('=== TRANSMIT SMS ===');
-  console.log('Recipient phone:', phone);
-
-  const apiKey = env.TRANSMITSMS_API_KEY;
-  const apiSecret = env.TRANSMITSMS_API_SECRET;
-  const credentials = btoa(`${apiKey}:${apiSecret}`);
-
   const message = `Hi ${name}, we received your service enquiry: ${problem} at ${address} ${postcode}. Would you like to go ahead and book that service?`;
-
-  const formData = new URLSearchParams();
-  formData.append('message', message);
-  formData.append('list_id', '10962457');
-  formData.append('countrycode', 'au');
-
-  const response = await fetch('https://api.transmitsms.com/send-sms.json', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${credentials}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Accept': 'text/plain',
-    },
-    body: formData.toString(),
-  });
-
-  const responseText = await response.text();
-  console.log('SMS response:', responseText);
-
-  if (!response.ok) {
-    throw new Error(`SMS error: ${response.status} ${responseText}`);
-  }
-
-  return responseText;
+  return deliverSMS(env, { phone, message });
 }
 
-async function triggerRetellCallback(env, { phone, name }) {
+async function triggerRetellCallback(env, { phone, name, address, suburb, postcode, message, trade }) {
   console.log('=== RETELL CALLBACK ===');
   console.log('Phone:', phone);
   console.log('Name:', name);
+  console.log('Address:', address);
+  console.log('Suburb:', suburb);
+  console.log('Postcode:', postcode);
+  console.log('Message:', message);
+  console.log('Trade:', trade);
 
   const retellApiKey = env.RETELL_API_KEY;
   const retellAgentId = env.RETELL_AGENT_ID;
@@ -317,6 +359,20 @@ async function triggerRetellCallback(env, { phone, name }) {
     agent_id: retellAgentId,
     from_number: fromNumber,
     to_number: toNumber,
+    retell_llm_dynamic_variables: {
+      first_name: name ? name.split(' ')[0] : '',
+      last_name: name ? name.split(' ').slice(1).join(' ') : '',
+      // Explicit flag the agent can read — Retell substitutes {{last_name}} to ""
+      // before the model sees it, so an "is the surname empty?" check can't work
+      // off the variable itself.
+      surname_provided: (name && name.trim().split(/\s+/).length > 1) ? 'true' : 'false',
+      phone: phone,
+      street_address: address || '',
+      suburb: suburb || '',
+      postcode: postcode || '',
+      description: message || '',
+      trade: trade || '',
+    },
   };
   console.log('Payload:', JSON.stringify(payload));
 
@@ -357,7 +413,8 @@ async function storeQuoteInFirestore(env, { phone, name, address, postcode, prob
 
     const apiKey = env.FIREBASE_API_KEY;
     const projectId = env.FIREBASE_PROJECT_ID;
-    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/conversations/${phone}?key=${apiKey}`;
+    const phoneKey = normalizePhone(phone) || phone;
+    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/conversations/${phoneKey}?key=${apiKey}`;
 
     const response = await fetch(url, {
       method: 'PATCH',
@@ -428,14 +485,15 @@ async function storeBookingFlowState(env, data) {
 
     const apiKey = env.FIREBASE_API_KEY;
     const projectId = env.FIREBASE_PROJECT_ID;
-    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/booking_flows/${data.phone}?key=${apiKey}`;
+    const phoneKey = normalizePhone(data.phone) || data.phone;
+    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/booking_flows/${phoneKey}?key=${apiKey}`;
 
     const response = await fetch(url, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         fields: {
-          phone: { stringValue: data.phone },
+          phone: { stringValue: phoneKey },
           name: { stringValue: data.name },
           address: { stringValue: data.address },
           postcode: { stringValue: data.postcode },
@@ -460,48 +518,7 @@ async function sendBookingSMS(env, { phone, message }) {
   console.log('=== SENDING BOOKING SMS ===');
   console.log('To:', phone);
   console.log('Message length:', message.length);
-
-  const apiKey = env.TRANSMITSMS_API_KEY;
-  const apiSecret = env.TRANSMITSMS_API_SECRET;
-
-  console.log('API Key present:', !!apiKey);
-  console.log('API Secret present:', !!apiSecret);
-
-  if (!apiKey || !apiSecret) {
-    console.error('SMS credentials not configured');
-    throw new Error('SMS credentials not configured');
-  }
-
-  const credentials = btoa(`${apiKey}:${apiSecret}`);
-
-  const formData = new URLSearchParams();
-  formData.append('to', phone);
-  formData.append('message', message);
-  formData.append('countrycode', 'au');
-
-  console.log('Sending to Transmit SMS API...');
-  const response = await fetch('https://api.transmitsms.com/send-sms.json', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${credentials}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Accept': 'text/plain',
-    },
-    body: formData.toString(),
-  });
-
-  const responseText = await response.text();
-  console.log('SMS response status:', response.status);
-  console.log('SMS response:', responseText.substring(0, 200));
-
-  if (!response.ok) {
-    console.error('SMS error - status:', response.status);
-    console.error('SMS error - body:', responseText);
-    throw new Error(`SMS error: ${response.status}`);
-  }
-
-  console.log('SMS sent successfully');
-  return responseText;
+  return deliverSMS(env, { phone, message });
 }
 
 function escapeHtml(text) {

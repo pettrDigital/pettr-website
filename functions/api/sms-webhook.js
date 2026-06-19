@@ -1,3 +1,5 @@
+import { sendSMS as deliverSMS, normalizePhone } from '../lib/sms.js';
+
 export async function onRequest(context) {
   const { request, env } = context;
 
@@ -9,20 +11,48 @@ export async function onRequest(context) {
     return new Response('Method not allowed', { status: 405 });
   }
 
+  // HARD KILL SWITCH — SMS is outbound-only (booking confirmations).
+  // All inbound SMS is handled by the team in the MessageMedia hub; the AI
+  // must never reply on the shared pool. Only set SMS_AUTO_REPLY=true once a
+  // dedicated number exists for the automated booking flow.
+  if (env.SMS_AUTO_REPLY !== 'true') {
+    console.log('SMS_AUTO_REPLY disabled - inbound SMS ignored (team handles in hub)');
+    return new Response(JSON.stringify({ success: true, action: 'ignored' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     const json = await request.json();
     console.log('Webhook payload:', JSON.stringify(json));
 
-    // Kudosity sends SMS_INBOUND events with mo.message and mo.sender
+    // MessageMedia payloads are shaped by our webhook template registration
+    // ({provider, message, phone}); Kudosity sends SMS_INBOUND events with
+    // mo.message and mo.sender.
     let message, phone;
 
-    if (json.event_type === 'SMS_INBOUND' && json.mo) {
+    if (json.provider === 'messagemedia') {
+      if (env.SMS_WEBHOOK_TOKEN && request.headers.get('X-Webhook-Token') !== env.SMS_WEBHOOK_TOKEN) {
+        console.error('Webhook token mismatch, rejecting');
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      message = json.message;
+      phone = json.phone;
+    } else if (json.event_type === 'SMS_INBOUND' && json.mo) {
       message = json.mo.message;
       phone = json.mo.sender;
     } else {
       message = json.message || json.mo?.message;
       phone = json.phone || json.sender || json.mo?.sender;
     }
+
+    // Canonical local format so lookups match how the docs were keyed,
+    // regardless of which provider delivered the reply.
+    phone = normalizePhone(phone) || phone;
 
     console.log('Parsed - Phone:', phone, 'Message:', message);
 
@@ -56,58 +86,14 @@ export async function onRequest(context) {
       return handleOutboundBookingFlow(env, phone, message, bookingFlow);
     }
 
-    // Fetch conversation from Firestore using REST API
-    console.log('Fetching conversation for phone:', phone);
-    const conversationData = await getFirestoreDoc(env, 'conversations', phone);
-    console.log('Conversation data:', conversationData);
-    const messages = conversationData?.messages || [];
+    // No active booking flow: capture the message and notify the team.
+    // Deliberately NO auto-reply and NO AI conversation — SMS is
+    // outbound-only (booking confirmations); inbound is handled by humans.
+    console.log('No active booking flow - capturing message, no auto-reply');
+    await addMessageToConversation(env, phone, 'user', message);
+    await notifyTeamOfInboundSMS(env, { phone, message });
 
-    // Add customer message to history
-    messages.push({
-      role: 'user',
-      text: message,
-      timestamp: new Date().toISOString(),
-    });
-
-    // Get available slots from AroFlo
-    console.log('Fetching available slots...');
-    const trade = conversationData?.problem?.toLowerCase().includes('electrical') ? 'electrical' : 'plumbing';
-    const availableSlots = await getAvailableSlots(trade);
-    console.log('Available slots:', availableSlots.length);
-
-    // Call Claude API to generate response
-    console.log('Calling Claude API...');
-    const claudeResponse = await callClaude(env, {
-      name: conversationData?.name || 'Customer',
-      problem: conversationData?.problem || 'Not specified',
-      address: conversationData?.address || '',
-      postcode: conversationData?.postcode || '',
-      trade,
-      availableSlots: availableSlots.slice(0, 3), // Top 3 slots
-      messages: messages.map(m => ({ role: m.role, content: m.text })),
-    });
-    console.log('Claude response:', claudeResponse);
-
-    // Add Claude response to history
-    messages.push({
-      role: 'assistant',
-      text: claudeResponse,
-      timestamp: new Date().toISOString(),
-    });
-
-    // Store updated conversation in Firestore
-    await updateFirestoreDoc(env, 'conversations', phone, {
-      messages,
-      lastUpdated: new Date().toISOString(),
-    });
-
-    // Send response via Kudosity SMS
-    await sendSMS(env, {
-      phone,
-      message: claudeResponse,
-    });
-
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, action: 'captured' }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -124,16 +110,18 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
   const step = bookingFlow.step;
   const isYes = message.toLowerCase().trim() === 'yes';
 
+  // Save incoming message asynchronously (non-blocking)
+  addMessageToConversation(env, phone, 'user', message).catch(err => console.error('Failed to save user message:', err));
+
   try {
     if (step === 'message_1_sent') {
       // Waiting for TONIGHT/STANDARD/corrections response to combined Message 1
       const choice = message.toLowerCase().trim();
 
       if (choice === 'tonight') {
-        await sendOutboundSMS(env, {
-          phone,
-          message: `After-hours booking confirmed. Tech will call back within 5-10 mins. Call-out fee $549. Confirm? YES/NO`,
-        });
+        const responseMsg = `After-hours booking confirmed. Tech will call back within 5-10 mins. Call-out fee $549. Confirm? YES/NO`;
+        await sendOutboundSMS(env, { phone, message: responseMsg });
+        addMessageToConversation(env, phone, 'assistant', responseMsg).catch(err => console.error('Failed to save assistant message:', err));
         await updateBookingFlowStep(env, phone, 'emergency_confirm_sent');
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
       } else if (choice === 'standard') {
@@ -151,7 +139,7 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
         const slot = slots[0];
         await sendOutboundSMS(env, {
           phone,
-          message: `${slot.day} ${slot.start_time}-${slot.end_time} with ${slot.tech} - available? Reply YES or give alternate time`,
+          message: `${slot.day} ${slot.start_time}-${slot.end_time} - available? Reply YES or give alternate time`,
         });
         await updateBookingFlowStep(env, phone, 'standard_slots_offered', { selectedSlot: JSON.stringify(slot) });
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -167,6 +155,14 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
       if (isYes) {
         // Create emergency job
         await createEmergencyJob(env, bookingFlow);
+        const confirmMsg = `Emergency booking confirmed! Tech will call back shortly.`;
+        addMessageToConversation(env, phone, 'assistant', confirmMsg).catch(err => console.error('Failed to save assistant message:', err));
+
+        // Get conversation and send confirmation email
+        const conversationData = await getFirestoreDoc(env, 'conversations', phone);
+        const allMessages = conversationData?.messages || [];
+        sendBookingConfirmationEmail(env, { phone, bookingFlow, messages: allMessages }).catch(err => console.error('Failed to send email:', err));
+
         await updateBookingFlowStep(env, phone, 'emergency_booked');
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
       }
@@ -175,10 +171,15 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
         // Create standard job with offered slot
         const slot = JSON.parse(bookingFlow.selectedSlot || '{}');
         await createStandardJob(env, bookingFlow, slot);
-        await sendOutboundSMS(env, {
-          phone,
-          message: `Booked for ${slot.day} ${slot.start_time}-${slot.end_time}. Tech calls 30min before.`,
-        });
+        const confirmMsg = `Booked for ${slot.day} ${slot.start_time}-${slot.end_time}. Tech calls 30min before.`;
+        await sendOutboundSMS(env, { phone, message: confirmMsg });
+        addMessageToConversation(env, phone, 'assistant', confirmMsg).catch(err => console.error('Failed to save assistant message:', err));
+
+        // Get conversation and send confirmation email
+        const conversationData = await getFirestoreDoc(env, 'conversations', phone);
+        const allMessages = conversationData?.messages || [];
+        sendBookingConfirmationEmail(env, { phone, bookingFlow, messages: allMessages }).catch(err => console.error('Failed to send email:', err));
+
         await updateBookingFlowStep(env, phone, 'standard_booked');
         return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
       } else {
@@ -227,6 +228,18 @@ async function updateBookingFlowStep(env, phone, step, extras = {}) {
   }
 }
 
+async function addMessageToConversation(env, phone, role, text) {
+  try {
+    const conversationData = await getFirestoreDoc(env, 'conversations', phone);
+    const messages = conversationData?.messages || [];
+    messages.push({ role, text, timestamp: new Date().toISOString() });
+    await updateFirestoreDoc(env, 'conversations', phone, { messages, lastUpdated: new Date().toISOString() });
+    console.log('Message saved to conversation:', phone);
+  } catch (error) {
+    console.error('Error saving message to conversation:', error);
+  }
+}
+
 async function createEmergencyJob(env, bookingFlow) {
   // Call AroFlo to create emergency job
   console.log('Creating emergency job for:', bookingFlow.phone);
@@ -240,35 +253,10 @@ async function createStandardJob(env, bookingFlow, slot) {
 }
 
 async function sendOutboundSMS(env, { phone, message }) {
-  console.log('=== SENDING OUTBOUND SMS ===');
-  console.log('To:', phone);
-  console.log('Message:', message);
-
-  const apiKey = env.TRANSMITSMS_API_KEY;
-  const apiSecret = env.TRANSMITSMS_API_SECRET;
-  const credentials = btoa(`${apiKey}:${apiSecret}`);
-
-  const formData = new URLSearchParams();
-  formData.append('message', message);
-  formData.append('list_id', '10962457');
-  formData.append('countrycode', 'au');
-
-  const response = await fetch('https://api.transmitsms.com/send-sms.json', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${credentials}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Accept': 'text/plain',
-    },
-    body: formData.toString(),
-  });
-
-  const responseText = await response.text();
-  console.log('SMS response status:', response.status);
-  console.log('SMS response:', responseText);
-
-  if (!response.ok) {
-    console.error('SMS error:', response.status);
+  try {
+    return await deliverSMS(env, { phone, message });
+  } catch (error) {
+    console.error('SMS error:', error.message);
   }
 }
 
@@ -418,84 +406,88 @@ async function getAvailableSlots(trade) {
   }
 }
 
-async function callClaude(env, { name, problem, address, postcode, trade, availableSlots, messages }) {
-  const apiKey = env.CLAUDE_API_KEY;
+async function notifyTeamOfInboundSMS(env, { phone, message }) {
+  try {
+    const apiKey = env.SMTP2GO_API_KEY;
+    if (!apiKey) {
+      console.error('SMTP2GO_API_KEY not configured');
+      return;
+    }
 
-  if (!apiKey) {
-    throw new Error('CLAUDE_API_KEY not configured');
+    const response = await fetch('https://api.smtp2go.com/v3/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        api_key: apiKey,
+        to: ['fergusg@mrwasher.com.au'],
+        sender: 'webform@plumberandelectrician.com.au',
+        subject: `Inbound SMS from ${phone} - needs human reply`,
+        html_body: `
+          <h2>Inbound SMS (no auto-reply sent)</h2>
+          <p><strong>From:</strong> ${phone}</p>
+          <p><strong>Message:</strong> ${message}</p>
+          <p>SMS is outbound-only; please follow up with the customer directly.</p>
+        `,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Inbound SMS notification email failed:', response.status);
+      return;
+    }
+
+    console.log('Team notified of inbound SMS');
+  } catch (error) {
+    console.error('Error notifying team of inbound SMS:', error);
   }
-
-  const slotsText = availableSlots && availableSlots.length > 0
-    ? `\n\nAvailable appointment slots:\n${availableSlots
-        .map(slot => `- ${slot.day}, ${slot.start_time}-${slot.end_time} (${slot.tech})`)
-        .join('\n')}`
-    : '';
-
-  const systemPrompt = `You are a helpful booking assistant for Plumber & Electrician to the Rescue.
-
-Customer Details:
-- Name: ${name}
-- Address: ${address} ${postcode}
-- Issue: ${problem}
-- Service: ${trade}
-
-You already have their contact details and address. Help them confirm the booking and offer the available appointment slots below. Be friendly, professional, and brief. Keep responses to 1-2 sentences for SMS.${slotsText}`;
-
-  console.log('Claude request - Name:', name, 'Problem:', problem, 'Messages:', messages.length);
-
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'claude-opus-4-7',
-      max_tokens: 1024,
-      system: systemPrompt,
-      messages,
-    }),
-  });
-
-  console.log('Claude response status:', response.status);
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Claude error:', errorText);
-    throw new Error(`Claude API error: ${response.status} ${errorText}`);
-  }
-
-  const result = await response.json();
-  return result.content[0].text;
 }
 
 async function sendSMS(env, { phone, message }) {
-  const apiKey = env.TRANSMITSMS_API_KEY;
-  const apiSecret = env.TRANSMITSMS_API_SECRET;
-  const credentials = btoa(`${apiKey}:${apiSecret}`);
+  return deliverSMS(env, { phone, message });
+}
 
-  const formData = new URLSearchParams();
-  formData.append('message', message);
-  formData.append('list_id', '10962457');
-  formData.append('countrycode', 'au');
+async function sendBookingConfirmationEmail(env, { phone, bookingFlow, messages }) {
+  try {
+    const apiKey = env.SMTP2GO_API_KEY;
+    if (!apiKey) {
+      console.error('SMTP2GO_API_KEY not configured');
+      return;
+    }
 
-  const response = await fetch('https://api.transmitsms.com/send-sms.json', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${credentials}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Accept': 'text/plain',
-    },
-    body: formData.toString(),
-  });
+    const conversationHtml = messages
+      .map(m => `<p><strong>${m.role === 'user' ? 'Customer' : 'System'}:</strong> ${m.text}</p>`)
+      .join('');
 
-  const responseText = await response.text();
-  console.log('SMS response:', responseText);
+    const emailHtml = `
+      <h2>Booking Confirmed</h2>
+      <p><strong>Name:</strong> ${bookingFlow.name}</p>
+      <p><strong>Phone:</strong> ${phone}</p>
+      <p><strong>Address:</strong> ${bookingFlow.address} ${bookingFlow.postcode}</p>
+      <p><strong>Issue:</strong> ${bookingFlow.problem}</p>
+      <p><strong>Service Type:</strong> ${bookingFlow.trade}</p>
+      <h3>SMS Conversation</h3>
+      ${conversationHtml}
+    `;
 
-  if (!response.ok) {
-    throw new Error(`SMS error: ${response.status} ${responseText}`);
+    const response = await fetch('https://api.smtp2go.com/v3/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        api_key: apiKey,
+        to: ['fergusg@mrwasher.com.au'],
+        sender: 'webform@plumberandelectrician.com.au',
+        subject: `Booking Confirmed - ${bookingFlow.name}`,
+        html_body: emailHtml,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Email send failed:', response.status);
+      return;
+    }
+
+    console.log('Booking confirmation email sent');
+  } catch (error) {
+    console.error('Error sending booking confirmation email:', error);
   }
-
-  return responseText;
 }
