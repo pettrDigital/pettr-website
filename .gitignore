@@ -74,3 +74,18 @@ firebase-service-account.json
 serviceAccount.json
 .DS_Store
 .wrangler/.DS_Store
+
+# --- Prod cleanup 2026-06-19: keep build junk + internal reference files out of the deployed (public) site ---
+.wrangler/
+.specstory/
+**/.DS_Store
+.claude/settings.local.json
+# Reference copies + internal docs — belong in pettrDashboards, NOT the public web root (Cloudflare serves root files)
+/clientCrypto.js
+/pettrWebBooking.js
+/aroFloAgent.js
+/SCHEDULING_LOGIC.md
+/SMS_VOICE_BOOKING_MVP1.md
+/SMS_VOICE_TEST_CASES.md
+/TECH_AVAILABILITY_LOGIC.md
+/Screenshot*.png
