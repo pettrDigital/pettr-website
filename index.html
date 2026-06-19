@@ -544,6 +544,11 @@
     overflow: hidden;
     box-shadow: none;
     border-top: 1px solid #000;
+    /* Cap to viewport + scroll the body, so the taller 2-step booking form (and the
+       solar/appliance notices) never overflow the centered card unreachably. */
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100dvh - 24px);
   }
   #hero-form { scroll-margin-top: 180px; }
   .form-card-header {
@@ -574,7 +579,8 @@
     color: #fff;
     text-align: center;
   }
-  .form-card-body { padding: 0 18px 22px; }
+  .form-card-body { padding: 0 18px 22px; overflow-y: auto; flex: 1 1 auto; min-height: 0; -webkit-overflow-scrolling: touch; }
+  .form-card-header { flex: 0 0 auto; }
   .booking-form { display: flex; flex-direction: column; gap: 12px; }
   /* 2-step booking form: step containers stack their fields (grafted from dev) */
   #step1Content,
