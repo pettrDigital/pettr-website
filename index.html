@@ -576,6 +576,13 @@
   }
   .form-card-body { padding: 0 18px 22px; }
   .booking-form { display: flex; flex-direction: column; gap: 12px; }
+  /* 2-step booking form: step containers stack their fields (grafted from dev) */
+  #step1Content,
+  #step2Content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
   .booking-form input,
   .booking-form textarea,
   .booking-form select {
@@ -2782,23 +2789,170 @@
             <button class="form-close-btn" onclick="toggleForm(); return false;" aria-label="Close form">&#x2715;</button>
           </div>
           <div class="form-card-body">
-          <form class="booking-form" id="hp-form">
-            <input type="hidden" name="suburb"       value="Sydney">
-            <input type="hidden" name="service"      value="general">
-            <input type="hidden" name="variant"      value="">
-            <input type="text"   name="name"         placeholder="Name*" required autocomplete="off">
-            <input type="email"  name="email"        placeholder="Email*" required autocomplete="off">
-            <input type="tel"    name="phone"        placeholder="Phone*" required pattern="[0-9()#&+*\-=.]+" autocomplete="off">
-            <input type="text"   name="address"      placeholder="Address*" required autocomplete="off">
-            <input type="number" name="postcode"     placeholder="Postcode*" required min="2000" max="2999" autocomplete="off">
-            <textarea            name="message"      placeholder="How Can We Help?*" required rows="3" autocomplete="off"></textarea>
-            <button type="submit" class="submit-btn">GET FREE QUOTE</button>
-          </form>
+        <form class="booking-form" id="quoteFormElement" action="/api/quote" method="POST">
+          <!-- UTM hidden fields -->
+          <input type="hidden" name="utm_source"   id="f_utm_source">
+          <input type="hidden" name="utm_medium"   id="f_utm_medium">
+          <input type="hidden" name="utm_campaign" id="f_utm_campaign">
+          <input type="hidden" name="utm_term"     id="f_utm_term">
+          <input type="hidden" name="requestType"  id="f_requestType">
+
+          <!-- STEP 1: Initial Details -->
+          <div id="step1Content">
+            <input type="text"   name="name"         placeholder="Name*" required>
+            <input type="email"  name="email"        placeholder="Email*" required>
+            <input type="tel"    name="phone"        placeholder="Phone*" required>
+            <input type="text"   name="address"      placeholder="Address*" required id="addressInput">
+            <p id="addressHint" style="display:none; margin: 4px 0 4px; font-size: 12px; padding: 6px 8px; border-radius: 4px;"></p>
+            <button type="button" id="manualEntryToggle" style="margin-top: 2px; margin-bottom: 6px; padding: 0; background: transparent; color: #fff; border: none; cursor: pointer; font-size: 11px; text-decoration: underline; font-weight: 400; text-align: left;">Can't find your address? Enter manually</button>
+            <input type="text"   name="suburb"       placeholder="Suburb*" style="display: none;" id="suburbField">
+            <input type="number" name="postcode"     placeholder="Postcode*" min="2000" max="2999" style="display: none;" id="postcodeField">
+            <textarea            name="message"      placeholder="How Can We Help?*" required rows="3"></textarea>
+
+            <div style="margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px;">
+              <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">What would you like to do?</div>
+              <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer;">
+                <input type="radio" name="requestTypeStep1" value="callback" required style="margin: 0; flex-shrink: 0; width: auto;">
+                <span style="font-size: 14px; color: #fff;">Request a call back</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="radio" name="requestTypeStep1" value="bookNow" required style="margin: 0; flex-shrink: 0; width: auto;">
+                <span style="font-size: 14px; color: #fff;">Book now</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- STEP 2: Booking Details -->
+          <div id="step2Content" style="display: none;">
+            <!-- Name (first/last). Only shown when step 1 didn't supply both parts. -->
+            <div id="bookNowNameBox" style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+              <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Confirm your name for the booking</div>
+              <input type="text" id="bookNowFirstName" placeholder="First name*" style="width: 100%; margin-bottom: 8px;">
+              <input type="text" id="bookNowLastName" placeholder="Last name*" style="width: 100%;">
+            </div>
+
+            <!-- Service Type -->
+            <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+              <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">What service type do you need?</div>
+              <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
+                <input type="radio" name="bookNowServiceType" value="plumbing" style="margin: 0; flex-shrink: 0; width: auto;">
+                <span style="font-size: 14px; color: #fff;">Plumbing</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="radio" name="bookNowServiceType" value="electrical" style="margin: 0; flex-shrink: 0; width: auto;">
+                <span style="font-size: 14px; color: #fff;">Electrical</span>
+              </label>
+            </div>
+
+            <!-- What we don't cover (both trades) — collapsed so it doesn't intimidate -->
+            <div id="exclusionsNotice" style="display: none; margin-bottom: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; padding: 10px 12px;">
+              <div style="font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85);">A few things we don&rsquo;t cover</div>
+              <ul style="margin: 10px 0 2px; padding-left: 18px; font-size: 12.5px; color: rgba(255,255,255,0.8); line-height: 1.5;">
+                <li><strong>Air-conditioners</strong> &mdash; though we can investigate leaks near an air-con unit.</li>
+                <li><strong>Shopping centres</strong> (e.g. Westfield) &mdash; centres use their own preferred trades via the building manager.</li>
+                <li><strong>Solar panels &amp; inverters.</strong></li>
+                <li><strong>Solar hot-water heaters.</strong></li>
+                <li><strong>Gas heaters</strong> &mdash; note this is different from gas hot-water systems and heat-pump hot water, which we <strong>do</strong> service.</li>
+                <li><strong>Vehicles &amp; caravans</strong> &mdash; these need an auto electrician.</li>
+              </ul>
+            </div>
+
+            <!-- Appliance triage note — auto-shown when the page-1 description mentions an appliance (sits right under the exclusions notice) -->
+            <input type="hidden" name="bookNowAppliance" id="bookNowApplianceFlag" value="">
+            <div id="existingApplianceWarning" style="display: none; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+              <div style="font-size: 13px; color: #fff; line-height: 1.5;">
+                <strong>A quick note on appliances</strong><br>
+                We install and connect appliances, but we don&rsquo;t do internal appliance repairs &mdash; for some faults a local appliance technician is the better call:
+                <ul style="margin: 8px 0 0; padding-left: 18px; color: rgba(255,255,255,0.85);">
+                  <li><strong>Oven / cooker:</strong> we can supply &amp; install a new oven, but an element / &ldquo;not heating up&rdquo; fault needs an appliance technician.</li>
+                  <li><strong>Washing machine:</strong> a fault/error or one that won&rsquo;t pump out needs an appliance technician. If it&rsquo;s the hose or connection at the back, we can repair or clear it.</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Urgency -->
+            <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+              <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">When do you need this?</div>
+              <label style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; cursor: pointer;">
+                <input type="radio" name="bookNowUrgency" value="standard" style="margin: 2px 0 0; flex-shrink: 0; width: auto;">
+                <span style="color: #fff; line-height: 1.3;">
+                  <span style="font-size: 14px;">Standard Hours</span><br>
+                  <span style="font-size: 11px; color: rgba(255,255,255,0.65);">7am&ndash;3pm Mon&ndash;Fri, excl. public holidays</span>
+                </span>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                <input type="radio" name="bookNowUrgency" value="tonight" style="margin: 2px 0 0; flex-shrink: 0; width: auto;">
+                <span style="color: #fff; line-height: 1.3;">
+                  <span style="font-size: 14px;">After Hours / Emergency</span><br>
+                  <span style="font-size: 11px; color: rgba(255,255,255,0.65);">All other times &mdash; available 24/7, 365 days a year</span>
+                </span>
+              </label>
+            </div>
+
+            <!-- Additional options (shown only for standard) -->
+            <div id="standardOptions" style="display: none;">
+              <!-- Homeowner/Tenant -->
+              <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+                <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Are you the homeowner or a tenant?</div>
+                <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer;">
+                  <input type="radio" name="bookNowOwnership" value="homeowner" style="margin: 0; flex-shrink: 0; width: auto;">
+                  <span style="font-size: 14px; color: #fff;">Homeowner</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                  <input type="radio" name="bookNowOwnership" value="tenant" style="margin: 0; flex-shrink: 0; width: auto;">
+                  <span style="font-size: 14px; color: #fff;">Tenant</span>
+                </label>
+              </div>
+
+              <!-- Tenant Warning -->
+              <div id="tenantWarning" style="display: none; padding: 12px; background: rgba(255, 193, 7, 0.2); border: 1px solid rgba(255, 193, 7, 0.4); border-radius: 6px; margin-bottom: 12px;">
+                <div style="font-size: 14px; color: #fff; line-height: 1.4;">By proceeding you will be responsible for any service costs incurred. We recommend speaking to your landlord or Real Estate Manager.</div>
+              </div>
+
+              <!-- Available Slots -->
+              <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+                <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Select your preferred time slot</div>
+                <select name="bookNowSlot" id="bookNowSlot" style="width: 100%; padding: 10px; border-radius: 4px; background: #fff; border: 1px solid #e0e0e0; font-size: 14px; color: #333;">
+                  <option value="">-- Loading available slots --</option>
+                </select>
+                <div id="slotsLoading" style="margin-top: 8px; font-size: 12px; color: rgba(255,255,255,0.7);">Loading...</div>
+              </div>
+            </div>
+
+            <button type="button" onclick="goBackToStep1()" style="background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 10px; border-radius: 4px; width: 100%; cursor: pointer; margin-bottom: 8px; font-size: 14px;">← Back</button>
+          </div>
+
+          <button type="submit" class="submit-btn" id="submitBtn">NEXT</button>
+          <div id="formMessage" style="margin-top: 1rem; padding: 1rem; display: none; border-radius: 4px; text-align: center;"></div>
+        </form>
           <p class="form-licence">Licence number A3403</p>
           </div><!-- /.form-card-body -->
         </div>
       </div>
     </div>
+
+
+  <!-- Booking Confirmation Modal -->
+    <div id="confirmationModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center;">
+      <div style="background: #fff; border-radius: 12px; padding: 32px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <h2 style="color: #077bab; margin-bottom: 16px; font-family: 'Montserrat', sans-serif;">Booking Confirmed!</h2>
+        <div style="background: #f5f6f7; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+          <p style="margin: 8px 0; color: #077bab; font-weight: 700;" id="confirmJobRow"><strong>Job Number:</strong> <span id="confirmJobNumber"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Name:</strong> <span id="confirmName"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Email:</strong> <span id="confirmEmail"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Phone:</strong> <span id="confirmPhone"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Address:</strong> <span id="confirmAddress"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Issue:</strong> <span id="confirmIssue"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Urgency:</strong> <span id="confirmUrgency"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Homeowner/Tenant:</strong> <span id="confirmOwnership"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;" id="confirmApplianceRow"><strong>Existing appliance:</strong> <span id="confirmAppliance"></span></p>
+          <p style="margin: 8px 0; color: #3f3f3f;" id="confirmSlotRow"><strong>Booked Slot:</strong> <span id="confirmSlot"></span></p>
+        </div>
+        <p style="color: #666; font-size: 14px; margin-bottom: 16px;">Check your SMS and email for confirmation details.</p>
+        <button onclick="closeConfirmation()" style="background: #077bab; color: #fff; border: none; padding: 12px 24px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; width: 100%;">Done</button>
+      </div>
+    </div>
+
   </section>
 
   <!-- ===================== SERVICES GRID ===================== -->
@@ -3606,38 +3760,6 @@
     }, 300);
 
     setTimeout(function() {
-      document.getElementById('hp-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        var form = e.target;
-        var btn = form.querySelector('.submit-btn');
-        var orig = btn.textContent;
-        btn.textContent = 'Sending...';
-        btn.disabled = true;
-        var data = {};
-        new FormData(form).forEach(function(val, key) { data[key] = val; });
-        fetch('/api/simple-form-submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(res) {
-          if (res.success) {
-            var msg = document.createElement('div');
-            msg.style.cssText = 'text-align:center;padding:32px 16px;color:#fff;';
-            msg.innerHTML = '<div style="font-size:48px;margin-bottom:16px;">&#10003;</div><div style="font-size:20px;font-weight:700;margin-bottom:8px;">Thanks, we will be in touch shortly!</div><div style="font-size:14px;opacity:0.85;">Call us now if urgent: <a href="tel:0281034607" style="color:#FDD42B;font-weight:700;">02 8103 4607</a></div>';
-            form.parentNode.replaceChild(msg, form);
-          } else {
-            btn.textContent = orig; btn.disabled = false;
-            alert('Something went wrong. Please call us on 02 8103 4607.');
-          }
-        })
-        .catch(function() {
-          btn.textContent = orig; btn.disabled = false;
-          alert('Something went wrong. Please call us on 02 8103 4607.');
-        });
-      });
-
       var tawkLoaded = false;
       function loadTawkAndOpen() {
         if (tawkLoaded) { if (window.Tawk_API) window.Tawk_API.maximize(); return; }
@@ -3665,6 +3787,579 @@
     }, 500);
 
   });
+
+
+  // ==================== AROFLO BOOKING FORM (grafted from dev) ====================
+  // Capture UTM params and populate the booking form's hidden fields
+  (function() {
+    const p = new URLSearchParams(window.location.search);
+    ['utm_source','utm_medium','utm_campaign','utm_term'].forEach(function(key) {
+      const el = document.getElementById('f_' + key);
+      if (el) el.value = p.get(key) || '';
+    });
+  })();
+
+const SYDNEY_POSTCODES = new Set([2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 2048, 2049, 2050, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074, 2075, 2076, 2077, 2079, 2080, 2081, 2082, 2083, 2084, 2085, 2086, 2087, 2088, 2089, 2090, 2092, 2093, 2094, 2095, 2096, 2097, 2098, 2099, 2100, 2101, 2102, 2103, 2104, 2105, 2106, 2107, 2108, 2109, 2110, 2111, 2112, 2113, 2114, 2115, 2116, 2117, 2118, 2119, 2120, 2121, 2122, 2123, 2124, 2125, 2126, 2127, 2128, 2129, 2130, 2131, 2132, 2133, 2134, 2135, 2136, 2137, 2138, 2139, 2140, 2141, 2142, 2143, 2144, 2145, 2146, 2147, 2148, 2150, 2151, 2152, 2153, 2154, 2155, 2156, 2157, 2158, 2159, 2160, 2161, 2162, 2163, 2164, 2165, 2166, 2167, 2168, 2170, 2171, 2172, 2173, 2174, 2175, 2176, 2177, 2178, 2179, 2190, 2191, 2192, 2193, 2194, 2195, 2196, 2197, 2198, 2199, 2200, 2203, 2204, 2205, 2206, 2207, 2208, 2209, 2210, 2211, 2212, 2213, 2214, 2216, 2217, 2218, 2219, 2220, 2221, 2222, 2223, 2224, 2225, 2226, 2227, 2228, 2229, 2230, 2231, 2232, 2233, 2234, 2560, 2563, 2564, 2565, 2566, 2567, 2568, 2569, 2570, 2745, 2747, 2748, 2749, 2750, 2751, 2752, 2753, 2754, 2755, 2756, 2757, 2758, 2759, 2760, 2761, 2762, 2763, 2765, 2766, 2767, 2768, 2769, 2770, 2773, 2774, 2775, 2776, 2777, 2778, 2779, 2780, 2782, 2783, 2784, 2785, 2786, 2787, 2790, 2557, 2558, 2559, 2561, 2562, 2571, 2572, 2573, 2574, 2575, 2576]);
+
+// Step-based form handling
+function goToStep2() {
+  const step1Content = document.getElementById('step1Content');
+  const step2Content = document.getElementById('step2Content');
+  if (step1Content) step1Content.style.display = 'none';
+  if (step2Content) step2Content.style.display = 'flex';
+
+  // Only ask for first/last on step 2 if step 1 didn't give us BOTH a first and
+  // a last name. If both are present, hide the box and use the name as typed.
+  const full = (document.querySelector('input[name="name"]')?.value || '').trim();
+  const parts = full.split(/\s+/).filter(Boolean);
+  const nameBox = document.getElementById('bookNowNameBox');
+  const fn = document.getElementById('bookNowFirstName');
+  const ln = document.getElementById('bookNowLastName');
+  if (parts.length >= 2 && parts[0]) {
+    if (nameBox) nameBox.style.display = 'none';
+  } else {
+    if (nameBox) nameBox.style.display = 'block';
+    if (fn && !fn.value) fn.value = parts[0] || '';
+    if (ln && !ln.value) ln.value = parts.slice(1).join(' ');
+  }
+
+  updateSlotVisibility();
+  evaluateExclusions();
+  evaluateAppliance();
+}
+
+function goBackToStep1() {
+  document.getElementById('step1Content').style.display = 'flex';
+  document.getElementById('step2Content').style.display = 'none';
+  document.getElementById('submitBtn').textContent = 'NEXT';
+}
+
+function updateSlotVisibility() {
+  const urgency = document.querySelector('input[name="bookNowUrgency"]:checked')?.value;
+  const standardOptions = document.getElementById('standardOptions');
+  const slotSelect = document.getElementById('bookNowSlot');
+
+  // NOTE: never set slotSelect.required — it lives in a step that gets hidden
+  // (page 1 / after-hours), and a hidden `required` field blocks native form
+  // validation with "invalid form control ... is not focusable". The slot is
+  // validated in JS at submit instead (see the bookNow branch).
+  slotSelect.required = false;
+  if (urgency === 'standard') {
+    standardOptions.style.display = 'block';
+    fetchAvailableSlots();
+  } else {
+    standardOptions.style.display = 'none';
+    slotSelect.value = '';
+  }
+}
+
+async function fetchAvailableSlots() {
+  const trade = document.querySelector('input[name="bookNowServiceType"]:checked')?.value || 'plumbing';
+  const slotSelect = document.getElementById('bookNowSlot');
+  const slotsLoading = document.getElementById('slotsLoading');
+
+  try {
+    slotsLoading.textContent = 'Loading available slots...';
+    slotsLoading.style.display = 'block';
+
+    const response = await fetch('/api/slots', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trade })
+    });
+
+    if (!response.ok) throw new Error(`API returned ${response.status}`);
+
+    const data = await response.json();
+    const slots = data.slots || [];
+
+    slotSelect.innerHTML = '';
+    if (slots.length === 0) {
+      slotSelect.innerHTML = '<option value="">No slots available</option>';
+      slotsLoading.style.display = 'none';
+      return;
+    }
+
+    const seen = {};
+    slots.forEach(slot => {
+      const key = slot.day + '|' + slot.start_time + '|' + slot.end_time;
+      if (!seen[key]) {
+        seen[key] = true;
+        const option = document.createElement('option');
+        option.value = JSON.stringify(slot);
+        option.textContent = slot.day + ' (' + slot.date + ') ' + slot.start_time + '-' + slot.end_time;
+        slotSelect.appendChild(option);
+      }
+    });
+
+    slotsLoading.style.display = 'none';
+  } catch (error) {
+    console.error('Error fetching slots:', error);
+    slotSelect.innerHTML = '<option value="">Unable to load slots</option>';
+    slotsLoading.style.display = 'none';
+  }
+}
+
+// Handle manual address entry toggle
+const manualEntryToggle = document.getElementById('manualEntryToggle');
+const suburbField = document.getElementById('suburbField');
+const postcodeField = document.getElementById('postcodeField');
+const addressHint = document.getElementById('addressHint');
+let addressConfirmed = false;
+
+function showAddressHint(message, isError) {
+  addressHint.textContent = message;
+  if (isError) {
+    addressHint.style.backgroundColor = '#f8d7da';
+    addressHint.style.color = '#721c24';
+  } else {
+    addressHint.style.backgroundColor = '#fff3cd';
+    addressHint.style.color = '#856404';
+  }
+  addressHint.style.display = 'block';
+}
+
+function clearAddressHint() {
+  addressHint.style.display = 'none';
+  addressHint.textContent = '';
+  document.getElementById('addressInput').style.border = '';
+}
+
+if (manualEntryToggle) {
+  manualEntryToggle.addEventListener('click', function(e) {
+    e.preventDefault();
+    const isHidden = suburbField.style.display === 'none';
+    suburbField.style.display = isHidden ? 'block' : 'none';
+    postcodeField.style.display = isHidden ? 'block' : 'none';
+    manualEntryToggle.textContent = isHidden ? 'Hide manual entry' : "Can't find your address? Enter manually";
+    if (isHidden) {
+      suburbField.setAttribute('required', '');
+      postcodeField.setAttribute('required', '');
+      addressConfirmed = true;
+      clearAddressHint();
+    } else {
+      suburbField.removeAttribute('required');
+      postcodeField.removeAttribute('required');
+      addressConfirmed = false;
+    }
+  });
+}
+
+const addressInput = document.getElementById('addressInput');
+if (addressInput) {
+  addressInput.addEventListener('input', function() {
+    addressConfirmed = false;
+    clearAddressHint();
+  });
+  addressInput.addEventListener('blur', function() {
+    const manualOpen = suburbField.style.display !== 'none';
+    if (addressInput.value && !addressConfirmed && !manualOpen) {
+      showAddressHint("Please select an address from the suggestions above, or use 'Can't find your address?' below.", false);
+    }
+  });
+  addressInput.addEventListener('focus', function() {
+    clearAddressHint();
+  });
+}
+
+document.querySelectorAll('input[name="bookNowUrgency"]').forEach(radio => {
+  radio.addEventListener('change', updateSlotVisibility);
+});
+
+document.querySelectorAll('input[name="bookNowServiceType"]').forEach(radio => {
+  radio.addEventListener('change', function() {
+    const urgency = document.querySelector('input[name="bookNowUrgency"]:checked')?.value;
+    if (urgency === 'standard') {
+      fetchAvailableSlots();
+    }
+  });
+});
+
+document.querySelectorAll('input[name="bookNowOwnership"]').forEach(radio => {
+  radio.addEventListener('change', function() {
+    document.getElementById('tenantWarning').style.display = this.value === 'tenant' ? 'block' : 'none';
+  });
+});
+
+// Show the appliance triage note when the page-1 description mentions an appliance
+// (same keyword pattern as the exclusions notice). Also sets a hidden flag so the
+// team email can note it. No question asked — it's derived from what they wrote.
+function evaluateAppliance() {
+  const note = document.getElementById('existingApplianceWarning');
+  const flag = document.getElementById('bookNowApplianceFlag');
+  if (!note) return;
+  const text = (document.querySelector('textarea[name="message"]')?.value || '').toLowerCase();
+  const terms = [
+    'oven', 'cooker', 'cooktop', 'stove', 'hotplate', 'rangehood', 'range hood',
+    'washing machine', 'washing-machine', 'dryer', 'dishwasher',
+  ];
+  const hit = terms.some(t => text.includes(t));
+  note.style.display = hit ? 'block' : 'none';
+  if (flag) flag.value = hit ? 'yes' : '';
+}
+
+// Show the "things we don't cover" notice (auto-expanded) ONLY when the page-1
+// description or address mentions an excluded item; otherwise keep it hidden.
+function evaluateExclusions() {
+  const notice = document.getElementById('exclusionsNotice');
+  if (!notice) return;
+  const text = [
+    document.querySelector('textarea[name="message"]')?.value || '',
+    document.querySelector('input[name="address"]')?.value || '',
+  ].join(' ').toLowerCase();
+  const phrases = [
+    'air con', 'aircon', 'air-con', 'air conditioner', 'air conditioning', 'a/c',
+    'split system', 'reverse cycle',
+    'shopping centre', 'shopping center', 'shopping mall', 'westfield',
+    'solar', 'inverter', 'photovoltaic',
+    'gas heater', 'gas heating',
+    'caravan', 'motorhome', 'campervan', 'vehicle', 'boat',
+  ];
+  const hit = phrases.some(p => text.includes(p)) || /\b(car|rv)\b/.test(text);
+  notice.style.display = hit ? 'block' : 'none';
+}
+
+function showConfirmation(formData, arofloResult) {
+  const modal = document.getElementById('confirmationModal');
+  const urgency = formData.get('bookNowUrgency');
+  const slot = formData.get('bookNowSlot') ? JSON.parse(formData.get('bookNowSlot')) : null;
+
+  document.getElementById('confirmName').textContent = formData.get('name');
+  document.getElementById('confirmEmail').textContent = formData.get('email');
+  document.getElementById('confirmPhone').textContent = formData.get('phone');
+
+  const suburb = formData.get('suburb');
+  const addressDisplay = suburb
+    ? `${formData.get('address')}, ${suburb} ${formData.get('postcode')}`
+    : `${formData.get('address')} ${formData.get('postcode')}`;
+  document.getElementById('confirmAddress').textContent = addressDisplay;
+
+  document.getElementById('confirmIssue').textContent = formData.get('message');
+  document.getElementById('confirmUrgency').textContent = urgency === 'tonight' ? 'Emergency - $549 call our fee including first 1/2 hour labour' : 'Standard Business Hours';
+  document.getElementById('confirmOwnership').textContent = formData.get('bookNowOwnership');
+  // Appliance row only applies to electrical jobs — hide it when there's no answer.
+  const applianceVal = formData.get('bookNowAppliance');
+  const applianceRow = document.getElementById('confirmApplianceRow');
+  if (applianceVal) {
+    document.getElementById('confirmAppliance').textContent = applianceVal === 'yes' ? 'Yes' : 'No';
+    applianceRow.style.display = 'block';
+  } else {
+    applianceRow.style.display = 'none';
+  }
+
+  const slotRow = document.getElementById('confirmSlotRow');
+  if (slot) {
+    document.getElementById('confirmSlot').textContent = `${slot.day} ${slot.start_time}-${slot.end_time}`;
+    slotRow.style.display = 'block';
+  } else {
+    slotRow.style.display = 'none';
+  }
+
+  // Job number — only present once the AroFlo job is written (hidden in test mode).
+  const jobNumber = arofloResult && (arofloResult.jobNumber || null);
+  const jobRow = document.getElementById('confirmJobRow');
+  if (jobNumber) {
+    document.getElementById('confirmJobNumber').textContent = jobNumber;
+    jobRow.style.display = 'block';
+  } else {
+    jobRow.style.display = 'none';
+  }
+
+  modal.style.display = 'flex';
+}
+
+function closeConfirmation() {
+  document.getElementById('confirmationModal').style.display = 'none';
+  goBackToStep1();
+  quoteForm.reset();
+}
+
+function validateAustralianPhone(phone) {
+  const cleaned = phone.replace(/\D/g, '');
+  if (phone.startsWith('04') && cleaned.length === 10) return true;
+  if (phone.startsWith('+614') && cleaned.length === 12) return true;
+  if (phone.match(/^\(?0[2-8]\)?[\s-]?\d{4}[\s-]?\d{4}$/)) return true;
+  if (phone.match(/^\+61[2-8]\d{8}$/)) return true;
+  return false;
+}
+
+const quoteForm = document.getElementById('quoteFormElement');
+if (quoteForm) {
+  quoteForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const submitBtn = document.getElementById('submitBtn');
+    const formMessage = document.getElementById('formMessage');
+    formMessage.style.display = 'none';   // clear any stale error before re-validating
+
+    const phoneInput = document.querySelector('input[name="phone"]');
+    const suburbInput = document.querySelector('input[name="suburb"]');
+    const postcodeInput = document.querySelector('input[name="postcode"]');
+    const postcode = parseInt(postcodeInput.value);
+    const step2Content = document.getElementById('step2Content');
+    const isStep2 = step2Content.style.display !== 'none';
+
+    if (!validateAustralianPhone(phoneInput.value)) {
+      formMessage.style.backgroundColor = '#f8d7da';
+      formMessage.style.color = '#721c24';
+      formMessage.textContent = 'Please enter a valid Australian phone number (mobile: 04xx xxx xxx or landline: 0x xxxx xxxx).';
+      formMessage.style.display = 'block';
+      return;
+    }
+
+    const manualOpen = suburbField.style.display !== 'none';
+    if (!addressConfirmed && !manualOpen) {
+      addressInput.style.border = '2px solid #dc3545';
+      showAddressHint("Please select your address from the suggestions, or click 'Can't find your address?' to enter manually.", true);
+      addressInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    if (!SYDNEY_POSTCODES.has(postcode)) {
+      formMessage.style.backgroundColor = '#f8d7da';
+      formMessage.style.color = '#721c24';
+      formMessage.innerHTML = 'Sorry, we do not service that postcode. <a href="service-areas.html" style="color: #721c24; text-decoration: underline;">View our service areas</a>';
+      formMessage.style.display = 'block';
+      return;
+    }
+
+    if (!isStep2) {
+      const requestType = document.querySelector('input[name="requestTypeStep1"]:checked')?.value;
+      if (!requestType) {
+        formMessage.style.backgroundColor = '#f8d7da';
+        formMessage.style.color = '#721c24';
+        formMessage.textContent = 'Please select an option.';
+        formMessage.style.display = 'block';
+        return;
+      }
+      if (requestType === 'bookNow') {
+        goToStep2();
+        return;
+      }
+      submitForm(requestType);
+      return;
+    }
+
+    // Only enforce first/last if we actually asked for them on step 2 (the name
+    // box is hidden when step 1 already supplied a full first + last name).
+    const nameBox = document.getElementById('bookNowNameBox');
+    if (nameBox && nameBox.style.display !== 'none') {
+      const bnFirst = document.getElementById('bookNowFirstName')?.value.trim() || '';
+      const bnLast  = document.getElementById('bookNowLastName')?.value.trim() || '';
+      if (!bnFirst || !bnLast) {
+        formMessage.style.backgroundColor = '#f8d7da';
+        formMessage.style.color = '#721c24';
+        formMessage.textContent = 'Please enter both your first and last name.';
+        formMessage.style.display = 'block';
+        return;
+      }
+      document.querySelector('input[name="name"]').value = `${bnFirst} ${bnLast}`;
+    }
+
+    const serviceType = document.querySelector('input[name="bookNowServiceType"]:checked')?.value;
+    if (!serviceType) {
+      formMessage.style.backgroundColor = '#f8d7da';
+      formMessage.style.color = '#721c24';
+      formMessage.textContent = 'Please select a service type.';
+      formMessage.style.display = 'block';
+      return;
+    }
+
+    const urgency = document.querySelector('input[name="bookNowUrgency"]:checked')?.value;
+    if (!urgency) {
+      formMessage.style.backgroundColor = '#f8d7da';
+      formMessage.style.color = '#721c24';
+      formMessage.textContent = 'Please select urgency.';
+      formMessage.style.display = 'block';
+      return;
+    }
+
+    if (urgency === 'tonight') {
+      submitForm('bookNow', { urgency });
+      return;
+    }
+
+    const ownership = document.querySelector('input[name="bookNowOwnership"]:checked')?.value;
+    const appliance = document.querySelector('input[name="bookNowAppliance"]')?.value;  // hidden flag set from the description
+    const slot = document.querySelector('select[name="bookNowSlot"]')?.value;
+
+    if (!ownership) {
+      formMessage.style.backgroundColor = '#f8d7da';
+      formMessage.style.color = '#721c24';
+      formMessage.textContent = 'Please complete all booking details.';
+      formMessage.style.display = 'block';
+      return;
+    }
+
+    // Appliance is now an optional single checkbox (informational) — not required.
+
+    if (!slot) {
+      formMessage.style.backgroundColor = '#f8d7da';
+      formMessage.style.color = '#721c24';
+      formMessage.textContent = 'Please select a time slot.';
+      formMessage.style.display = 'block';
+      return;
+    }
+
+    submitForm('bookNow', { urgency, ownership, appliance, slot });
+  });
+}
+
+async function submitForm(requestType, bookingData = {}) {
+  const submitBtn = document.getElementById('submitBtn');
+  const formMessage = document.getElementById('formMessage');
+  const originalText = submitBtn.textContent;
+
+  submitBtn.disabled = true;
+  formMessage.style.display = 'none';
+
+  // Booking into AroFlo runs several steps and can take a few seconds — cycle
+  // reassuring status text (and a sub-message) so it visibly feels like it's
+  // working, not hung/timing out.
+  let stepTimer = null;
+  if (requestType === 'bookNow') {
+    const steps = ['Booking you in…', 'Confirming your time…', 'Just locking it in…'];
+    let i = 0;
+    submitBtn.textContent = steps[0];
+    formMessage.style.backgroundColor = '#e7f3f8';
+    formMessage.style.color = '#0a5a7a';
+    formMessage.textContent = 'Securing your booking — this can take a few seconds, hang tight.';
+    formMessage.style.display = 'block';
+    stepTimer = setInterval(() => { i = Math.min(i + 1, steps.length - 1); submitBtn.textContent = steps[i]; }, 2500);
+  } else {
+    submitBtn.textContent = 'Submitting…';
+  }
+
+  try {
+    const formData = new FormData(quoteForm);
+    formData.set('requestType', requestType);
+
+    if (requestType === 'bookNow') {
+      formData.set('bookNowUrgency', bookingData.urgency);
+      formData.set('bookNowOwnership', bookingData.ownership);
+      formData.set('bookNowAppliance', bookingData.appliance || '');
+      if (bookingData.slot) formData.set('bookNowSlot', bookingData.slot);
+    }
+
+    console.log('=== FORM SUBMISSION ===');
+    console.log('Request Type:', requestType);
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+
+    const response = await fetch('/api/quote', { method: 'POST', body: formData });
+    const result = await response.json();
+
+    if (response.ok && result.success) {
+      if (requestType === 'bookNow') {
+        formMessage.style.display = 'none';
+        showConfirmation(new FormData(quoteForm), result.arofloResult);
+      } else {
+        formMessage.style.backgroundColor = '#d4edda';
+        formMessage.style.color = '#155724';
+        formMessage.textContent = requestType === 'callback' ? 'Thank you! We will call you shortly.' : 'Thank you!';
+        formMessage.style.display = 'block';
+        quoteForm.reset();
+        goBackToStep1();
+      }
+    } else {
+      formMessage.style.backgroundColor = '#f8d7da';
+      formMessage.style.color = '#721c24';
+      formMessage.textContent = result.error || 'An error occurred. Please try again.';
+      formMessage.style.display = 'block';
+    }
+  } catch (error) {
+    formMessage.style.backgroundColor = '#f8d7da';
+    formMessage.style.color = '#721c24';
+    formMessage.textContent = 'Network error. Please try again.';
+    formMessage.style.display = 'block';
+  } finally {
+    if (stepTimer) clearInterval(stepTimer);
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  }
+}
+
+// FIX 3: Google Maps Places Autocomplete — deferred until user focuses the address field
+// This prevents /api/config and the Maps JS library from loading on page load,
+// eliminating network contention during the critical LCP window.
+let placesInitialized = false;
+
+async function initializePlacesAutocomplete() {
+  if (placesInitialized) return;
+  placesInitialized = true;
+
+  try {
+    const configResponse = await fetch('/api/config');
+    const config = await configResponse.json();
+    const apiKey = config.googleMapsApiKey;
+    if (!apiKey) { console.error('Google Maps API key not available'); return; }
+
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
+    script.async = true;
+    script.onload = () => setupPlacesAutocomplete();
+    document.head.appendChild(script);
+  } catch (error) {
+    console.error('Error initializing Places:', error);
+  }
+}
+
+function setupPlacesAutocomplete() {
+  const addressInput = document.getElementById('addressInput');
+  if (!addressInput || !window.google?.maps?.places) {
+    setTimeout(setupPlacesAutocomplete, 100);
+    return;
+  }
+
+  const sydneyBounds = { north: -33.4, south: -34.2, east: 151.35, west: 150.3 };
+  const options = {
+    componentRestrictions: { country: 'au' },
+    bounds: sydneyBounds,
+    strictBounds: true,
+    fields: ['formatted_address', 'address_components', 'geometry'],
+    types: ['address']
+  };
+
+  const autocomplete = new google.maps.places.Autocomplete(addressInput, options);
+  autocomplete.addListener('place_changed', () => {
+    const place = autocomplete.getPlace();
+    if (!place.address_components) return;
+
+    const comp = (type) => place.address_components.find(c => c.types.includes(type))?.long_name || '';
+    const subpremise   = comp('subpremise');    // unit number, e.g. "19"
+    const streetNumber = comp('street_number'); // e.g. "13"
+    const route        = comp('route');         // e.g. "Cranbrook Avenue"
+    const suburb       = comp('locality') || comp('postal_town') || comp('sublocality') || '';
+    const postcode     = comp('postal_code');
+
+    // Street line ONLY — no suburb/state/country. Google otherwise drops the full
+    // formatted address into the input, which then gets read back to the customer
+    // twice (and "NSW" spoken as letters). Suburb + postcode live in their own fields.
+    let streetLine = [streetNumber, route].filter(Boolean).join(' ');
+    if (subpremise) streetLine = streetLine ? `${subpremise}/${streetLine}` : subpremise;
+
+    const addressInput = document.getElementById('addressInput');
+    if (addressInput && streetLine) addressInput.value = streetLine;
+
+    const suburbInput = document.querySelector('input[name="suburb"]');
+    const postcodeInput = document.querySelector('input[name="postcode"]');
+    if (suburbInput && suburb) suburbInput.value = suburb;
+    if (postcodeInput && postcode) postcodeInput.value = postcode;
+
+    addressConfirmed = true;
+    clearAddressHint();
+  });
+}
+
+// Attach the lazy loader to the address field focus event
+document.addEventListener('DOMContentLoaded', function() {
+  const addressInput = document.getElementById('addressInput');
+  if (addressInput) {
+    addressInput.addEventListener('input', initializePlacesAutocomplete, { once: true });
+  }
+});
+
   </script>
 
   <!-- ===================== CUSTOM CHAT LAUNCHER ===================== -->
