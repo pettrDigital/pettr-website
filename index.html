@@ -601,7 +601,14 @@
     background: #fff;
     color: #555;
   }
-  .booking-form textarea { min-height: 100px; resize: vertical; }
+  .booking-form textarea { min-height: 64px; resize: vertical; }
+  /* Compact spacing so the 2-step form fits without scrolling (boxes had a flex gap AND an inline margin) */
+  .booking-form, .booking-form #step1Content, .booking-form #step2Content { gap: 8px; }
+  .booking-form #step2Content > div { margin-bottom: 0 !important; }
+  .booking-form #step2Content > div, .booking-form #standardOptions > div { padding: 9px 11px !important; }
+  .booking-form #standardOptions > div { margin-bottom: 8px !important; }
+  .booking-form #standardOptions > div:last-child { margin-bottom: 0 !important; }
+  .booking-form input, .booking-form select { padding: 11px 13px; }
   .booking-form .submit-btn {
     width: 100%;
     border: none;
@@ -2912,11 +2919,11 @@
 
               <!-- Tenant Warning -->
               <div id="tenantWarning" style="display: none; padding: 12px; background: rgba(255, 193, 7, 0.2); border: 1px solid rgba(255, 193, 7, 0.4); border-radius: 6px; margin-bottom: 12px;">
-                <div style="font-size: 14px; color: #fff; line-height: 1.4;">By proceeding you will be responsible for any service costs incurred. We recommend speaking to your landlord or Real Estate Manager.</div>
+                <div style="font-size: 11.5px; color: #fff; line-height: 1.3;">By proceeding you will be responsible for any service costs incurred. We recommend speaking to your landlord or Real Estate Manager.</div>
               </div>
 
               <!-- Available Slots -->
-              <div style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
+              <div id="slotBox" style="padding: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; margin-bottom: 12px;">
                 <div style="margin-bottom: 10px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Select your preferred time slot</div>
                 <select name="bookNowSlot" id="bookNowSlot" style="width: 100%; padding: 10px; border-radius: 4px; background: #fff; border: 1px solid #e0e0e0; font-size: 14px; color: #333;">
                   <option value="">-- Loading available slots --</option>
@@ -2932,6 +2939,8 @@
           <div id="formMessage" style="margin-top: 1rem; padding: 1rem; display: none; border-radius: 4px; text-align: center;"></div>
         </form>
           <p class="form-licence">Licence number A3403</p>
+          <!-- Reserves the tenant-note's height; collapses when the note shows so the card doesn't resize -->
+          <div id="formSpacer" style="height: 0; transition: height 0.18s ease;" aria-hidden="true"></div>
           </div><!-- /.form-card-body -->
         </div>
       </div>
@@ -3838,11 +3847,13 @@ function goBackToStep1() {
   document.getElementById('step1Content').style.display = 'flex';
   document.getElementById('step2Content').style.display = 'none';
   document.getElementById('submitBtn').textContent = 'NEXT';
+  updateReservedSpace();
 }
 
 function updateSlotVisibility() {
   const urgency = document.querySelector('input[name="bookNowUrgency"]:checked')?.value;
   const standardOptions = document.getElementById('standardOptions');
+  const slotBox = document.getElementById('slotBox');
   const slotSelect = document.getElementById('bookNowSlot');
 
   // NOTE: never set slotSelect.required — it lives in a step that gets hidden
@@ -3850,13 +3861,53 @@ function updateSlotVisibility() {
   // validation with "invalid form control ... is not focusable". The slot is
   // validated in JS at submit instead (see the bookNow branch).
   slotSelect.required = false;
+  // Homeowner/Tenant shows once they pick ANY urgency; slots only for standard
+  // (after-hours is an emergency callback — no slot to choose).
+  standardOptions.style.display = urgency ? 'block' : 'none';
   if (urgency === 'standard') {
-    standardOptions.style.display = 'block';
+    slotBox.style.display = 'block';
     fetchAvailableSlots();
   } else {
-    standardOptions.style.display = 'none';
+    slotBox.style.display = 'none';
     slotSelect.value = '';
   }
+  updateReservedSpace();
+}
+
+// Reserve space (in #formSpacer, at the card bottom) for the whole step-2
+// conditional block — homeowner/tenant question + tenant note + slots — and
+// collapse it as each piece appears. This keeps the card's total height constant
+// (it sits at the fully-expanded height from the moment you reach step 2), so the
+// page content/images below never shift. Measures #standardOptions at full
+// expansion (all children shown) minus what's currently visible.
+function standardOptionsReserve() {
+  const so = document.getElementById('standardOptions');
+  const step2 = document.getElementById('step2Content');
+  if (!so || !step2 || step2.style.display === 'none') return 0;
+  const slotBox = document.getElementById('slotBox');
+  const tenant = document.getElementById('tenantWarning');
+  const currentH = so.style.display === 'none' ? 0 : so.offsetHeight;
+  const saved = so.getAttribute('style') || '';
+  const savedSlot = slotBox ? slotBox.style.display : '';
+  const savedTenant = tenant ? tenant.style.display : '';
+  let maxH = currentH;
+  try {
+    so.style.display = 'block'; so.style.visibility = 'hidden';
+    so.style.position = 'absolute'; so.style.left = '-9999px';
+    so.style.width = (so.parentElement ? so.parentElement.clientWidth : so.offsetWidth) + 'px';
+    if (slotBox) slotBox.style.display = 'block';
+    if (tenant) tenant.style.display = 'block';
+    maxH = so.offsetHeight;
+  } finally {
+    so.setAttribute('style', saved);
+    if (slotBox) slotBox.style.display = savedSlot;
+    if (tenant) tenant.style.display = savedTenant;
+  }
+  return Math.max(0, Math.round(maxH - currentH));
+}
+function updateReservedSpace() {
+  const spacer = document.getElementById('formSpacer');
+  if (spacer) spacer.style.height = standardOptionsReserve() + 'px';
 }
 
 async function fetchAvailableSlots() {
@@ -3984,6 +4035,7 @@ document.querySelectorAll('input[name="bookNowServiceType"]').forEach(radio => {
 document.querySelectorAll('input[name="bookNowOwnership"]').forEach(radio => {
   radio.addEventListener('change', function() {
     document.getElementById('tenantWarning').style.display = this.value === 'tenant' ? 'block' : 'none';
+    updateReservedSpace();
   });
 });
 
