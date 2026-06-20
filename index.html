@@ -2949,27 +2949,31 @@
 
   <!-- Booking Confirmation Modal -->
     <div id="confirmationModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center;">
-      <div style="background: #fff; border-radius: 12px; padding: 32px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-        <h2 style="color: #077bab; margin-bottom: 16px; font-family: 'Montserrat', sans-serif;">Booking Confirmed!</h2>
-        <div style="background: #f5f6f7; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
-          <p style="margin: 8px 0; color: #077bab; font-weight: 700;" id="confirmJobRow"><strong>Job Number:</strong> <span id="confirmJobNumber"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Name:</strong> <span id="confirmName"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Email:</strong> <span id="confirmEmail"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Phone:</strong> <span id="confirmPhone"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Address:</strong> <span id="confirmAddress"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Issue:</strong> <span id="confirmIssue"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Urgency:</strong> <span id="confirmUrgency"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;"><strong>Homeowner/Tenant:</strong> <span id="confirmOwnership"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;" id="confirmApplianceRow"><strong>Existing appliance:</strong> <span id="confirmAppliance"></span></p>
-          <p style="margin: 8px 0; color: #3f3f3f;" id="confirmSlotRow"><strong>Booked Slot:</strong> <span id="confirmSlot"></span></p>
+      <div style="background: #fff; border-radius: 12px; padding: 24px; max-width: 760px; width: 92%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <h2 style="color: #077bab; margin-bottom: 14px; font-family: 'Montserrat', sans-serif;">Booking Confirmed!</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
+          <div style="flex: 1 1 300px; min-width: 260px;">
+            <div style="background: #f5f6f7; padding: 14px; border-radius: 8px; margin-bottom: 12px;">
+              <p style="margin: 5px 0; color: #077bab; font-weight: 700;" id="confirmJobRow"><strong>Job Number:</strong> <span id="confirmJobNumber"></span></p>
+              <p style="margin: 5px 0; color: #3f3f3f;"><strong>Name:</strong> <span id="confirmName"></span></p>
+              <p style="margin: 5px 0; color: #3f3f3f;"><strong>Email:</strong> <span id="confirmEmail"></span></p>
+              <p style="margin: 5px 0; color: #3f3f3f;"><strong>Phone:</strong> <span id="confirmPhone"></span></p>
+              <p style="margin: 5px 0; color: #3f3f3f;"><strong>Address:</strong> <span id="confirmAddress"></span></p>
+              <p style="margin: 5px 0; color: #3f3f3f;"><strong>Issue:</strong> <span id="confirmIssue"></span></p>
+              <p style="margin: 5px 0; color: #3f3f3f;"><strong>Urgency:</strong> <span id="confirmUrgency"></span></p>
+              <p style="margin: 5px 0; color: #3f3f3f;"><strong>Homeowner/Tenant:</strong> <span id="confirmOwnership"></span></p>
+              <p style="margin: 5px 0; color: #3f3f3f;" id="confirmApplianceRow"><strong>Existing appliance:</strong> <span id="confirmAppliance"></span></p>
+              <p style="margin: 5px 0; color: #3f3f3f;" id="confirmSlotRow"><strong>Booked Slot:</strong> <span id="confirmSlot"></span></p>
+            </div>
+            <p style="color: #666; font-size: 13px; margin: 0;">Check your SMS and email for confirmation details.</p>
+          </div>
+          <div style="flex: 1 1 240px; min-width: 220px; text-align: center;">
+            <p style="color: #3f3f3f; font-size: 14px; font-weight: 700; margin: 0 0 10px;">Introducing your local Plumber &amp; Electrician To The Rescue team.</p>
+            <img src="/meetTheTeam.jpg" alt="Your local Plumber &amp; Electrician To The Rescue team" loading="lazy" style="width: 100%; border-radius: 8px; display: block;">
+            <p style="color: #3f3f3f; font-size: 14px; margin: 10px 0 0; font-weight: 600;">We look forward to serving you — you've made the right choice.</p>
+          </div>
         </div>
-        <p style="color: #666; font-size: 14px; margin-bottom: 16px;">Check your SMS and email for confirmation details.</p>
-        <div style="text-align: center; margin-bottom: 16px;">
-          <p style="color: #3f3f3f; font-size: 14px; margin-bottom: 12px;">We're pleased to introduce you to your local Plumber &amp; Electrician To The Rescue team.</p>
-          <img src="/meetTheTeam.jpg" alt="Your local Plumber &amp; Electrician To The Rescue team" loading="lazy" style="width: 100%; border-radius: 8px; display: block;">
-          <p style="color: #3f3f3f; font-size: 14px; margin-top: 12px; font-weight: 600;">We look forward to serving you — you've made the right choice.</p>
-        </div>
-        <button onclick="closeConfirmation()" style="background: #077bab; color: #fff; border: none; padding: 12px 24px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; width: 100%;">Done</button>
+        <button onclick="closeConfirmation()" style="background: #077bab; color: #fff; border: none; padding: 12px 24px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; width: 100%; margin-top: 16px;">Done</button>
       </div>
     </div>
 
