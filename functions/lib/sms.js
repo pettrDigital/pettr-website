@@ -41,7 +41,19 @@ export function composeBookingConfirmation({ name, trade, address, suburb, postc
 
 export async function sendSMS(env, { phone, message, mediaUrl, subject }) {
   if (env.MESSAGEMEDIA_API_KEY && env.MESSAGEMEDIA_API_SECRET) {
-    return sendViaMessageMedia(env, { phone, message, mediaUrl, subject });
+    if (mediaUrl) {
+      // Try MMS (with the team photo) first; if it's rejected — e.g. the account
+      // isn't MMS-enabled (402), or the media can't be fetched — fall back to a
+      // plain SMS so the customer still gets their confirmation text. Once MMS is
+      // enabled on the account this first attempt just succeeds and no retry runs.
+      try {
+        return await sendViaMessageMedia(env, { phone, message, mediaUrl, subject });
+      } catch (err) {
+        console.warn('MMS send failed, falling back to plain SMS:', err.message);
+        return sendViaMessageMedia(env, { phone, message });
+      }
+    }
+    return sendViaMessageMedia(env, { phone, message });
   }
   // Legacy TransmitSMS path is SMS-only — media is dropped.
   return sendViaTransmitSMS(env, { phone, message });
