@@ -268,7 +268,7 @@ async function notifyTeamBookingEmail(env, { phone, booking, test, transcript })
       return;
     }
 
-    const { name, trade, address, suburb, postcode, issue, urgency, day, startTime, endTime, tech, jobNumber } = booking;
+    const { name, trade, address, suburb, postcode, issue, urgency, day, startTime, endTime, tech, jobNumber, ownership } = booking;
     const isAfterHours = urgency === 'emergency' || urgency === 'tonight';
     const timeStr = [day, startTime && endTime ? `${startTime}-${endTime}` : startTime].filter(Boolean).join(' ');
     // "Booked" (gets a job number) = a confirmed slot or an after-hours call-out.
@@ -283,6 +283,7 @@ async function notifyTeamBookingEmail(env, { phone, booking, test, transcript })
       <p><strong>Address:</strong> ${address}${suburb ? ` ${suburb}` : ''} ${postcode}</p>
       <p><strong>Issue:</strong> ${issue || 'Not specified'}</p>
       <p><strong>Service Type:</strong> ${trade}</p>
+      ${ownership ? `<p><strong>Owner/Tenant:</strong> ${ownership}</p>` : ''}
       <p><strong>Urgency:</strong> ${isAfterHours ? 'After Hours - $549 call out fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
       ${timeStr ? `<p><strong>Booked Slot:</strong> ${timeStr}</p>` : ''}
       ${tech ? `<p><strong>Tech:</strong> ${tech}</p>` : ''}
