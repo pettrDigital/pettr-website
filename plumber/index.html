@@ -1526,6 +1526,8 @@ p  { font-size: 1rem; line-height: 1.7; }
 
           <button type="submit" class="submit-btn" id="submitBtn">NEXT</button>
           <div id="formMessage" style="margin-top: 1rem; padding: 1rem; display: none; border-radius: 4px; text-align: center;"></div>
+          <!-- Reserves the tenant-note's height; collapses when the note appears so the card doesn't resize -->
+          <div id="formSpacer" style="height: 0; transition: height 0.18s ease;" aria-hidden="true"></div>
         </form>
         <p class="form-licence">Licence number A3403</p>
         <div class="form-guarantee">
@@ -2098,6 +2100,27 @@ function updateSlotVisibility() {
     slotBox.style.display = 'none';
     slotSelect.value = '';
   }
+  updateReservedSpace();
+}
+
+// Reserve space below the button equal to the tenant cost-liability note, then
+// collapse it when that note appears — so picking "Tenant" doesn't grow the card
+// (which would shift the page content/images below it).
+function tenantBoxHeight() {
+  const tw = document.getElementById('tenantWarning');
+  if (!tw) return 0;
+  const hidden = tw.style.display === 'none';
+  if (hidden) { tw.style.visibility = 'hidden'; tw.style.display = 'block'; }
+  const h = tw.offsetHeight + parseFloat(getComputedStyle(tw).marginBottom || 0);
+  if (hidden) { tw.style.display = 'none'; tw.style.visibility = ''; }
+  return Math.round(h);
+}
+function updateReservedSpace() {
+  const spacer = document.getElementById('formSpacer');
+  if (!spacer) return;
+  const ownershipVisible = document.getElementById('standardOptions') && document.getElementById('standardOptions').style.display !== 'none';
+  const tenantSelected = document.querySelector('input[name="bookNowOwnership"]:checked') && document.querySelector('input[name="bookNowOwnership"]:checked').value === 'tenant';
+  spacer.style.height = (ownershipVisible && !tenantSelected) ? tenantBoxHeight() + 'px' : '0px';
 }
 
 async function fetchAvailableSlots() {
@@ -2216,6 +2239,7 @@ document.querySelectorAll('input[name="bookNowUrgency"]').forEach(radio => {
 document.querySelectorAll('input[name="bookNowOwnership"]').forEach(radio => {
   radio.addEventListener('change', function() {
     document.getElementById('tenantWarning').style.display = this.value === 'tenant' ? 'block' : 'none';
+    updateReservedSpace();
   });
 });
 
