@@ -518,7 +518,8 @@ async function sendBookingSMS(env, { phone, message }) {
   console.log('=== SENDING BOOKING SMS ===');
   console.log('To:', phone);
   console.log('Message length:', message.length);
-  return deliverSMS(env, { phone, message });
+  // MMS when CONFIRMATION_MMS_URL is set (env-gated); falls back to SMS otherwise.
+  return deliverSMS(env, { phone, message, mediaUrl: env.CONFIRMATION_MMS_URL, subject: 'Plumber & Electrician To The Rescue' });
 }
 
 function escapeHtml(text) {

@@ -39,14 +39,15 @@ export function composeBookingConfirmation({ name, trade, address, suburb, postc
   return `${jobTop}Hi ${name}, your ${trade} booking is confirmed!\n\nTime: ${timeStr || 'to be confirmed - the team will call between 7-9:30am'}${techStr}\nAddress: ${address}${suburbStr} ${postcode}${issueStr}\n\nTech will call 30min before arrival.`;
 }
 
-export async function sendSMS(env, { phone, message }) {
+export async function sendSMS(env, { phone, message, mediaUrl, subject }) {
   if (env.MESSAGEMEDIA_API_KEY && env.MESSAGEMEDIA_API_SECRET) {
-    return sendViaMessageMedia(env, { phone, message });
+    return sendViaMessageMedia(env, { phone, message, mediaUrl, subject });
   }
+  // Legacy TransmitSMS path is SMS-only — media is dropped.
   return sendViaTransmitSMS(env, { phone, message });
 }
 
-async function sendViaMessageMedia(env, { phone, message }) {
+async function sendViaMessageMedia(env, { phone, message, mediaUrl, subject }) {
   const destination = toE164(phone);
   console.log('=== SENDING SMS (MessageMedia) ===');
   console.log('To:', destination);
@@ -76,7 +77,17 @@ async function sendViaMessageMedia(env, { phone, message }) {
     }
   }
 
-  console.log('Sender:', sms.source_number ? `${sms.source_number} (${sms.source_number_type})` : 'shared pool (MESSAGEMEDIA_SENDER not set)');
+  // MMS: attach an image when a media URL is supplied AND the sender is a real
+  // number that can carry it. Alpha tags and the shared pool can't send MMS, so
+  // we silently stay SMS in that case. Media must be a public JPEG/PNG — handsets
+  // don't reliably render WebP over MMS.
+  if (mediaUrl && sms.source_number && /^\+?\d+$/.test(sms.source_number)) {
+    sms.format = 'MMS';
+    sms.media = [mediaUrl];
+    if (subject) sms.subject = subject;
+  }
+
+  console.log('Sender:', sms.source_number ? `${sms.source_number} (${sms.source_number_type})` : 'shared pool (MESSAGEMEDIA_SENDER not set)', '| format:', sms.format);
 
   const response = await fetch('https://api.messagemedia.com/v1/messages', {
     method: 'POST',

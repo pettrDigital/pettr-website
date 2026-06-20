@@ -61,7 +61,7 @@ export async function onRequest(context) {
     if (booking && stage === 'call_ended') {
       let smsText = composeBookingConfirmation(booking);
       if (test) smsText = `[TEST MODE - no job created] ${smsText}`;
-      if (phone && smsText && !noCustomerMessage) await sendSMS(env, { phone, message: smsText });
+      if (phone && smsText && !noCustomerMessage) await sendSMS(env, { phone, message: smsText, mediaUrl: env.CONFIRMATION_MMS_URL, subject: 'Plumber & Electrician To The Rescue' });
       await notifyTeamBookingEmail(env, { phone, booking, test, transcript });
       return new Response(JSON.stringify({ success: true, action: 'booking_sms_and_emailed' }), {
         status: 200,
