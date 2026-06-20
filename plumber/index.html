@@ -2009,8 +2009,10 @@ const CONFIG = {
 
 <!-- Booking Confirmation Modal -->
 <div id="confirmationModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center;">
-  <div style="background: #fff; border-radius: 12px; padding: 24px; max-width: 760px; width: 92%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
-    <h2 style="color: #077bab; margin-bottom: 14px; font-family: 'Montserrat', sans-serif;">Booking Confirmed!</h2>
+  <div id="confirmCard" style="position: relative; background: #fff; border-radius: 12px; padding: 24px; max-width: 760px; width: 92%; max-height: 90vh; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+    <button type="button" onclick="closeConfirmation()" aria-label="Close" style="position: absolute; top: 10px; right: 10px; z-index: 2; width: 30px; height: 30px; border-radius: 50%; background: #fff; border: 2px solid #e53935; color: #e53935; font-size: 18px; line-height: 1; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">&times;</button>
+    <div id="confirmScroll" style="max-height: calc(90vh - 48px); overflow-y: auto;">
+    <h2 style="color: #077bab; margin: 0 0 14px; font-family: 'Montserrat', sans-serif;">Booking Confirmed!</h2>
     <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
       <div style="flex: 1 1 300px; min-width: 260px;">
         <div style="background: #f5f6f7; padding: 14px; border-radius: 8px; margin-bottom: 12px;">
@@ -2034,6 +2036,7 @@ const CONFIG = {
       </div>
     </div>
     <button onclick="closeConfirmation()" style="background: #077bab; color: #fff; border: none; padding: 12px 24px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; width: 100%; margin-top: 16px;">Done</button>
+    </div>
   </div>
 </div>
 
@@ -2354,6 +2357,7 @@ function showConfirmation(formData, arofloResult) {
   }
 
   modal.style.display = 'flex';
+  document.getElementById('confirmScroll').scrollTop = 0;
 }
 
 function closeConfirmation() {

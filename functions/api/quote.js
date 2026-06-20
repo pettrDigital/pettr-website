@@ -198,9 +198,8 @@ export async function onRequest(context) {
             jobNumber,
           });
       try {
-        // MMS with the team photo, served from this deployment's own domain.
-        const mmsMediaUrl = env.DISABLE_CONFIRMATION_MMS ? undefined : `${new URL(request.url).origin}/meetTheTeam.jpg`;
-        await sendBookingSMS(env, { phone: data.phone, message: testPrefix + smsMessage, mediaUrl: mmsMediaUrl });
+        // Plain SMS for now — MMS rolled back until enabled on the MessageMedia account.
+        await sendBookingSMS(env, { phone: data.phone, message: testPrefix + smsMessage });
         console.log('Booking confirmation SMS sent to:', data.phone, '| jobNumber:', jobNumber, '| test:', !!testPrefix);
       } catch (smsErr) {
         // Non-fatal — the booking already succeeded; never fail the request over SMS.
