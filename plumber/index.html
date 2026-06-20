@@ -2077,6 +2077,7 @@ function goBackToStep1() {
   document.getElementById('step1Content').style.display = 'flex';
   document.getElementById('step2Content').style.display = 'none';
   document.getElementById('submitBtn').textContent = 'NEXT';
+  updateReservedSpace();
 }
 
 function updateSlotVisibility() {
@@ -2103,24 +2104,40 @@ function updateSlotVisibility() {
   updateReservedSpace();
 }
 
-// Reserve space below the button equal to the tenant cost-liability note, then
-// collapse it when that note appears — so picking "Tenant" doesn't grow the card
-// (which would shift the page content/images below it).
-function tenantBoxHeight() {
-  const tw = document.getElementById('tenantWarning');
-  if (!tw) return 0;
-  const hidden = tw.style.display === 'none';
-  if (hidden) { tw.style.visibility = 'hidden'; tw.style.display = 'block'; }
-  const h = tw.offsetHeight + parseFloat(getComputedStyle(tw).marginBottom || 0);
-  if (hidden) { tw.style.display = 'none'; tw.style.visibility = ''; }
-  return Math.round(h);
+// Reserve space (in #formSpacer, at the card bottom) for the whole step-2
+// conditional block — homeowner/tenant question + tenant note + slots — and
+// collapse it as each piece appears. This keeps the card's total height constant
+// (it sits at the fully-expanded height from the moment you reach step 2), so the
+// page content/images below never shift. Measures #standardOptions at full
+// expansion (all children shown) minus what's currently visible.
+function standardOptionsReserve() {
+  const so = document.getElementById('standardOptions');
+  const step2 = document.getElementById('step2Content');
+  if (!so || !step2 || step2.style.display === 'none') return 0;
+  const slotBox = document.getElementById('slotBox');
+  const tenant = document.getElementById('tenantWarning');
+  const currentH = so.style.display === 'none' ? 0 : so.offsetHeight;
+  const saved = so.getAttribute('style') || '';
+  const savedSlot = slotBox ? slotBox.style.display : '';
+  const savedTenant = tenant ? tenant.style.display : '';
+  let maxH = currentH;
+  try {
+    so.style.display = 'block'; so.style.visibility = 'hidden';
+    so.style.position = 'absolute'; so.style.left = '-9999px';
+    so.style.width = (so.parentElement ? so.parentElement.clientWidth : so.offsetWidth) + 'px';
+    if (slotBox) slotBox.style.display = 'block';
+    if (tenant) tenant.style.display = 'block';
+    maxH = so.offsetHeight;
+  } finally {
+    so.setAttribute('style', saved);
+    if (slotBox) slotBox.style.display = savedSlot;
+    if (tenant) tenant.style.display = savedTenant;
+  }
+  return Math.max(0, Math.round(maxH - currentH));
 }
 function updateReservedSpace() {
   const spacer = document.getElementById('formSpacer');
-  if (!spacer) return;
-  const ownershipVisible = document.getElementById('standardOptions') && document.getElementById('standardOptions').style.display !== 'none';
-  const tenantSelected = document.querySelector('input[name="bookNowOwnership"]:checked') && document.querySelector('input[name="bookNowOwnership"]:checked').value === 'tenant';
-  spacer.style.height = (ownershipVisible && !tenantSelected) ? tenantBoxHeight() + 'px' : '0px';
+  if (spacer) spacer.style.height = standardOptionsReserve() + 'px';
 }
 
 async function fetchAvailableSlots() {
