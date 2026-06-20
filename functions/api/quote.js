@@ -198,7 +198,9 @@ export async function onRequest(context) {
             jobNumber,
           });
       try {
-        await sendBookingSMS(env, { phone: data.phone, message: testPrefix + smsMessage });
+        // MMS with the team photo, served from this deployment's own domain.
+        const mmsMediaUrl = env.DISABLE_CONFIRMATION_MMS ? undefined : `${new URL(request.url).origin}/meetTheTeam.jpg`;
+        await sendBookingSMS(env, { phone: data.phone, message: testPrefix + smsMessage, mediaUrl: mmsMediaUrl });
         console.log('Booking confirmation SMS sent to:', data.phone, '| jobNumber:', jobNumber, '| test:', !!testPrefix);
       } catch (smsErr) {
         // Non-fatal — the booking already succeeded; never fail the request over SMS.
@@ -514,12 +516,12 @@ async function storeBookingFlowState(env, data) {
   }
 }
 
-async function sendBookingSMS(env, { phone, message }) {
+async function sendBookingSMS(env, { phone, message, mediaUrl }) {
   console.log('=== SENDING BOOKING SMS ===');
   console.log('To:', phone);
   console.log('Message length:', message.length);
-  // MMS when CONFIRMATION_MMS_URL is set (env-gated); falls back to SMS otherwise.
-  return deliverSMS(env, { phone, message, mediaUrl: env.CONFIRMATION_MMS_URL, subject: 'Plumber & Electrician To The Rescue' });
+  // mediaUrl present → MMS with the team photo; absent → plain SMS.
+  return deliverSMS(env, { phone, message, mediaUrl, subject: 'Plumber & Electrician To The Rescue' });
 }
 
 function escapeHtml(text) {

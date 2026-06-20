@@ -61,7 +61,11 @@ export async function onRequest(context) {
     if (booking && stage === 'call_ended') {
       let smsText = composeBookingConfirmation(booking);
       if (test) smsText = `[TEST MODE - no job created] ${smsText}`;
-      if (phone && smsText && !noCustomerMessage) await sendSMS(env, { phone, message: smsText, mediaUrl: env.CONFIRMATION_MMS_URL, subject: 'Plumber & Electrician To The Rescue' });
+      // Confirmation goes out as an MMS with the team photo, served from this
+      // same deployment's domain (so dev uses the dev image, prod the prod image —
+      // no per-environment config). Set DISABLE_CONFIRMATION_MMS to force plain SMS.
+      const mmsMediaUrl = env.DISABLE_CONFIRMATION_MMS ? undefined : `${new URL(request.url).origin}/meetTheTeam.jpg`;
+      if (phone && smsText && !noCustomerMessage) await sendSMS(env, { phone, message: smsText, mediaUrl: mmsMediaUrl, subject: 'Plumber & Electrician To The Rescue' });
       await notifyTeamBookingEmail(env, { phone, booking, test, transcript });
       return new Response(JSON.stringify({ success: true, action: 'booking_sms_and_emailed' }), {
         status: 200,
