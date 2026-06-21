@@ -533,3 +533,6 @@ function escapeHtml(text) {
   };
   return text.replace(/[&<>"']/g, (m) => map[m]);
 }
+
+// Test-only exports (additive; ignored by Cloudflare Pages) — for unit tests.
+export { isInServiceArea, escapeHtml };

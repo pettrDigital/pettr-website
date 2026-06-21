@@ -317,3 +317,6 @@ async function notifyTeamBookingEmail(env, { phone, booking, test, transcript })
     console.error('Error sending booking notification email:', error);
   }
 }
+
+// Test-only exports (additive; ignored by Cloudflare Pages) — for unit tests.
+export { twoHourWindow, composeChangeRequestAck, changeRequestSubject, escapeHtml, transcriptHtml, customerEmailSubject };
