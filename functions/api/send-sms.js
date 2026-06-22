@@ -152,11 +152,11 @@ const REQUEST_SUBJECT_LABELS = {
   reschedule: 'Job Rescheduled',
 };
 
-function changeRequestSubject({ type, name, phone, jobReference }) {
+function changeRequestSubject({ type, name, phone, jobReference, unverified }) {
   const who = name || phone || 'Unknown';
   const label = REQUEST_SUBJECT_LABELS[type];
-  if (label && jobReference) return `${label}: ${jobReference} - ${who}`;
-  return `${REQUEST_SUBJECTS[type] || REQUEST_SUBJECTS.enquiry} - ${who}`;
+  const base = (label && jobReference) ? `${label}: ${jobReference} - ${who}` : `${REQUEST_SUBJECTS[type] || REQUEST_SUBJECTS.enquiry} - ${who}`;
+  return unverified ? `UNVERIFIED - ${base}` : base;
 }
 
 function escapeHtml(text) {
@@ -178,12 +178,13 @@ async function notifyTeamChangeRequest(env, { phone, request, transcript }) {
     return;
   }
 
-  const { type, name, details, jobReference, address, suburb, postcode, issue, preferredDate, preferredTime, channel } = request;
+  const { type, name, details, jobReference, address, suburb, postcode, issue, preferredDate, preferredTime, channel, unverified } = request;
   const subjectPrefix = REQUEST_SUBJECTS[type] || REQUEST_SUBJECTS.enquiry;
   const preferred = [preferredDate, twoHourWindow(preferredTime)].filter(Boolean).join(' ');
   const addressStr = address ? `${address}${suburb ? ` ${suburb}` : ''}${postcode ? ` ${postcode}` : ''}` : '';
 
   const emailHtml = `
+    ${unverified ? '<p style="color:#b00020;font-weight:700;">⚠ UNVERIFIED CALLER — verify identity before actioning.</p>' : ''}
     <h2>${subjectPrefix}</h2>
     <p><strong>Name:</strong> ${name || 'Unknown'}</p>
     <p><strong>Phone:</strong> ${phone || 'Unknown'}</p>
@@ -204,7 +205,7 @@ async function notifyTeamChangeRequest(env, { phone, request, transcript }) {
       api_key: apiKey,
       to: ['fergusg@mrwasher.com.au'],
       sender: 'webform@plumberandelectrician.com.au',
-      subject: changeRequestSubject({ type, name, phone, jobReference }),
+      subject: changeRequestSubject({ type, name, phone, jobReference, unverified }),
       html_body: emailHtml,
     }),
   });
