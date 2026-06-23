@@ -35,9 +35,11 @@ export function composeBookingConfirmation({ name, trade, address, suburb, postc
   if (isAfterHours) {
     return `${jobTop}Hi ${name}, after-hours ${trade} booking received at ${address}${suburbStr} ${postcode}.\n\nA tech will call you back within 5-10 minutes. Thanks!`;
   }
-  const techStr = tech ? `\nTech: ${tech}` : '';
+  // Deliberately NOT shown to the customer: the assigned tech name. For an
+  // overflow booking the "tech" is the overflow placeholder (Jess AI), so we
+  // never put a tech name in the customer's confirmation.
   const issueStr = issue ? `\nIssue: ${issue}` : '';
-  return `${jobTop}Hi ${name}, your ${trade} booking is confirmed!\n\nTime: ${timeStr || 'to be confirmed - the team will call between 7-9:30am'}${techStr}\nAddress: ${address}${suburbStr} ${postcode}${issueStr}\n\nTech will call 30min before arrival.`;
+  return `${jobTop}Hi ${name}, your ${trade} booking is confirmed!\n\nTime: ${timeStr || 'to be confirmed - the team will call between 7-9:30am'}\nAddress: ${address}${suburbStr} ${postcode}${issueStr}\n\nTech will call 30min before arrival.`;
 }
 
 export async function sendSMS(env, { phone, message, mediaUrl, subject }) {
