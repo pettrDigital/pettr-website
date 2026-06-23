@@ -22,7 +22,24 @@ export async function onRequest(context) {
     //   "during_call" → customer SMS only (confirmation or ack), no email
     //   "call_ended"  → team email only, with the call transcript appended
     //   absent        → both at once (legacy callers)
-    const { phone, message, booking, request: changeRequest, test, stage, transcript, customerSms, customerEmail, noCustomerMessage } = await request.json();
+    const { phone, message, booking, request: changeRequest, test, stage, transcript, customerSms, customerEmail, noCustomerMessage, oncall } = await request.json();
+
+    // After-hours ON-CALL alert: a pre-composed SMS + emails (recipient + central).
+    // The dashboards side already resolved the rostered person and applied any
+    // test-mode redirect — here we just deliver.
+    if (stage === 'oncall' && oncall) {
+      const results = { sms: null, emails: [] };
+      if (oncall.sms && oncall.sms.to && oncall.sms.body) {
+        try { await sendSMS(env, { phone: oncall.sms.to, message: oncall.sms.body }); results.sms = 'sent'; }
+        catch (e) { console.error('on-call SMS failed:', e.message); results.sms = 'failed'; }
+      }
+      for (const em of (oncall.emails || [])) {
+        results.emails.push({ to: em.to, ok: await sendRawEmail(env, em) });
+      }
+      return new Response(JSON.stringify({ success: true, action: 'oncall_delivered', results }), {
+        status: 200, headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     // Change requests (cancel / reschedule / enquiry): email handoff to the
     // team + written ack to the customer for cancel/reschedule.
@@ -64,7 +81,9 @@ export async function onRequest(context) {
       // Plain SMS for now — MMS is rolled back until it's enabled on the MessageMedia
       // account. To re-enable, pass mediaUrl: `${new URL(request.url).origin}/meetTheTeam.jpg`.
       if (phone && smsText && !noCustomerMessage) await sendSMS(env, { phone, message: smsText });
-      await notifyTeamBookingEmail(env, { phone, booking, test, transcript });
+      // After-hours bookings: the team email is replaced by the on-call alert
+      // (rostered plumber/electrician/supervisor) + central email, sent separately.
+      if (!booking.afterHours) await notifyTeamBookingEmail(env, { phone, booking, test, transcript });
       return new Response(JSON.stringify({ success: true, action: 'booking_sms_and_emailed' }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -88,8 +107,9 @@ export async function onRequest(context) {
 
     await sendSMS(env, { phone, message: text });
 
-    // Legacy/stage-less booking calls still email immediately.
-    if (booking && stage !== 'during_call') {
+    // Legacy/stage-less booking calls still email immediately (except after-hours,
+    // which routes to the on-call alert instead).
+    if (booking && stage !== 'during_call' && !booking.afterHours) {
       await notifyTeamBookingEmail(env, { phone, booking, test });
     }
 
@@ -261,6 +281,31 @@ async function sendCustomerEmail(env, { email, request, message }) {
   }
 
   console.log('Customer ack email sent to', email);
+}
+
+// Generic SMTP2GO sender — used by the on-call alert (content is pre-composed
+// on the dashboards side). Returns true on success.
+async function sendRawEmail(env, { to, subject, html }) {
+  try {
+    const apiKey = env.SMTP2GO_API_KEY;
+    if (!apiKey) { console.error('SMTP2GO_API_KEY not configured'); return false; }
+    const response = await fetch('https://api.smtp2go.com/v3/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        api_key: apiKey,
+        to: Array.isArray(to) ? to : [to],
+        sender: 'webform@plumberandelectrician.com.au',
+        subject,
+        html_body: html,
+      }),
+    });
+    if (!response.ok) { console.error('on-call email failed:', response.status); return false; }
+    return true;
+  } catch (e) {
+    console.error('on-call email error:', e.message);
+    return false;
+  }
 }
 
 async function notifyTeamBookingEmail(env, { phone, booking, test, transcript }) {
