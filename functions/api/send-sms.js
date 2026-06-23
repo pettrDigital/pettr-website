@@ -2,6 +2,7 @@
 // aroFloAgent Cloud Function confirming voice bookings). Requires the same
 // shared-secret header as the inbound webhook. Not for browser use.
 import { sendSMS, composeBookingConfirmation } from '../lib/sms.js';
+import { teamEmail, isNotifyTest, TEST_EMAIL } from '../lib/recipients.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -223,7 +224,7 @@ async function notifyTeamChangeRequest(env, { phone, request, transcript }) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       api_key: apiKey,
-      to: ['fergusg@mrwasher.com.au'],
+      to: [teamEmail(env)],
       sender: 'webform@plumberandelectrician.com.au',
       subject: changeRequestSubject({ type, name, phone, jobReference, unverified }),
       html_body: emailHtml,
@@ -268,7 +269,7 @@ async function sendCustomerEmail(env, { email, request, message }) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       api_key: apiKey,
-      to: [email],
+      to: [isNotifyTest(env) ? TEST_EMAIL : email],
       sender: 'webform@plumberandelectrician.com.au',
       subject: customerEmailSubject(request),
       html_body: emailHtml,
@@ -332,7 +333,7 @@ async function notifyTeamBookingEmail(env, { phone, booking, test, transcript })
       <p><strong>Issue:</strong> ${issue || 'Not specified'}</p>
       <p><strong>Service Type:</strong> ${trade}</p>
       ${ownership ? `<p><strong>Owner/Tenant:</strong> ${ownership}</p>` : ''}
-      <p><strong>Urgency:</strong> ${isAfterHours ? 'After Hours - $549 call out fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
+      <p><strong>Urgency:</strong> ${isAfterHours ? 'After Hours - $596 call out fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
       ${timeStr ? `<p><strong>Booked Slot:</strong> ${timeStr}</p>` : ''}
       ${tech ? `<p><strong>Tech:</strong> ${tech}</p>` : ''}
       <p><em>Booked via AI phone agent (Jess)</em></p>
@@ -345,7 +346,7 @@ async function notifyTeamBookingEmail(env, { phone, booking, test, transcript })
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         api_key: apiKey,
-        to: ['fergusg@mrwasher.com.au'],
+        to: [teamEmail(env)],
         sender: 'webform@plumberandelectrician.com.au',
         subject: `${test ? '[TEST MODE] ' : ''}${subjectLead} - ${name}${isAfterHours ? ' - AFTER HOURS' : ''}`,
         html_body: emailHtml,

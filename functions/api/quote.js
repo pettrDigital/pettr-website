@@ -1,5 +1,6 @@
 
 import { sendSMS as deliverSMS, normalizePhone, composeBookingConfirmation } from '../lib/sms.js';
+import { teamEmail } from '../lib/recipients.js';
 
 const SYDNEY_POSTCODES = new Set([
   // Sydney CBD & Inner
@@ -220,7 +221,7 @@ export async function onRequest(context) {
         <p><strong>Address:</strong> ${escapeHtml(data.address)}${suburbDisplay} ${escapeHtml(data.postcode)}</p>
         <p><strong>Issue:</strong> ${escapeHtml(data.message)}</p>
         <p><strong>Service Type:</strong> ${escapeHtml(trade)}</p>
-        <p><strong>Urgency:</strong> ${isAfterHours ? 'After Hours - $549 call out fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
+        <p><strong>Urgency:</strong> ${isAfterHours ? 'After Hours - $596 call out fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
         <p><strong>Homeowner/Tenant:</strong> ${data.bookNowOwnership}</p>
         ${data.bookNowAppliance === 'yes' ? '<p><strong>Relates to an appliance:</strong> Yes</p>' : ''}
       `;
@@ -237,7 +238,7 @@ export async function onRequest(context) {
       try {
         await sendEmail(env, {
           from: 'webform@plumberandelectrician.com.au',
-          to: 'fergusg@mrwasher.com.au',
+          to: teamEmail(env),
           subject: `${subjectLead} - ${data.name}${isAfterHours ? ' - AFTER HOURS' : ''}`,
           html: emailHtml,
         });

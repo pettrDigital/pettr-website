@@ -1,4 +1,5 @@
 import { sendSMS as deliverSMS, normalizePhone } from '../lib/sms.js';
+import { teamEmail } from '../lib/recipients.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -119,7 +120,7 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
       const choice = message.toLowerCase().trim();
 
       if (choice === 'tonight') {
-        const responseMsg = `After-hours booking confirmed. Tech will call back within 5-10 mins. Call-out fee $549. Confirm? YES/NO`;
+        const responseMsg = `After-hours booking confirmed. Tech will call back within 5-10 mins. Call-out fee $596. Confirm? YES/NO`;
         await sendOutboundSMS(env, { phone, message: responseMsg });
         addMessageToConversation(env, phone, 'assistant', responseMsg).catch(err => console.error('Failed to save assistant message:', err));
         await updateBookingFlowStep(env, phone, 'emergency_confirm_sent');
@@ -419,7 +420,7 @@ async function notifyTeamOfInboundSMS(env, { phone, message }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         api_key: apiKey,
-        to: ['fergusg@mrwasher.com.au'],
+        to: [teamEmail(env)],
         sender: 'webform@plumberandelectrician.com.au',
         subject: `Inbound SMS from ${phone} - needs human reply`,
         html_body: `
@@ -474,7 +475,7 @@ async function sendBookingConfirmationEmail(env, { phone, bookingFlow, messages 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         api_key: apiKey,
-        to: ['fergusg@mrwasher.com.au'],
+        to: [teamEmail(env)],
         sender: 'webform@plumberandelectrician.com.au',
         subject: `Booking Confirmed - ${bookingFlow.name}`,
         html_body: emailHtml,
