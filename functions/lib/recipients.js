@@ -13,10 +13,13 @@ export function isNotifyTest(env) {
 }
 
 export const TEST_SMS = '0420994836';
-export const TEST_EMAIL = 'fergusgordon77@gmail.com';
+export const TEST_EMAIL = 'fergusgordon77@gmail.com'; // customer-email fallback redirect (test)
+export const TEAM_EMAIL_TEST = 'fergusg@mrwasher.com.au';
 export const TEAM_EMAIL_PROD = 'jobs@mrwasher.com.au';
 
 // The team inbox for bookings / call-backs / change requests.
+// Test mode routes to fergusg@mrwasher.com.au (a real work mailbox), NOT the
+// customer-redirect gmail — so test team emails look/behave like the prod inbox.
 export function teamEmail(env) {
-  return isNotifyTest(env) ? TEST_EMAIL : TEAM_EMAIL_PROD;
+  return isNotifyTest(env) ? TEAM_EMAIL_TEST : TEAM_EMAIL_PROD;
 }
