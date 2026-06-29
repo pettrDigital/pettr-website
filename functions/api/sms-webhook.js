@@ -120,7 +120,7 @@ async function handleOutboundBookingFlow(env, phone, message, bookingFlow) {
       const choice = message.toLowerCase().trim();
 
       if (choice === 'tonight') {
-        const responseMsg = `After-hours booking confirmed. Tech will call back within 5-10 mins. Call-out fee $596. Confirm? YES/NO`;
+        const responseMsg = `After-hours booking confirmed. Tech will call back within 5-10 mins. Call-out fee $660. Confirm? YES/NO`;
         await sendOutboundSMS(env, { phone, message: responseMsg });
         addMessageToConversation(env, phone, 'assistant', responseMsg).catch(err => console.error('Failed to save assistant message:', err));
         await updateBookingFlowStep(env, phone, 'emergency_confirm_sent');

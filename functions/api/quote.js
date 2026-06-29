@@ -221,7 +221,7 @@ export async function onRequest(context) {
         <p><strong>Address:</strong> ${escapeHtml(data.address)}${suburbDisplay} ${escapeHtml(data.postcode)}</p>
         <p><strong>Issue:</strong> ${escapeHtml(data.message)}</p>
         <p><strong>Service Type:</strong> ${escapeHtml(trade)}</p>
-        <p><strong>Urgency:</strong> ${isAfterHours ? 'After Hours - $596 call out fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
+        <p><strong>Urgency:</strong> ${isAfterHours ? 'After Hours - $596 ex GST call out fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
         <p><strong>Homeowner/Tenant:</strong> ${data.bookNowOwnership}</p>
         ${data.bookNowAppliance === 'yes' ? '<p><strong>Relates to an appliance:</strong> Yes</p>' : ''}
       `;

@@ -333,7 +333,7 @@ async function notifyTeamBookingEmail(env, { phone, booking, test, transcript })
       <p><strong>Issue:</strong> ${issue || 'Not specified'}</p>
       <p><strong>Service Type:</strong> ${trade}</p>
       ${ownership ? `<p><strong>Owner/Tenant:</strong> ${ownership}</p>` : ''}
-      <p><strong>Urgency:</strong> ${isAfterHours ? 'After Hours - $596 call out fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
+      <p><strong>Urgency:</strong> ${isAfterHours ? 'After Hours - $596 ex GST call out fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
       ${timeStr ? `<p><strong>Booked Slot:</strong> ${timeStr}</p>` : ''}
       ${tech ? `<p><strong>Tech:</strong> ${tech}</p>` : ''}
       <p><em>Booked via AI phone agent (Jess)</em></p>
