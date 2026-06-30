@@ -1,6 +1,7 @@
 
 import { sendSMS as deliverSMS, normalizePhone, composeBookingConfirmation } from '../lib/sms.js';
 import { teamEmail } from '../lib/recipients.js';
+import { applyCors, preflightResponse } from '../lib/cors.js';
 
 const SYDNEY_POSTCODES = new Set([
   // Sydney CBD & Inner
@@ -35,6 +36,12 @@ function isInServiceArea(postcodeRaw) {
 }
 
 export async function onRequest(context) {
+  const { request } = context;
+  if (request.method === 'OPTIONS') return preflightResponse(request, 'POST, OPTIONS');
+  return applyCors(request, await handleQuote(context));
+}
+
+async function handleQuote(context) {
   const { request, env } = context;
 
   if (request.method !== 'POST') {
@@ -250,16 +257,13 @@ export async function onRequest(context) {
 
       return new Response(JSON.stringify({ success: true, message: 'Quote request submitted. We will call you shortly!', arofloResult }), {
         status: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: { 'Content-Type': 'application/json' },
       });
     }
 
     return new Response(JSON.stringify({ success: true, message: 'Quote request submitted. We will call you shortly!' }), {
       status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
+      headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error:', error);
