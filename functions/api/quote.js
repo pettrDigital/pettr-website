@@ -1,5 +1,7 @@
 
 import { sendSMS as deliverSMS, normalizePhone, composeBookingConfirmation } from '../lib/sms.js';
+import { teamEmail } from '../lib/recipients.js';
+import { applyCors, preflightResponse } from '../lib/cors.js';
 
 const SYDNEY_POSTCODES = new Set([
   // Sydney CBD & Inner
@@ -34,6 +36,12 @@ function isInServiceArea(postcodeRaw) {
 }
 
 export async function onRequest(context) {
+  const { request } = context;
+  if (request.method === 'OPTIONS') return preflightResponse(request, 'POST, OPTIONS');
+  return applyCors(request, await handleQuote(context));
+}
+
+async function handleQuote(context) {
   const { request, env } = context;
 
   if (request.method !== 'POST') {
@@ -122,7 +130,7 @@ export async function onRequest(context) {
 
       await sendEmail(env, {
         from: 'webform@plumberandelectrician.com.au',
-        to: env.QUOTE_EMAIL,
+        to: teamEmail(env),
         subject: `New Quote Request from ${data.name}`,
         html: emailHtml,
       });
@@ -220,7 +228,7 @@ export async function onRequest(context) {
         <p><strong>Address:</strong> ${escapeHtml(data.address)}${suburbDisplay} ${escapeHtml(data.postcode)}</p>
         <p><strong>Issue:</strong> ${escapeHtml(data.message)}</p>
         <p><strong>Service Type:</strong> ${escapeHtml(trade)}</p>
-        <p><strong>Urgency:</strong> ${isAfterHours ? 'After Hours - $549 call out fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
+        <p><strong>Urgency:</strong> ${isAfterHours ? 'After Hours - $596 ex GST call out fee including first 1/2 hour labour' : 'Standard Business Hours'}</p>
         <p><strong>Homeowner/Tenant:</strong> ${data.bookNowOwnership}</p>
         ${data.bookNowAppliance === 'yes' ? '<p><strong>Relates to an appliance:</strong> Yes</p>' : ''}
       `;
@@ -237,7 +245,7 @@ export async function onRequest(context) {
       try {
         await sendEmail(env, {
           from: 'webform@plumberandelectrician.com.au',
-          to: 'fergusg@mrwasher.com.au',
+          to: teamEmail(env),
           subject: `${subjectLead} - ${data.name}${isAfterHours ? ' - AFTER HOURS' : ''}`,
           html: emailHtml,
         });
@@ -249,16 +257,13 @@ export async function onRequest(context) {
 
       return new Response(JSON.stringify({ success: true, message: 'Quote request submitted. We will call you shortly!', arofloResult }), {
         status: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: { 'Content-Type': 'application/json' },
       });
     }
 
     return new Response(JSON.stringify({ success: true, message: 'Quote request submitted. We will call you shortly!' }), {
       status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
+      headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error:', error);
@@ -533,3 +538,6 @@ function escapeHtml(text) {
   };
   return text.replace(/[&<>"']/g, (m) => map[m]);
 }
+
+// Test-only exports (additive; ignored by Cloudflare Pages) — for unit tests.
+export { isInServiceArea, escapeHtml };

@@ -1,4 +1,12 @@
+import { applyCors, preflightResponse } from '../lib/cors.js';
+
 export async function onRequest(context) {
+  const { request } = context;
+  if (request.method === 'OPTIONS') return preflightResponse(request, 'POST, OPTIONS');
+  return applyCors(request, await handleSlots(context));
+}
+
+async function handleSlots(context) {
   const { request } = context;
 
   console.log('=== SLOTS API REQUEST ===');

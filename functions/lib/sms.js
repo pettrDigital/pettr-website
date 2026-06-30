@@ -1,5 +1,6 @@
 // Shared SMS adapter. Sends via Sinch MessageMedia when MESSAGEMEDIA_* env vars
 // are set; falls back to Kudosity/TransmitSMS during the parallel-run cutover.
+import { isNotifyTest, TEST_SMS } from './recipients.js';
 
 // Canonical local format (04xxxxxxxx) — matches normalisePhone in the
 // aroFloAgent Cloud Function so phone-keyed Firestore docs stay consistent
@@ -34,12 +35,21 @@ export function composeBookingConfirmation({ name, trade, address, suburb, postc
   if (isAfterHours) {
     return `${jobTop}Hi ${name}, after-hours ${trade} booking received at ${address}${suburbStr} ${postcode}.\n\nA tech will call you back within 5-10 minutes. Thanks!`;
   }
-  const techStr = tech ? `\nTech: ${tech}` : '';
+  // Deliberately NOT shown to the customer: the assigned tech name. For an
+  // overflow booking the "tech" is the overflow placeholder (Jess AI), so we
+  // never put a tech name in the customer's confirmation.
   const issueStr = issue ? `\nIssue: ${issue}` : '';
-  return `${jobTop}Hi ${name}, your ${trade} booking is confirmed!\n\nTime: ${timeStr || 'to be confirmed - the team will call between 7-9:30am'}${techStr}\nAddress: ${address}${suburbStr} ${postcode}${issueStr}\n\nTech will call 30min before arrival.`;
+  return `${jobTop}Hi ${name}, your ${trade} booking is confirmed!\n\nTime: ${timeStr || 'to be confirmed - the team will call between 7-9:30am'}\nAddress: ${address}${suburbStr} ${postcode}${issueStr}\n\nTech will call 30min before arrival.`;
 }
 
 export async function sendSMS(env, { phone, message, mediaUrl, subject }) {
+  // Test/production gate: while finalising, redirect every SMS to the tester
+  // (number kept in the prefix so we can see who it was actually for).
+  if (isNotifyTest(env)) {
+    message = `[TEST→${phone}] ${message}`;
+    phone = TEST_SMS;
+    mediaUrl = undefined;
+  }
   if (env.MESSAGEMEDIA_API_KEY && env.MESSAGEMEDIA_API_SECRET) {
     if (mediaUrl) {
       // Try MMS (with the team photo) first; if it's rejected — e.g. the account
