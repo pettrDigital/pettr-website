@@ -130,7 +130,7 @@ async function handleQuote(context) {
 
       await sendEmail(env, {
         from: 'webform@plumberandelectrician.com.au',
-        to: env.QUOTE_EMAIL,
+        to: teamEmail(env),
         subject: `New Quote Request from ${data.name}`,
         html: emailHtml,
       });
