@@ -29,6 +29,7 @@ async function handleQuote(context) {
       postcode: formData.get('postcode'),
       suburb: formData.get('suburb'),
       message: formData.get('message'),
+      bcc: formData.get('bcc') || '',
       requestType,
     };
 
@@ -102,6 +103,7 @@ async function handleQuote(context) {
         to: teamEmail(env),
         subject: `New Quote Request from ${data.name}`,
         html: emailHtml,
+        bcc: data.bcc,
       });
 
       console.log('Triggering Retell callback for:', data.phone);
@@ -216,6 +218,7 @@ async function handleQuote(context) {
           to: teamEmail(env),
           subject: `${subjectLead} - ${data.name}${isAfterHours ? ' - AFTER HOURS' : ''}`,
           html: emailHtml,
+          bcc: data.bcc,
         });
         console.log('Booking email sent to support');
       } catch (emailErr) {
@@ -242,7 +245,7 @@ async function handleQuote(context) {
   }
 }
 
-async function sendEmail(env, { from, to, subject, html }) {
+async function sendEmail(env, { from, to, subject, html, bcc }) {
   const apiKey = env.SMTP2GO_API_KEY;
 
   console.log('=== EMAIL DEBUG ===');
@@ -257,6 +260,9 @@ async function sendEmail(env, { from, to, subject, html }) {
     subject,
     html_body: html,
   };
+  // Optional BCC (e.g. the marketing agency on landing-page leads). Only honour a
+  // valid-looking address so the caller-supplied param can't inject junk.
+  if (bcc && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(bcc)) requestBody.bcc = [bcc];
 
   console.log('Request body:', JSON.stringify(requestBody));
 
