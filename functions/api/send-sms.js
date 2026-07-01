@@ -79,8 +79,7 @@ export async function onRequest(context) {
     if (booking && stage === 'call_ended') {
       let smsText = composeBookingConfirmation(booking);
       if (test) smsText = `[TEST MODE - no job created] ${smsText}`;
-      // Plain SMS for now — MMS is rolled back until it's enabled on the MessageMedia
-      // account. To re-enable, pass mediaUrl: `${new URL(request.url).origin}/meetTheTeam.jpg`.
+      // Plain SMS — MMS was removed (account never enabled; see sms.js).
       if (phone && smsText && !noCustomerMessage) await sendSMS(env, { phone, message: smsText });
       // After-hours bookings: the team email is replaced by the on-call alert
       // (rostered plumber/electrician/supervisor) + central email, sent separately.

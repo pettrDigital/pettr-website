@@ -175,7 +175,6 @@ async function handleQuote(context) {
             jobNumber,
           });
       try {
-        // Plain SMS for now — MMS rolled back until enabled on the MessageMedia account.
         await sendBookingSMS(env, { phone: data.phone, message: testPrefix + smsMessage });
         console.log('Booking confirmation SMS sent to:', data.phone, '| jobNumber:', jobNumber, '| test:', !!testPrefix);
       } catch (smsErr) {
@@ -489,12 +488,11 @@ async function storeBookingFlowState(env, data) {
   }
 }
 
-async function sendBookingSMS(env, { phone, message, mediaUrl }) {
+async function sendBookingSMS(env, { phone, message }) {
   console.log('=== SENDING BOOKING SMS ===');
   console.log('To:', phone);
   console.log('Message length:', message.length);
-  // mediaUrl present → MMS with the team photo; absent → plain SMS.
-  return deliverSMS(env, { phone, message, mediaUrl, subject: 'Plumber & Electrician To The Rescue' });
+  return deliverSMS(env, { phone, message });
 }
 
 function escapeHtml(text) {
