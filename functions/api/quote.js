@@ -2,38 +2,7 @@
 import { sendSMS as deliverSMS, normalizePhone, composeBookingConfirmation } from '../lib/sms.js';
 import { teamEmail } from '../lib/recipients.js';
 import { applyCors, preflightResponse } from '../lib/cors.js';
-
-const SYDNEY_POSTCODES = new Set([
-  // Sydney CBD & Inner
-  2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2015, 2016, 2017, 2018, 2019, 2020, 2021,
-  // Inner West
-  2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039,
-  2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 2048, 2049, 2050,
-  // North Shore / Northern Beaches
-  2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074, 2075, 2076, 2077,
-  2079, 2080, 2081, 2082, 2083, 2084, 2085, 2086, 2087, 2088, 2089, 2090, 2092, 2093, 2094, 2095, 2096, 2097,
-  2098, 2099, 2100, 2101, 2102, 2103, 2104, 2105, 2106, 2107, 2108, 2109, 2110, 2111, 2112, 2113, 2114, 2115,
-  2116, 2117, 2118, 2119, 2120, 2121, 2122, 2123,
-  // Hills / Hawkesbury
-  2124, 2125, 2126, 2127, 2128, 2129, 2130, 2131, 2132, 2133, 2134, 2135, 2136, 2137, 2138, 2139, 2140, 2141,
-  2142, 2143, 2144, 2145, 2146, 2147, 2148, 2150, 2151, 2152, 2153, 2154, 2155, 2156, 2157, 2158, 2159, 2160,
-  2161, 2162, 2163, 2164, 2165, 2166, 2167, 2168, 2170, 2171, 2172, 2173, 2174, 2175, 2176, 2177, 2178, 2179,
-  // South / Sutherland Shire
-  2190, 2191, 2192, 2193, 2194, 2195, 2196, 2197, 2198, 2199, 2200, 2203, 2204, 2205, 2206, 2207, 2208, 2209,
-  2210, 2211, 2212, 2213, 2214, 2216, 2217, 2218, 2219, 2220, 2221, 2222, 2223, 2224, 2225, 2226, 2227, 2228,
-  2229, 2230, 2231, 2232, 2233, 2234, 2560, 2563, 2564, 2565, 2566, 2567, 2568, 2569, 2570,
-  // Western Sydney / Parramatta / Penrith
-  2745, 2747, 2748, 2749, 2750, 2751, 2752, 2753, 2754, 2755, 2756, 2757, 2758, 2759, 2760, 2761, 2762, 2763,
-  2765, 2766, 2767, 2768, 2769, 2770, 2773, 2774, 2775, 2776, 2777, 2778, 2779, 2780, 2782, 2783, 2784, 2785,
-  2786, 2787, 2790,
-  // South-West / Campbelltown / Liverpool
-  2557, 2558, 2559, 2561, 2562, 2571, 2572, 2573, 2574, 2575, 2576,
-]);
-
-function isInServiceArea(postcodeRaw) {
-  const pc = parseInt(String(postcodeRaw).replace(/\D/g, ''), 10);
-  return !isNaN(pc) && SYDNEY_POSTCODES.has(pc);
-}
+import { isInServiceArea } from '../lib/serviceArea.js';
 
 export async function onRequest(context) {
   const { request } = context;
@@ -60,6 +29,7 @@ async function handleQuote(context) {
       postcode: formData.get('postcode'),
       suburb: formData.get('suburb'),
       message: formData.get('message'),
+      bcc: formData.get('bcc') || '',
       requestType,
     };
 
@@ -129,10 +99,11 @@ async function handleQuote(context) {
       `;
 
       await sendEmail(env, {
-        from: 'webform@plumberandelectrician.com.au',
+        from: 'Plumber and Electrician to the Rescue <mrwasher@plumberandelectrician.com.au>',
         to: teamEmail(env),
         subject: `New Quote Request from ${data.name}`,
         html: emailHtml,
+        bcc: data.bcc,
       });
 
       console.log('Triggering Retell callback for:', data.phone);
@@ -206,7 +177,6 @@ async function handleQuote(context) {
             jobNumber,
           });
       try {
-        // Plain SMS for now — MMS rolled back until enabled on the MessageMedia account.
         await sendBookingSMS(env, { phone: data.phone, message: testPrefix + smsMessage });
         console.log('Booking confirmation SMS sent to:', data.phone, '| jobNumber:', jobNumber, '| test:', !!testPrefix);
       } catch (smsErr) {
@@ -218,9 +188,13 @@ async function handleQuote(context) {
       const isAfterHours = data.bookNowUrgency === 'tonight';
       // "Booked" (gets a job number) = a confirmed slot or an after-hours call-out.
       const booked = !!slot || isAfterHours;
+      // A standard slot booking that produced no job number means the AroFlo write
+      // failed (after-hours legitimately has no job; a test-mode block is intentional).
+      const notInAroflo = !isAfterHours && !!slot && !jobNumber && arofloResult?.blocked !== true;
       const suburbDisplay = data.suburb ? `, ${escapeHtml(data.suburb)}` : '';
       let emailHtml = `
-        <h2>${booked ? 'Booked Job' : 'Job Request'}</h2>
+        ${notInAroflo ? '<p style="background:#ff0d00;color:#fff;padding:12px;font-weight:800;font-size:16px;text-align:center;border-radius:4px;margin:0 0 12px">⚠ ACTION - BOOKING NOT MADE IN AROFLO</p>' : ''}
+        <h2>${notInAroflo ? 'Job NOT created — action required' : booked ? 'Booked Job' : 'Job Request'}</h2>
         ${jobNumber ? `<p><strong>Job number:</strong> ${escapeHtml(String(jobNumber))}</p>` : ''}
         <p><strong>Name:</strong> ${escapeHtml(data.name)}</p>
         <p><strong>Email:</strong> ${escapeHtml(data.email)}</p>
@@ -241,13 +215,15 @@ async function handleQuote(context) {
 
       emailHtml += `</div>`;
 
-      const subjectLead = (booked && jobNumber) ? `Job Booked: ${jobNumber}` : 'Job Request';
+      const subjectLead = notInAroflo ? 'ACTION - BOOKING NOT MADE IN AROFLO'
+        : (booked && jobNumber) ? `Job Booked: ${jobNumber}` : 'Job Request';
       try {
         await sendEmail(env, {
-          from: 'webform@plumberandelectrician.com.au',
+          from: 'Plumber and Electrician to the Rescue <mrwasher@plumberandelectrician.com.au>',
           to: teamEmail(env),
           subject: `${subjectLead} - ${data.name}${isAfterHours ? ' - AFTER HOURS' : ''}`,
           html: emailHtml,
+          bcc: data.bcc,
         });
         console.log('Booking email sent to support');
       } catch (emailErr) {
@@ -274,7 +250,7 @@ async function handleQuote(context) {
   }
 }
 
-async function sendEmail(env, { from, to, subject, html }) {
+async function sendEmail(env, { from, to, subject, html, bcc }) {
   const apiKey = env.SMTP2GO_API_KEY;
 
   console.log('=== EMAIL DEBUG ===');
@@ -289,6 +265,9 @@ async function sendEmail(env, { from, to, subject, html }) {
     subject,
     html_body: html,
   };
+  // Optional BCC (e.g. the marketing agency on landing-page leads). Only honour a
+  // valid-looking address so the caller-supplied param can't inject junk.
+  if (bcc && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(bcc)) requestBody.bcc = [bcc];
 
   console.log('Request body:', JSON.stringify(requestBody));
 
@@ -520,12 +499,11 @@ async function storeBookingFlowState(env, data) {
   }
 }
 
-async function sendBookingSMS(env, { phone, message, mediaUrl }) {
+async function sendBookingSMS(env, { phone, message }) {
   console.log('=== SENDING BOOKING SMS ===');
   console.log('To:', phone);
   console.log('Message length:', message.length);
-  // mediaUrl present → MMS with the team photo; absent → plain SMS.
-  return deliverSMS(env, { phone, message, mediaUrl, subject: 'Plumber & Electrician To The Rescue' });
+  return deliverSMS(env, { phone, message });
 }
 
 function escapeHtml(text) {

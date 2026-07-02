@@ -42,34 +42,20 @@ export function composeBookingConfirmation({ name, trade, address, suburb, postc
   return `${jobTop}Hi ${name}, your ${trade} booking is confirmed!\n\nTime: ${timeStr || 'to be confirmed - the team will call between 7-9:30am'}\nAddress: ${address}${suburbStr} ${postcode}${issueStr}\n\nTech will call 30min before arrival.`;
 }
 
-export async function sendSMS(env, { phone, message, mediaUrl, subject }) {
+export async function sendSMS(env, { phone, message }) {
   // Test/production gate: while finalising, redirect every SMS to the tester
   // (number kept in the prefix so we can see who it was actually for).
   if (isNotifyTest(env)) {
     message = `[TEST→${phone}] ${message}`;
     phone = TEST_SMS;
-    mediaUrl = undefined;
   }
   if (env.MESSAGEMEDIA_API_KEY && env.MESSAGEMEDIA_API_SECRET) {
-    if (mediaUrl) {
-      // Try MMS (with the team photo) first; if it's rejected — e.g. the account
-      // isn't MMS-enabled (402), or the media can't be fetched — fall back to a
-      // plain SMS so the customer still gets their confirmation text. Once MMS is
-      // enabled on the account this first attempt just succeeds and no retry runs.
-      try {
-        return await sendViaMessageMedia(env, { phone, message, mediaUrl, subject });
-      } catch (err) {
-        console.warn('MMS send failed, falling back to plain SMS:', err.message);
-        return sendViaMessageMedia(env, { phone, message });
-      }
-    }
     return sendViaMessageMedia(env, { phone, message });
   }
-  // Legacy TransmitSMS path is SMS-only — media is dropped.
   return sendViaTransmitSMS(env, { phone, message });
 }
 
-async function sendViaMessageMedia(env, { phone, message, mediaUrl, subject }) {
+async function sendViaMessageMedia(env, { phone, message }) {
   const destination = toE164(phone);
   console.log('=== SENDING SMS (MessageMedia) ===');
   console.log('To:', destination);
@@ -97,16 +83,6 @@ async function sendViaMessageMedia(env, { phone, message, mediaUrl, subject }) {
     if (!isNumber) {
       sms.content = `${message}\n\nDO NOT REPLY TO THIS MESSAGE`;
     }
-  }
-
-  // MMS: attach an image when a media URL is supplied AND the sender is a real
-  // number that can carry it. Alpha tags and the shared pool can't send MMS, so
-  // we silently stay SMS in that case. Media must be a public JPEG/PNG — handsets
-  // don't reliably render WebP over MMS.
-  if (mediaUrl && sms.source_number && /^\+?\d+$/.test(sms.source_number)) {
-    sms.format = 'MMS';
-    sms.media = [mediaUrl];
-    if (subject) sms.subject = subject;
   }
 
   console.log('Sender:', sms.source_number ? `${sms.source_number} (${sms.source_number_type})` : 'shared pool (MESSAGEMEDIA_SENDER not set)', '| format:', sms.format);

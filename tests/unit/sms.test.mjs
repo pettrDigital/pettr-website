@@ -29,7 +29,9 @@ test("composeBookingConfirmation — standard with slot", () => {
   const msg = composeBookingConfirmation({ name: "Sam", trade: "electrical", address: "1 St", suburb: "Bondi", postcode: "2026", issue: "no power", day: "Tuesday", startTime: "07:00", endTime: "09:00", tech: "Nick", jobNumber: "143056" });
   assert.match(msg, /your electrical booking is confirmed/);
   assert.match(msg, /Tuesday 07:00-09:00/);
-  assert.match(msg, /Tech: Nick/);
+  // The tech name is intentionally NOT shown to the customer (overflow safety —
+  // the "tech" may be the Jess AI placeholder). Passing tech is ignored.
+  assert.doesNotMatch(msg, /Nick/);
   assert.match(msg, /Tech will call 30min before arrival/);
 });
 
@@ -39,20 +41,16 @@ test("composeBookingConfirmation — standard, no slot → team will call, no jo
   assert.doesNotMatch(msg, /^Job Number:/);
 });
 
-test("sendSMS — MMS failure falls back to plain SMS (the shipped fallback)", async () => {
+test("sendSMS — sends a plain SMS via MessageMedia (SMS-only; MMS removed)", async () => {
   const calls = [];
   mock.method(globalThis, "fetch", async (url, opts) => {
-    const body = JSON.parse(opts.body);
-    calls.push(body.messages[0]);
-    // First attempt is the MMS → reject like an MMS-disabled account (402); SMS retry → ok.
-    const isMms = body.messages[0].format === "MMS";
-    return { ok: !isMms, status: isMms ? 402 : 200, text: async () => (isMms ? '{"message":"not enabled to send MMS"}' : '{"ok":true}') };
+    calls.push(JSON.parse(opts.body).messages[0]);
+    return { ok: true, status: 200, text: async () => '{"ok":true}' };
   });
-  const env = { MESSAGEMEDIA_API_KEY: "k", MESSAGEMEDIA_API_SECRET: "s" };
-  await sendSMS(env, { phone: "0420994836", message: "hi", mediaUrl: "https://x/y.jpg", subject: "T" });
+  const env = { MESSAGEMEDIA_API_KEY: "k", MESSAGEMEDIA_API_SECRET: "s", NOTIFY_TEST_MODE: "false" };
+  await sendSMS(env, { phone: "0420994836", message: "hi" });
   mock.restoreAll();
-  assert.equal(calls.length, 2, "should attempt MMS then retry as SMS");
-  assert.equal(calls[0].format, "MMS");
-  assert.equal(calls[1].format, "SMS");
-  assert.equal(calls[1].media, undefined, "retry drops the media");
+  assert.equal(calls.length, 1, "one SMS send, no MMS attempt");
+  assert.equal(calls[0].format, "SMS");
+  assert.equal(calls[0].media, undefined);
 });
