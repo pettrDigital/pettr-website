@@ -99,7 +99,7 @@ async function handleQuote(context) {
       `;
 
       await sendEmail(env, {
-        from: 'webform@plumberandelectrician.com.au',
+        from: 'Plumber and Electrician to the Rescue <mrwasher@plumberandelectrician.com.au>',
         to: teamEmail(env),
         subject: `New Quote Request from ${data.name}`,
         html: emailHtml,
@@ -214,7 +214,7 @@ async function handleQuote(context) {
       const subjectLead = (booked && jobNumber) ? `Job Booked: ${jobNumber}` : 'Job Request';
       try {
         await sendEmail(env, {
-          from: 'webform@plumberandelectrician.com.au',
+          from: 'Plumber and Electrician to the Rescue <mrwasher@plumberandelectrician.com.au>',
           to: teamEmail(env),
           subject: `${subjectLead} - ${data.name}${isAfterHours ? ' - AFTER HOURS' : ''}`,
           html: emailHtml,
