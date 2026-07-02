@@ -188,9 +188,13 @@ async function handleQuote(context) {
       const isAfterHours = data.bookNowUrgency === 'tonight';
       // "Booked" (gets a job number) = a confirmed slot or an after-hours call-out.
       const booked = !!slot || isAfterHours;
+      // A standard slot booking that produced no job number means the AroFlo write
+      // failed (after-hours legitimately has no job; a test-mode block is intentional).
+      const notInAroflo = !isAfterHours && !!slot && !jobNumber && arofloResult?.blocked !== true;
       const suburbDisplay = data.suburb ? `, ${escapeHtml(data.suburb)}` : '';
       let emailHtml = `
-        <h2>${booked ? 'Booked Job' : 'Job Request'}</h2>
+        ${notInAroflo ? '<p style="background:#ff0d00;color:#fff;padding:12px;font-weight:800;font-size:16px;text-align:center;border-radius:4px;margin:0 0 12px">⚠ ACTION - BOOKING NOT MADE IN AROFLO</p>' : ''}
+        <h2>${notInAroflo ? 'Job NOT created — action required' : booked ? 'Booked Job' : 'Job Request'}</h2>
         ${jobNumber ? `<p><strong>Job number:</strong> ${escapeHtml(String(jobNumber))}</p>` : ''}
         <p><strong>Name:</strong> ${escapeHtml(data.name)}</p>
         <p><strong>Email:</strong> ${escapeHtml(data.email)}</p>
@@ -211,7 +215,8 @@ async function handleQuote(context) {
 
       emailHtml += `</div>`;
 
-      const subjectLead = (booked && jobNumber) ? `Job Booked: ${jobNumber}` : 'Job Request';
+      const subjectLead = notInAroflo ? 'ACTION - BOOKING NOT MADE IN AROFLO'
+        : (booked && jobNumber) ? `Job Booked: ${jobNumber}` : 'Job Request';
       try {
         await sendEmail(env, {
           from: 'Plumber and Electrician to the Rescue <mrwasher@plumberandelectrician.com.au>',
